@@ -1,8 +1,24 @@
 import { Result } from "react-states";
 
-export type StorageError = {
-  type: "ERROR";
-};
+export type StorageError =
+  | {
+      type: "ERROR";
+    }
+  | {
+      type: "NO_ACCESS";
+    };
+
+export type StorageReadError =
+  | StorageError
+  | {
+      type: "NOT_FOUND";
+    };
+
+export type StorageWriteError =
+  | StorageError
+  | {
+      type: "WRITE_ERROR";
+    };
 
 export type Family = {
   id: string;
@@ -37,30 +53,45 @@ export type Task = {
   date: number | null;
 };
 
+// Each user has an array representing each day of the week,
+// which holds a boolean if the task is active or not
+export type WeekTaskActivity = [
+  boolean,
+  boolean,
+  boolean,
+  boolean,
+  boolean,
+  boolean,
+  boolean
+];
+
 export type Week = {
   // Week id is the date of each Monday (YYYYMMDD)
   id: string;
   tasks: {
-    // Each user has an array representing each day of the week,
-    // which holds an array of ids to tasks
-    [userId: string]: [
-      string[],
-      string[],
-      string[],
-      string[],
-      string[],
-      string[],
-      string[]
-    ];
+    [taskId: string]: {
+      [userId: string]: WeekTaskActivity;
+    };
   };
 };
 
 export interface Storage {
-  getGroceries(): Result<Grocery[], StorageError>;
-  getTasks(): Result<Task[], StorageError>;
-  getWeek(id: string): Result<Week, StorageError>;
+  getGroceries(): Result<Grocery[], StorageReadError>;
+  getTasks(): Result<Task[], StorageReadError>;
+  getWeek(id: string): Result<Week, StorageReadError>;
   addGrocery(
     category: GroceryCategory,
     name: string
-  ): Result<Grocery, StorageError>;
+  ): Result<Grocery, StorageWriteError>;
+  deleteGrocery(id: string): Result<void, StorageWriteError>;
+  getFamily(id: string): Result<Family, StorageReadError>;
+  setGroceryShopCount(
+    id: string,
+    shopCount: number
+  ): Result<Grocery, StorageWriteError>;
+  archiveTask(id: string): Result<void, StorageWriteError>;
+  setWeekTaskActivity(
+    id: string,
+    weekTaskActivity: WeekTaskActivity
+  ): Result<WeekTaskActivity, StorageWriteError>;
 }

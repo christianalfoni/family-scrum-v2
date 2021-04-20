@@ -4,7 +4,8 @@ import { Auth } from ".";
 export const createAuth = (): Auth => {
   const user = {
     id: "123",
-    name: "Christian Alfoni",
+    name: "Bob Saget",
+    familyId: "456",
   };
 
   return {

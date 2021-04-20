@@ -7,9 +7,10 @@ export type AuthError = {
 export type User = {
   id: string;
   name: string;
+  familyId: string;
 };
 
 export interface Auth {
   signIn(): Result<User, AuthError>;
-  authenticate(): Result<User | null, AuthError>;
+  authenticate(): Result<User, AuthError | { type: "NOT_AUTHENTICATED" }>;
 }

@@ -1,22 +1,24 @@
 import { ok, result } from "react-states";
-import { Grocery, GroceryCategory, Storage, Week, Task } from ".";
-import { User } from "../auth";
+import { Grocery, GroceryCategory, Storage, Week, Task, Family } from ".";
 
 export const createStorage = (): Storage => {
-  const users: {
-    [id: string]: User;
-  } = {
-    user_1: {
-      id: "user_1",
-      name: "Bob Saget",
-    },
-    user_2: {
-      id: "user_2",
-      name: "Kate Winslet",
+  const family: Family = {
+    id: "456",
+    users: {
+      user_1: {
+        name: "Bob Saget",
+        avatar:
+          "https://cdn.icon-icons.com/icons2/2643/PNG/512/male_boy_person_people_avatar_icon_159358.png",
+      },
+      user_2: {
+        name: "Kate Winslet",
+        avatar:
+          "https://cdn3.iconfinder.com/data/icons/business-avatar-1/512/11_avatar-512.png",
+      },
     },
   };
 
-  const groceries: Grocery[] = [
+  let groceries: Grocery[] = [
     {
       id: "grocery_1",
       created: Date.now(),
@@ -53,8 +55,10 @@ export const createStorage = (): Storage => {
     "2021319": {
       id: "2021319",
       tasks: {
-        user_1: [[], [], [], [], [], [], ["task_2"]],
-        user_2: [[], ["task_1"], [], [], [], [], []],
+        task_1: {
+          user_1: [false, false, false, false, true, false, false],
+          user_2: [false, true, false, false, false, false, false],
+        },
       },
     },
   };
@@ -63,17 +67,28 @@ export const createStorage = (): Storage => {
     getGroceries: () => result(async (ok) => ok(groceries)),
     getWeek: (id) => result(async (ok) => ok(weeks[id])),
     getTasks: () => result(async (ok) => ok(tasks)),
-    addGrocery: result((ok) => async (category, name) => {
-      const newGrocery: Grocery = {
-        id: `grocery_${groceries.length}`,
-        created: Date.now(),
-        category,
-        name,
-        shopCount: 0,
-      };
-      groceries.push(newGrocery);
+    addGrocery: (category, name) =>
+      result(async (ok) => {
+        const newGrocery: Grocery = {
+          id: `grocery_${groceries.length}`,
+          created: Date.now(),
+          category,
+          name,
+          shopCount: 0,
+        };
+        groceries.push(newGrocery);
 
-      return ok(newGrocery);
-    }),
+        return ok(newGrocery);
+      }),
+    deleteGrocery: (id) =>
+      result(async (ok) => {
+        groceries = groceries.filter((grocery) => grocery.id !== id);
+
+        return ok();
+      }),
+    getFamily: (id) => result(async (ok) => ok(family)),
+    /*
+      IMPLEMENT LAST PIECES OF API
+    */
   };
 };
