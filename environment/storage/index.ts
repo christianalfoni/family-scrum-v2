@@ -24,13 +24,15 @@ export enum GroceryCategory {
 
 export type Grocery = {
   id: string;
+  created: number;
   name: string;
   category: GroceryCategory;
   shopCount: number;
 };
 
-export type WeekTask = {
+export type Task = {
   id: string;
+  created: number;
   description: string;
   date: number | null;
 };
@@ -55,6 +57,10 @@ export type Week = {
 
 export interface Storage {
   getGroceries(): Result<Grocery[], StorageError>;
-  getWeekTasks(): Result<WeekTask[], StorageError>;
+  getTasks(): Result<Task[], StorageError>;
   getWeek(id: string): Result<Week, StorageError>;
+  addGrocery(
+    category: GroceryCategory,
+    name: string
+  ): Result<Grocery, StorageError>;
 }
