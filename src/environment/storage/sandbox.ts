@@ -1,8 +1,15 @@
-import { ok, result } from "react-states";
-import { Grocery, GroceryCategory, Storage, Week, Task, Family } from ".";
+import { result } from "react-states";
+import {
+  GroceryDTO,
+  GroceryCategory,
+  Storage,
+  WeekDTO,
+  TaskDTO,
+  FamilyDTO,
+} from ".";
 
 export const createStorage = (): Storage => {
-  const family: Family = {
+  const family: FamilyDTO = {
     id: "456",
     users: {
       user_1: {
@@ -18,7 +25,7 @@ export const createStorage = (): Storage => {
     },
   };
 
-  let groceries: Grocery[] = [
+  let groceries: GroceryDTO[] = [
     {
       id: "grocery_1",
       created: Date.now(),
@@ -28,7 +35,7 @@ export const createStorage = (): Storage => {
     },
   ];
 
-  const tasks: Task[] = [
+  const tasks: TaskDTO[] = [
     {
       id: "task_1",
       created: Date.now(),
@@ -50,7 +57,7 @@ export const createStorage = (): Storage => {
   ];
 
   const weeks: {
-    [id: string]: Week;
+    [id: string]: WeekDTO;
   } = {
     "2021319": {
       id: "2021319",
@@ -63,13 +70,13 @@ export const createStorage = (): Storage => {
     },
   };
 
-  return {
+  return (familyId) => ({
     getGroceries: () => result(async (ok) => ok(groceries)),
     getWeek: (id) => result(async (ok) => ok(weeks[id])),
     getTasks: () => result(async (ok) => ok(tasks)),
     addGrocery: (category, name) =>
       result(async (ok) => {
-        const newGrocery: Grocery = {
+        const newGrocery: GroceryDTO = {
           id: `grocery_${groceries.length}`,
           created: Date.now(),
           category,
@@ -87,8 +94,32 @@ export const createStorage = (): Storage => {
         return ok();
       }),
     getFamily: (id) => result(async (ok) => ok(family)),
-    /*
-      IMPLEMENT LAST PIECES OF API
-    */
-  };
+    getFamilyData: (weekId) =>
+      result(async (ok) =>
+        ok({
+          groceries,
+          tasks,
+          week: weeks[weekId],
+        })
+      ),
+    archiveTask: (id) => result(async (ok) => ok()),
+    setGroceryShopCount: (id, shopCount) =>
+      result(async (ok) => {
+        const existingGrocery = groceries.find((grocery) => grocery.id === id)!;
+
+        return ok({
+          ...existingGrocery,
+          shopCount,
+        });
+      }),
+    setWeekTaskActivity: (weekId, taskId, userId, weekTaskActivity) =>
+      result(async (ok) => {
+        weeks[weekId].tasks[taskId][userId] = weekTaskActivity;
+
+        return ok(weekTaskActivity);
+      }),
+    subscribeToGroceries: () => () => {},
+    subscribeToTasks: () => () => {},
+    subscribeToWeekTaskActivity: () => () => {},
+  });
 };

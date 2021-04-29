@@ -10,8 +10,8 @@ export const createAuth = (): Auth => {
 
   return {
     authenticate: () =>
-      result(async (ok) => {
-        return ok(user);
+      result(async (_, err) => {
+        return err("NOT_AUTHENTICATED");
       }),
     signIn: () =>
       result(async (ok) => {
