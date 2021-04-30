@@ -8,8 +8,9 @@ import {
 } from "react-states";
 import { useEnvironment } from "../../environment";
 import { GroceryDTO, TaskDTO, WeekDTO } from "../../environment/storage";
-import { useAuth } from "../Auth";
+import { useAuth } from "../AuthFeature";
 import { getCurrentWeekDayId } from "../../utils";
+import { useDevtools } from "react-states/devtools";
 
 export type Grocery = GroceryDTO;
 
@@ -130,6 +131,10 @@ export const DashboardFeature = ({ children, initialContext }: Props) => {
     });
 
   const dashboardStates = useReducer(dashboardReducer, initialContext);
+
+  if (process.browser) {
+    useDevtools("Dashboard", dashboardStates);
+  }
 
   const [dashboard, send] = dashboardStates;
 

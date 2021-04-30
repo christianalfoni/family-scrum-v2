@@ -7,6 +7,7 @@ import {
   TaskDTO,
   FamilyDTO,
 } from ".";
+import { randomWait } from "../utils";
 
 export const createStorage = (): Storage => {
   const family: FamilyDTO = {
@@ -71,11 +72,24 @@ export const createStorage = (): Storage => {
   };
 
   return (familyId) => ({
-    getGroceries: () => result(async (ok) => ok(groceries)),
-    getWeek: (id) => result(async (ok) => ok(weeks[id])),
-    getTasks: () => result(async (ok) => ok(tasks)),
+    getGroceries: () =>
+      result(async (ok) => {
+        await randomWait();
+        return ok(groceries);
+      }),
+    getWeek: (id) =>
+      result(async (ok) => {
+        await randomWait();
+        return ok(weeks[id]);
+      }),
+    getTasks: () =>
+      result(async (ok) => {
+        await randomWait();
+        return ok(tasks);
+      }),
     addGrocery: (category, name) =>
       result(async (ok) => {
+        await randomWait();
         const newGrocery: GroceryDTO = {
           id: `grocery_${groceries.length}`,
           created: Date.now(),
@@ -89,22 +103,33 @@ export const createStorage = (): Storage => {
       }),
     deleteGrocery: (id) =>
       result(async (ok) => {
+        await randomWait();
         groceries = groceries.filter((grocery) => grocery.id !== id);
 
         return ok();
       }),
-    getFamily: (id) => result(async (ok) => ok(family)),
+    getFamily: (id) =>
+      result(async (ok) => {
+        await randomWait();
+        return ok(family);
+      }),
     getFamilyData: (weekId) =>
-      result(async (ok) =>
-        ok({
+      result(async (ok) => {
+        await randomWait();
+        return ok({
           groceries,
           tasks,
           week: weeks[weekId],
-        })
-      ),
-    archiveTask: (id) => result(async (ok) => ok()),
+        });
+      }),
+    archiveTask: (id) =>
+      result(async (ok) => {
+        await randomWait();
+        return ok();
+      }),
     setGroceryShopCount: (id, shopCount) =>
       result(async (ok) => {
+        await randomWait();
         const existingGrocery = groceries.find((grocery) => grocery.id === id)!;
 
         return ok({
@@ -114,6 +139,7 @@ export const createStorage = (): Storage => {
       }),
     setWeekTaskActivity: (weekId, taskId, userId, weekTaskActivity) =>
       result(async (ok) => {
+        await randomWait();
         weeks[weekId].tasks[taskId][userId] = weekTaskActivity;
 
         return ok(weekTaskActivity);

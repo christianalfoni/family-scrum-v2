@@ -1,6 +1,6 @@
 import { match } from "react-states";
 import { DevtoolsProvider } from "react-states/devtools";
-import { AuthFeature, useAuth } from "../features/Auth";
+import { AuthFeature, useAuth } from "../features/AuthFeature";
 
 /* This example requires Tailwind CSS v2.0+ */
 import { Fragment } from "react";
