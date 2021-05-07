@@ -1,4 +1,4 @@
-import { result } from "react-states";
+import { events } from "react-states";
 import {
   GroceryDTO,
   GroceryCategory,
@@ -57,7 +57,7 @@ export const createStorage = (): Storage => {
     },
   ];
 
-  const weeks: {
+  let weeks: {
     [id: string]: WeekDTO;
   } = {
     "2021319": {
@@ -71,81 +71,119 @@ export const createStorage = (): Storage => {
     },
   };
 
-  return (familyId) => ({
-    getGroceries: () =>
-      result(async (ok) => {
-        await randomWait();
-        return ok(groceries);
-      }),
-    getWeek: (id) =>
-      result(async (ok) => {
-        await randomWait();
-        return ok(weeks[id]);
-      }),
-    getTasks: () =>
-      result(async (ok) => {
-        await randomWait();
-        return ok(tasks);
-      }),
-    addGrocery: (category, name) =>
-      result(async (ok) => {
-        await randomWait();
-        const newGrocery: GroceryDTO = {
-          id: `grocery_${groceries.length}`,
-          created: Date.now(),
-          category,
-          name,
-          shopCount: 0,
-        };
-        groceries.push(newGrocery);
+  return {
+    events: events(),
+    async fetchGroceries() {
+      await randomWait();
+      this.events.emit({
+        type: "STORAGE:FETCH_GROCERIES_SUCCESS",
+        groceries,
+      });
+    },
+    async fetchWeek(_, id) {
+      await randomWait();
+      this.events.emit({
+        type: "STORAGE:FETCH_WEEK_SUCCESS",
+        week: weeks[id],
+      });
+    },
+    async fetchTasks() {
+      await randomWait();
+      this.events.emit({
+        type: "STORAGE:FETCH_TASKS_SUCCESS",
+        tasks,
+      });
+    },
+    async addGrocery(_, category, name) {
+      await randomWait();
+      const newGrocery: GroceryDTO = {
+        id: `grocery_${groceries.length}`,
+        created: Date.now(),
+        category,
+        name,
+        shopCount: 0,
+      };
+      groceries.push(newGrocery);
 
-        return ok(newGrocery);
-      }),
-    deleteGrocery: (id) =>
-      result(async (ok) => {
-        await randomWait();
-        groceries = groceries.filter((grocery) => grocery.id !== id);
+      this.events.emit({
+        type: "STORAGE:ADD_GROCERY_SUCCESS",
+        grocery: newGrocery,
+      });
+    },
+    async deleteGrocery(_, id) {
+      await randomWait();
+      groceries = groceries.filter((grocery) => grocery.id !== id);
 
-        return ok();
-      }),
-    getFamily: (id) =>
-      result(async (ok) => {
-        await randomWait();
-        return ok(family);
-      }),
-    getFamilyData: (weekId) =>
-      result(async (ok) => {
-        await randomWait();
-        return ok({
-          groceries,
-          tasks,
-          week: weeks[weekId],
-        });
-      }),
-    archiveTask: (id) =>
-      result(async (ok) => {
-        await randomWait();
-        return ok();
-      }),
-    setGroceryShopCount: (id, shopCount) =>
-      result(async (ok) => {
-        await randomWait();
-        const existingGrocery = groceries.find((grocery) => grocery.id === id)!;
+      this.events.emit({
+        type: "STORAGE:DELETE_GROCERY_SUCCESS",
+        id,
+      });
+    },
+    async fetchFamily(_, id) {
+      await randomWait();
+      this.events.emit({
+        type: "STORAGE:FETCH_FAMILY_SUCCESS",
+        family,
+      });
+    },
+    async fetchFamilyData(_, weekId) {
+      await randomWait();
+      this.events.emit({
+        type: "STORAGE:FETCH_FAMILY_DATA_SUCCESS",
+        groceries,
+        tasks,
+        week: weeks[weekId],
+      });
+    },
+    async archiveTask(_, id) {
+      await randomWait();
+      this.events.emit({
+        type: "STORAGE:ARCHIVE_TASK_SUCCESS",
+        id,
+      });
+    },
+    async setGroceryShopCount(_, id, shopCount) {
+      await randomWait();
 
-        return ok({
-          ...existingGrocery,
-          shopCount,
-        });
-      }),
-    setWeekTaskActivity: (weekId, taskId, userId, weekTaskActivity) =>
-      result(async (ok) => {
-        await randomWait();
-        weeks[weekId].tasks[taskId][userId] = weekTaskActivity;
+      groceries = groceries.map((grocery) =>
+        grocery.id === id
+          ? {
+              ...grocery,
+              shopCount,
+            }
+          : grocery
+      );
 
-        return ok(weekTaskActivity);
-      }),
-    subscribeToGroceries: () => () => {},
-    subscribeToTasks: () => () => {},
-    subscribeToWeekTaskActivity: () => () => {},
-  });
+      const grocery = groceries.find((grocery) => grocery.id === id)!;
+
+      this.events.emit({
+        type: "STORAGE:SET_GROCERY_SHOP_COUNT_SUCCESS",
+        grocery,
+      });
+    },
+    async setWeekTaskActivity(_, weekId, taskId, userId, weekTaskActivity) {
+      await randomWait();
+
+      weeks = {
+        ...weeks,
+        [weekId]: {
+          ...weeks[weekId],
+          tasks: {
+            ...weeks[weekId].tasks,
+            [taskId]: {
+              ...weeks[weekId].tasks[taskId],
+              [userId]: weekTaskActivity,
+            },
+          },
+        },
+      };
+
+      this.events.emit({
+        type: "STORAGE:SET_WEEK_TASK_ACTIVITY_SUCCESS",
+        weekId,
+        taskId,
+        userId,
+      });
+    },
+  };
 };

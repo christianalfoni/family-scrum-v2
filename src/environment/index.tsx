@@ -1,9 +1,9 @@
 import { createContext, useContext } from "react";
-import { Auth } from "./auth";
+import { Authentication } from "./authentication";
 import { Storage } from "./storage";
 
 export interface Environment {
-  auth: Auth;
+  authentication: Authentication;
   storage: Storage;
 }
 

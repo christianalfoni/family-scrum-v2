@@ -3,7 +3,7 @@ import { useDashboard } from "../../features/DashboardFeature";
 import { DashboardSkeletcon } from "./DashboardSkeleton";
 
 export const Dashboard = () => {
-  const [dashboard, send] = useDashboard();
+  const [dashboard] = useDashboard();
 
   return match(dashboard, {
     AWAITING_AUTHENTICATION: () => <DashboardSkeletcon />,

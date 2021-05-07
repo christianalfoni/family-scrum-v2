@@ -1,14 +1,14 @@
 import { match } from "react-states";
 import { DevtoolsProvider } from "react-states/devtools";
-import { AuthFeature, useAuth } from "../features/AuthFeature";
 
 /* This example requires Tailwind CSS v2.0+ */
 import { Fragment } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { LockClosedIcon } from "@heroicons/react/outline";
 import { EnvironmentProvider } from "../environment";
-import { createAuth } from "../environment/auth/sandbox";
+import { createAuthentication } from "../environment/authentication/sandbox";
 import { createStorage } from "../environment/storage/sandbox";
+import { useSession, SessionFeature } from "../features/SessionFeature";
 
 const SignInModal = ({
   open,
@@ -97,17 +97,17 @@ type Props = {
 };
 
 const Auth = () => {
-  const [auth, send] = useAuth();
+  const [session, send] = useSession();
 
   const signInModal = (
     <SignInModal
       onClick={() => {
-        send({ type: "SIGN_IN_REQUESTED" });
+        send({ type: "SIGN_IN" });
       }}
-      open={match(auth, {
+      open={match(session, {
         ERROR: () => true,
-        UNAUTHENTICATED: () => true,
-        AUTHENTICATED: () => false,
+        SIGNED_OUT: () => true,
+        SIGNED_IN: () => false,
         VERIFYING_AUTHENTICATION: () => false,
         SIGNING_IN: () => false,
       })}
@@ -121,24 +121,17 @@ export const PageContainer = ({ children }: Props) => {
   return (
     <EnvironmentProvider
       environment={{
-        auth: createAuth(),
+        authentication: createAuthentication(),
         storage: createStorage(),
       }}
     >
       <div className="w-screen h-screen" suppressHydrationWarning={true}>
-        {process.browser ? (
-          <DevtoolsProvider>
-            <AuthFeature>
-              {children}
-              <Auth />
-            </AuthFeature>
-          </DevtoolsProvider>
-        ) : (
-          <AuthFeature>
+        <DevtoolsProvider>
+          <SessionFeature>
             {children}
             <Auth />
-          </AuthFeature>
-        )}
+          </SessionFeature>
+        </DevtoolsProvider>
       </div>
     </EnvironmentProvider>
   );
