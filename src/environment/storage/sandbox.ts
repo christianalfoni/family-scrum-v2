@@ -32,7 +32,7 @@ export const createStorage = (): Storage => {
       created: Date.now(),
       category: GroceryCategory.DryGoods,
       name: "Gryn",
-      shopCount: 0,
+      shopCount: 1,
     },
   ];
 

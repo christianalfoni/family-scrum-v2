@@ -125,7 +125,7 @@ export const PageContainer = ({ children }: Props) => {
         storage: createStorage(),
       }}
     >
-      <div className="w-screen h-screen" suppressHydrationWarning={true}>
+      <div>
         <DevtoolsProvider>
           <SessionFeature>
             {children}

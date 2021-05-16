@@ -54,17 +54,17 @@ type Context =
 
 type Event = AuthenticationEvent | StorageEvent;
 
-const context = createContext<Context, never>();
+const featureContext = createContext<Context, never>();
 
-export const useFeature = createHook(context);
+export const useFeature = createHook(featureContext);
 
 const reducer = createReducer<Context, Event>({
   AWAITING_AUTHENTICATION: {
-    "AUTHENTICATION:AUTHENTICATED": ({ user }) => ({
+    "AUTHENTICATION:AUTHENTICATED": ({ user }): Context => ({
       state: "LOADING",
       familyUid: user.familyId,
     }),
-    "AUTHENTICATION:UNAUTHENTICATED": () => ({
+    "AUTHENTICATION:UNAUTHENTICATED": (): Context => ({
       state: "REQUIRING_AUTHENTICATION",
     }),
   },
@@ -78,14 +78,14 @@ const reducer = createReducer<Context, Event>({
     "STORAGE:FETCH_FAMILY_DATA_SUCCESS": (
       { groceries, tasks, week },
       { familyUid }
-    ) => ({
+    ): Context => ({
       state: "LOADED",
       familyUid,
       groceries,
       tasks,
       week,
     }),
-    "STORAGE:FETCH_FAMILY_DATA_ERROR": ({ error }) => ({
+    "STORAGE:FETCH_FAMILY_DATA_ERROR": ({ error }): Context => ({
       state: "ERROR",
       error,
     }),
@@ -97,6 +97,20 @@ const reducer = createReducer<Context, Event>({
 export type Props = {
   children: React.ReactNode;
   initialContext?: Context;
+};
+
+export const selectors = {
+  groceriesByCategory: (groceries: Groceries) => {
+    return groceries.sort((a, b) => {
+      if (a.category > b.category) {
+        return 1;
+      } else if (a.category < b.category) {
+        return -1;
+      }
+
+      return 0;
+    });
+  },
 };
 
 export const Feature = ({ children, initialContext }: Props) => {
@@ -125,22 +139,26 @@ export const Feature = ({ children, initialContext }: Props) => {
       }),
     });
 
-  const featureReducer = useReducer(reducer, initialContext);
+  const feature = useReducer(reducer, initialContext);
 
   if (process.browser) {
-    useDevtools("Dashboard", featureReducer);
+    useDevtools("Dashboard", feature);
   }
 
-  const [feature, send] = featureReducer;
+  const [context, send] = feature;
 
   useEvents(authentication.events, send);
   useEvents(storage.events, send);
 
-  useEnterEffect(feature, "LOADING", ({ familyUid }) => {
+  useEnterEffect(context, "LOADING", ({ familyUid }) => {
     const weekId = getCurrentWeekDayId(0);
 
     storage.fetchFamilyData(familyUid, weekId);
   });
 
-  return <context.Provider value={featureReducer}>{children}</context.Provider>;
+  return (
+    <featureContext.Provider value={feature}>
+      {children}
+    </featureContext.Provider>
+  );
 };
