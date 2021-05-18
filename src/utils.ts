@@ -63,7 +63,26 @@ export const getInitials = (name: string) => {
     .join("");
 };
 
-export const getWeekDayIndexes = (dates: string[], weekDates: string[]) => {
+export const weekdays = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+];
+
+// To support negative numbers
+export const mod = (n: number, m: number) => {
+  return ((n % m) + m) % m;
+};
+
+export const getCurrentDayIndex = () => {
+  return mod(new Date().getDay() - 1, 7);
+};
+
+export const getWeekdayIndexes = (dates: string[], weekDates: string[]) => {
   return dates
     .filter((date) => weekDates.includes(date))
     .map((date) => getDay(parse(date, "yyyyMMdd", new Date())));

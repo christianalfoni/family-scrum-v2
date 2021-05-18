@@ -9,6 +9,8 @@ import {
 } from "react-states";
 import { useEnvironment } from "../../environment";
 import {
+  CalendarEventDTO,
+  FamilyDTO,
   GroceryDTO,
   StorageEvent,
   TaskDTO,
@@ -19,15 +21,37 @@ import { getCurrentWeekDayId } from "../../utils";
 import { useDevtools } from "react-states/devtools";
 import { AuthenticationEvent } from "../../environment/authentication";
 
+export type Family = FamilyDTO;
+
 export type Grocery = GroceryDTO;
 
 export type Groceries = Grocery[];
 
 export type Task = TaskDTO;
 
-export type Tasks = Task[];
+export type CalendarEvent = CalendarEventDTO;
+
+export type Tasks = {
+  [taskId: string]: Task;
+};
+
+export type CalendarEvents = {
+  [eventId: string]: CalendarEvent;
+};
 
 export type Week = WeekDTO;
+
+export type WeekdayTasks = {
+  [taskId: string]: string[];
+};
+
+export type ContentContext =
+  | {
+      state: "WEEKDAYS";
+    }
+  | {
+      state: "GROCERIES";
+    };
 
 type Context =
   | {
@@ -41,30 +65,40 @@ type Context =
       familyUid: string;
     }
   | {
-      state: "LOADED";
-      familyUid: string;
-      groceries: Groceries;
-      tasks: Task[];
-      week: Week;
-    }
-  | {
       state: "ERROR";
       error: string;
+    }
+  | {
+      state: "LOADED";
+      content: ContentContext;
+      family: Family;
+      groceries: Groceries;
+      tasks: Tasks;
+      week: Week;
+      events: CalendarEvents;
     };
 
-type Event = AuthenticationEvent | StorageEvent;
+export type UIEvent =
+  | {
+      type: "WEEKDAYS_SELECTED";
+    }
+  | {
+      type: "GROCERIES_SELECTED";
+    };
 
-const featureContext = createContext<Context, never>();
+type Event = UIEvent | AuthenticationEvent | StorageEvent;
+
+const featureContext = createContext<Context, UIEvent>();
 
 export const useFeature = createHook(featureContext);
 
 const reducer = createReducer<Context, Event>({
   AWAITING_AUTHENTICATION: {
-    "AUTHENTICATION:AUTHENTICATED": ({ user }): Context => ({
+    "AUTHENTICATION:AUTHENTICATED": ({ user }) => ({
       state: "LOADING",
       familyUid: user.familyId,
     }),
-    "AUTHENTICATION:UNAUTHENTICATED": (): Context => ({
+    "AUTHENTICATION:UNAUTHENTICATED": () => ({
       state: "REQUIRING_AUTHENTICATION",
     }),
   },
@@ -76,21 +110,39 @@ const reducer = createReducer<Context, Event>({
   },
   LOADING: {
     "STORAGE:FETCH_FAMILY_DATA_SUCCESS": (
-      { groceries, tasks, week },
+      { groceries, tasks, week, family, events },
       { familyUid }
-    ): Context => ({
+    ) => ({
       state: "LOADED",
+      content: {
+        state: "WEEKDAYS",
+      },
       familyUid,
       groceries,
       tasks,
       week,
+      family,
+      events,
     }),
-    "STORAGE:FETCH_FAMILY_DATA_ERROR": ({ error }): Context => ({
+    "STORAGE:FETCH_FAMILY_DATA_ERROR": ({ error }) => ({
       state: "ERROR",
       error,
     }),
   },
-  LOADED: {},
+  LOADED: {
+    WEEKDAYS_SELECTED: (_, context) => ({
+      ...context,
+      content: {
+        state: "WEEKDAYS",
+      },
+    }),
+    GROCERIES_SELECTED: (_, context) => ({
+      ...context,
+      content: {
+        state: "GROCERIES",
+      },
+    }),
+  },
   ERROR: {},
 });
 
@@ -110,6 +162,32 @@ export const selectors = {
 
       return 0;
     });
+  },
+  tasksByWeekday: (week: Week) => {
+    const tasksByWeekday: [
+      WeekdayTasks,
+      WeekdayTasks,
+      WeekdayTasks,
+      WeekdayTasks,
+      WeekdayTasks,
+      WeekdayTasks,
+      WeekdayTasks
+    ] = [{}, {}, {}, {}, {}, {}, {}];
+
+    for (let taskId in week.tasks) {
+      for (let userId in week.tasks[taskId]) {
+        week.tasks[taskId][userId].forEach((isActive, index) => {
+          if (isActive) {
+            if (!tasksByWeekday[index][taskId]) {
+              tasksByWeekday[index][taskId] = [];
+            }
+            tasksByWeekday[index][taskId].push(userId);
+          }
+        });
+      }
+    }
+
+    return tasksByWeekday;
   },
 };
 

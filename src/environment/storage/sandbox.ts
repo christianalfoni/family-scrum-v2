@@ -1,4 +1,4 @@
-import { events } from "react-states";
+import { events as reactStatesEvents } from "react-states";
 import {
   GroceryDTO,
   GroceryCategory,
@@ -6,6 +6,7 @@ import {
   WeekDTO,
   TaskDTO,
   FamilyDTO,
+  CalendarEventDTO,
 } from ".";
 import { randomWait } from "../utils";
 
@@ -16,7 +17,7 @@ export const createStorage = (): Storage => {
       user_1: {
         name: "Bob Saget",
         avatar:
-          "https://cdn.icon-icons.com/icons2/2643/PNG/512/male_boy_person_people_avatar_icon_159358.png",
+          "https://cdn.iconscout.com/icon/free/png-256/avatar-366-456318.png",
       },
       user_2: {
         name: "Kate Winslet",
@@ -36,43 +37,53 @@ export const createStorage = (): Storage => {
     },
   ];
 
-  const tasks: TaskDTO[] = [
-    {
-      id: "task_1",
-      created: Date.now(),
-      description: "Do something cool",
-      date: null,
-    },
-    {
-      id: "task_2",
-      created: Date.now(),
-      description: "Do something else",
-      date: null,
-    },
-    {
-      id: "task_3",
+  const events: {
+    [eventId: string]: CalendarEventDTO;
+  } = {
+    event_1: {
+      id: "event_1",
       created: Date.now(),
       description: "Go on a trip",
       date: 1624128658456,
+      userIds: ["user_1", "user_2"],
     },
-  ];
+  };
+
+  const tasks: {
+    [taskId: string]: TaskDTO;
+  } = {
+    task_1: {
+      id: "task_1",
+      created: Date.now(),
+      description: "Do something cool",
+    },
+    task_2: {
+      id: "task_2",
+      created: Date.now(),
+      description: "Do something else",
+    },
+  };
 
   let weeks: {
     [id: string]: WeekDTO;
   } = {
-    "2021319": {
-      id: "2021319",
+    "20210516": {
+      id: "20210516",
       tasks: {
         task_1: {
           user_1: [false, false, false, false, true, false, false],
           user_2: [false, true, false, false, false, false, false],
+        },
+        task_2: {
+          user_1: [false, false, false, false, false, true, false],
+          user_2: [false, true, false, false, false, true, false],
         },
       },
     },
   };
 
   return {
-    events: events(),
+    events: reactStatesEvents(),
     async fetchGroceries() {
       await randomWait();
       this.events.emit({
@@ -127,12 +138,15 @@ export const createStorage = (): Storage => {
       });
     },
     async fetchFamilyData(_, weekId) {
+      console.log(weekId);
       await randomWait();
       this.events.emit({
         type: "STORAGE:FETCH_FAMILY_DATA_SUCCESS",
         groceries,
         tasks,
         week: weeks[weekId],
+        family,
+        events,
       });
     },
     async archiveTask(_, id) {

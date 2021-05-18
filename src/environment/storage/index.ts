@@ -30,7 +30,14 @@ export type TaskDTO = {
   id: string;
   created: number;
   description: string;
-  date: number | null;
+};
+
+export type CalendarEventDTO = {
+  id: string;
+  created: number;
+  description: string;
+  date: number;
+  userIds: string[];
 };
 
 // Each user has an array representing each day of the week,
@@ -58,9 +65,15 @@ export type WeekDTO = {
 export type StorageEvent =
   | {
       type: "STORAGE:FETCH_FAMILY_DATA_SUCCESS";
+      family: FamilyDTO;
       groceries: GroceryDTO[];
-      tasks: TaskDTO[];
+      tasks: {
+        [taskId: string]: TaskDTO;
+      };
       week: WeekDTO;
+      events: {
+        [eventId: string]: CalendarEventDTO;
+      };
     }
   | {
       type: "STORAGE:FETCH_FAMILY_DATA_ERROR";
@@ -76,7 +89,9 @@ export type StorageEvent =
     }
   | {
       type: "STORAGE:FETCH_TASKS_SUCCESS";
-      tasks: TaskDTO[];
+      tasks: {
+        [taskId: string]: TaskDTO;
+      };
     }
   | {
       type: "STORAGE:FETCH_TASKS_ERROR";
