@@ -51,9 +51,11 @@ const GroceriesToolbar = ({
         <div className="flex-grow">
           <input
             type="text"
+            value={newGroceryTitle}
+            onChange={(event) => setNewGroceryTitle(event.target.value)}
             disabled={!activeCategory}
-            className="block w-full shadow-sm focus:ring-light-blue-500 focus:border-light-blue-500 sm:text-sm border-gray-300 rounded-md"
-            placeholder="Grocery name"
+            className="disabled:opacity-50 block w-full shadow-sm focus:ring-light-blue-500 focus:border-light-blue-500 sm:text-sm border-gray-300 rounded-md"
+            placeholder={activeCategory ? "Grocery name" : "Choose category"}
             aria-describedby="add_team_members_helper"
           />
         </div>
@@ -61,7 +63,7 @@ const GroceriesToolbar = ({
           <button
             type="button"
             disabled={!activeCategory}
-            className="bg-white inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-light-blue-500"
+            className="disabled:opacity-50 bg-white inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-light-blue-500"
           >
             <PlusIcon
               className="-ml-2 mr-1 h-5 w-5 text-gray-400"

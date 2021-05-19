@@ -203,6 +203,7 @@ export const selectors = {
 export const Feature = ({ children, initialContext }: Props) => {
   const { storage, authentication } = useEnvironment();
   const [session] = useSession();
+
   const matchSession = match(session);
 
   initialContext =

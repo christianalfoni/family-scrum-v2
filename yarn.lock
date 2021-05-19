@@ -2500,10 +2500,10 @@ react-refresh@0.8.3:
   resolved "https://registry.yarnpkg.com/react-refresh/-/react-refresh-0.8.3.tgz#721d4657672d400c5e3c75d063c4a85fb2d5d68f"
   integrity sha512-X8jZHc7nCMjaCqoU+V2I0cOhNW+QMBwSUkeXnTi8IPe6zaRWfn60ZzvFDZqWPfmSJfjub7dDW1SP0jaHWLu/hg==
 
-react-states@^6.22.0-next:
-  version "6.22.0-next"
-  resolved "https://registry.yarnpkg.com/react-states/-/react-states-6.22.0-next.tgz#556154488309df594b8ff21de882569cf6373a7e"
-  integrity sha512-mb7nDBKtg0DPfcCiR8RQCAztQC2HQG6+tgK5nTlRGtvf09d4Hc8ECtnApp4qAoFrS42CIn9puFVZV1vuvpcAWQ==
+react-states@^6.23.1-next:
+  version "6.23.1-next"
+  resolved "https://registry.yarnpkg.com/react-states/-/react-states-6.23.1-next.tgz#7f5283ba6fb9aeb98ce72795965fbe47815386ff"
+  integrity sha512-X1gTTDpsKiczzjI/h1b/sWFSBQ9KCLjgNEW96+Q0SZcG1W0+NbQTevKCzYZnio+qtGgDAGLkxGN9K15dJpS1Tg==
 
 react@^17.0.2:
   version "17.0.2"
