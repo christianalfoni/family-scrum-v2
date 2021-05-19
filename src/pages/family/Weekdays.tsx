@@ -1,0 +1,169 @@
+import { format } from "date-fns";
+import React from "react";
+import {
+  Tasks,
+  Week,
+  dashboardSelectors,
+} from "../../features/DashboardFeature";
+import {
+  CalendarEvents,
+  Family,
+} from "../../features/DashboardFeature/DashboardFeature";
+import { getCurrentDayIndex, weekdays } from "../../utils";
+
+const Weekday = React.memo(
+  ({
+    weekday,
+    className = "",
+    children = null,
+  }: {
+    weekday: string;
+    className?: string;
+    children?: React.ReactNode;
+  }) => (
+    <div
+      className={`${className} sm:rounded-tr-none relative group bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-cyan-500`}
+    >
+      <div className="flex items-center">
+        <div
+          className={`${
+            weekdays[getCurrentDayIndex()] === weekday
+              ? "bg-red-500"
+              : "bg-gray-200"
+          } flex-shrink-0 w-2.5 h-2.5 rounded-full`}
+          aria-hidden="true"
+        />
+        <h4 className="text-gray-600 ml-2 text-lg">{weekday}</h4>
+      </div>
+      {children}
+    </div>
+  )
+);
+
+const WeekdaySkeleton = React.memo(
+  ({ weekday, className = "" }: { weekday: string; className?: string }) => (
+    <div
+      className={`${className} sm:rounded-tr-none relative group bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-cyan-500`}
+    >
+      <div className="flex items-center">
+        <div
+          className="bg-gray-400 flex-shrink-0 w-2.5 h-2.5 rounded-full"
+          aria-hidden="true"
+        />
+        <h4 className="text-gray-400 ml-2 text-lg">{weekday}</h4>
+      </div>
+    </div>
+  )
+);
+
+export const WeekdaysSkeleton = () => (
+  <>
+    <WeekdaySkeleton weekday="Monday" className="rounded-tl-lg" />
+    <WeekdaySkeleton weekday="Tuesday" />
+    <WeekdaySkeleton weekday="Wednesday" className="rounded-tr-lg" />
+    <WeekdaySkeleton weekday="Thursday" />
+    <WeekdaySkeleton weekday="Friday" />
+    <WeekdaySkeleton weekday="Saturday" />
+    <WeekdaySkeleton weekday="Sunday" className="rounded-bl-lg" />
+    <div className="col-span-2 rounded-br-lg sm:rounded-tr-none relative group bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-cyan-500">
+      <h4 className="text-gray-400">Events</h4>
+    </div>
+  </>
+);
+
+export const Weekdays = ({
+  tasks,
+  week,
+  family,
+  events,
+}: {
+  tasks: Tasks;
+  week: Week;
+  family: Family;
+  events: CalendarEvents;
+}) => {
+  const tasksByWeekday = dashboardSelectors.tasksByWeekday(week);
+
+  return (
+    <>
+      {tasksByWeekday.map((weekdayTasks, index) => (
+        <Weekday
+          key={index}
+          weekday={weekdays[index]}
+          className={
+            [
+              "rounded-tl-lg",
+              undefined,
+              "rounded-tr-lg",
+              undefined,
+              undefined,
+              undefined,
+              "rounded-bl-lg",
+            ][index]
+          }
+        >
+          <ul className="mt-2 ">
+            {Object.keys(weekdayTasks).map((taskId) => (
+              <li
+                key={taskId}
+                className="py-3 flex justify-between items-center"
+              >
+                <div className="flex items-center space-x-2">
+                  <div className="flex flex-shrink-0 -space-x-1">
+                    {weekdayTasks[taskId].map((userId) => (
+                      <img
+                        key={userId}
+                        className="max-w-none h-6 w-6 rounded-full ring-2 ring-white"
+                        src={family.users[userId].avatar!}
+                        alt={family.users[userId].name}
+                      />
+                    ))}
+                  </div>
+                  <p className="ml-4 text-sm font-medium text-gray-900">
+                    {tasks[taskId].description}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </Weekday>
+      ))}
+
+      <div className="col-span-2 rounded-br-lg sm:rounded-tr-none relative group bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-cyan-500">
+        <h4 className="text-gray-600">Events</h4>
+        <ul>
+          {Object.keys(events).map((eventId) => {
+            const event = events[eventId];
+
+            return (
+              <li
+                key={eventId}
+                className="py-3 flex justify-between items-center"
+              >
+                <div className="flex items-center space-x-2">
+                  <span className="text-xs leading-5 font-medium">
+                    {format(event.date, "dd.MM.yyyy")}
+                  </span>
+                  <div className="flex flex-shrink-0 -space-x-1">
+                    {event.userIds.map((userId) => (
+                      <img
+                        key={userId}
+                        className="max-w-none h-6 w-6 rounded-full ring-2 ring-white"
+                        src={family.users[userId].avatar!}
+                        alt={family.users[userId].name}
+                      />
+                    ))}
+                  </div>
+
+                  <p className="ml-4 text-sm font-medium text-gray-900">
+                    {event.description}
+                  </p>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </>
+  );
+};

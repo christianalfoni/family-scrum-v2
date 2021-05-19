@@ -11,6 +11,7 @@ import { useEnvironment } from "../../environment";
 import {
   CalendarEventDTO,
   FamilyDTO,
+  GroceryCategory,
   GroceryDTO,
   StorageEvent,
   TaskDTO,
@@ -31,6 +32,8 @@ export type Task = TaskDTO;
 
 export type CalendarEvent = CalendarEventDTO;
 
+export type View = "WEEKDAYS" | "GROCERIES";
+
 export type Tasks = {
   [taskId: string]: Task;
 };
@@ -45,13 +48,13 @@ export type WeekdayTasks = {
   [taskId: string]: string[];
 };
 
-export type ContentContext =
-  | {
-      state: "WEEKDAYS";
-    }
-  | {
-      state: "GROCERIES";
-    };
+type BaseContext = {
+  family: Family;
+  groceries: Groceries;
+  tasks: Tasks;
+  week: Week;
+  events: CalendarEvents;
+};
 
 type Context =
   | {
@@ -68,22 +71,25 @@ type Context =
       state: "ERROR";
       error: string;
     }
-  | {
-      state: "LOADED";
-      content: ContentContext;
-      family: Family;
-      groceries: Groceries;
-      tasks: Tasks;
-      week: Week;
-      events: CalendarEvents;
-    };
+  | (BaseContext &
+      (
+        | {
+            state: "WEEKDAYS";
+          }
+        | {
+            state: "GROCERIES";
+            activeCategory?: GroceryCategory;
+          }
+      ));
 
 export type UIEvent =
   | {
-      type: "WEEKDAYS_SELECTED";
+      type: "VIEW_SELECTED";
+      view: View;
     }
   | {
-      type: "GROCERIES_SELECTED";
+      type: "GROCERY_CATEGORY_TOGGLED";
+      category: GroceryCategory;
     };
 
 type Event = UIEvent | AuthenticationEvent | StorageEvent;
@@ -91,6 +97,11 @@ type Event = UIEvent | AuthenticationEvent | StorageEvent;
 const featureContext = createContext<Context, UIEvent>();
 
 export const useFeature = createHook(featureContext);
+
+const selectView = ({ view }: { view: View }, context: BaseContext) => ({
+  ...context,
+  state: view,
+});
 
 const reducer = createReducer<Context, Event>({
   AWAITING_AUTHENTICATION: {
@@ -113,10 +124,7 @@ const reducer = createReducer<Context, Event>({
       { groceries, tasks, week, family, events },
       { familyUid }
     ) => ({
-      state: "LOADED",
-      content: {
-        state: "WEEKDAYS",
-      },
+      state: "WEEKDAYS",
       familyUid,
       groceries,
       tasks,
@@ -129,18 +137,15 @@ const reducer = createReducer<Context, Event>({
       error,
     }),
   },
-  LOADED: {
-    WEEKDAYS_SELECTED: (_, context) => ({
+  WEEKDAYS: {
+    VIEW_SELECTED: selectView,
+  },
+  GROCERIES: {
+    VIEW_SELECTED: selectView,
+    GROCERY_CATEGORY_TOGGLED: ({ category }, context) => ({
       ...context,
-      content: {
-        state: "WEEKDAYS",
-      },
-    }),
-    GROCERIES_SELECTED: (_, context) => ({
-      ...context,
-      content: {
-        state: "GROCERIES",
-      },
+      activeCategory:
+        context.activeCategory === category ? undefined : category,
     }),
   },
   ERROR: {},
@@ -163,6 +168,10 @@ export const selectors = {
       return 0;
     });
   },
+  filterGroceriesByCategory: (
+    groceries: Groceries,
+    category: GroceryCategory
+  ) => groceries.filter((grocery) => grocery.category === category),
   tasksByWeekday: (week: Week) => {
     const tasksByWeekday: [
       WeekdayTasks,
