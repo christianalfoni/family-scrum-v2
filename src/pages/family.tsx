@@ -1,7 +1,7 @@
 import React from "react";
-import { DashboardFeature } from "../../features/DashboardFeature";
-import { PageContainer } from "../PageContainer";
-import { Dashboard } from "./Dashboard";
+import { DashboardFeature } from "../features/DashboardFeature";
+import { PageContainer } from "../components/PageContainer";
+import { Dashboard } from "../components/Dashboard";
 
 function FamilyPage() {
   return (

@@ -1,11 +1,11 @@
 import { CalendarIcon, ShoppingCartIcon } from "@heroicons/react/outline";
 import React from "react";
 import { match } from "react-states";
-import { useDashboard } from "../../features/DashboardFeature";
-import { View } from "../../features/DashboardFeature/DashboardFeature";
-import { GroceriesContent } from "./GroceriesContent";
+import { useDashboard } from "../features/DashboardFeature";
+import { View } from "../features/DashboardFeature/DashboardFeature";
+import { GroceriesView } from "./GroceriesView";
 import { GroceryList, GroceryListSkeleton } from "./GroceryList";
-import { Weekdays, WeekdaysSkeleton } from "./Weekdays";
+import { WeekdaysView, WeekdaysSkeleton } from "./Weekdays";
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => (
   <div className="bg-gray-50">
@@ -157,23 +157,23 @@ export const Dashboard = () => {
       <DashboardLayout>
         <GroceryList groceries={groceries} />
         <MainContentLayout>
-          <Weekdays tasks={tasks} week={week} family={family} events={events} />
+          <WeekdaysView
+            tasks={tasks}
+            week={week}
+            family={family}
+            events={events}
+          />
         </MainContentLayout>
       </DashboardLayout>
     ),
-    GROCERIES: ({ groceries, activeCategory }) => (
+    GROCERIES: ({ groceries, activeCategory, groceryInput }) => (
       <DashboardLayout>
         <GroceryList groceries={groceries} />
         <MainContentLayout>
-          <GroceriesContent
+          <GroceriesView
             groceries={groceries}
             activeCategory={activeCategory}
-            onCategoryClick={(category) => {
-              send({
-                type: "GROCERY_CATEGORY_TOGGLED",
-                category,
-              });
-            }}
+            groceryInput={groceryInput}
           />
         </MainContentLayout>
       </DashboardLayout>

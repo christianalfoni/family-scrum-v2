@@ -21,6 +21,7 @@ import { useSession } from "../SessionFeature";
 import { getCurrentWeekDayId } from "../../utils";
 import { useDevtools } from "react-states/devtools";
 import { AuthenticationEvent } from "../../environment/authentication";
+import levenshtein from "fast-levenshtein";
 
 export type Family = FamilyDTO;
 
@@ -56,6 +57,35 @@ type BaseContext = {
   events: CalendarEvents;
 };
 
+type CategoriesContext =
+  | {
+      state: "NONE";
+    }
+  | {
+      state: GroceryCategory.DryGoods;
+    }
+  | {
+      state: GroceryCategory.Frozen;
+    }
+  | {
+      state: GroceryCategory.FruitVegetables;
+    }
+  | {
+      state: GroceryCategory.MeatDairy;
+    }
+  | {
+      state: GroceryCategory.Other;
+    };
+
+type GroceryInputContext =
+  | {
+      state: "EMPTY";
+    }
+  | {
+      state: "VALUE";
+      value: string;
+    };
+
 type Context =
   | {
       state: "AWAITING_AUTHENTICATION";
@@ -78,7 +108,8 @@ type Context =
           }
         | {
             state: "GROCERIES";
-            activeCategory?: GroceryCategory;
+            categories: CategoriesContext;
+            groceryInput: string;
           }
       ));
 
@@ -90,6 +121,15 @@ export type UIEvent =
   | {
       type: "GROCERY_CATEGORY_TOGGLED";
       category: GroceryCategory;
+    }
+  | {
+      type: "GROCERY_INPUT_CHANGED";
+      input: string;
+    }
+  | {
+      type: "ADD_GROCERY";
+      name: string;
+      category: GroceryCategory;
     };
 
 type Event = UIEvent | AuthenticationEvent | StorageEvent;
@@ -98,10 +138,32 @@ const featureContext = createContext<Context, UIEvent>();
 
 export const useFeature = createHook(featureContext);
 
-const selectView = ({ view }: { view: View }, context: BaseContext) => ({
-  ...context,
-  state: view,
-});
+const selectView = (
+  { view }: { view: View },
+  { events, family, groceries, tasks, week }: BaseContext
+): Context => {
+  switch (view) {
+    case "GROCERIES":
+      return {
+        state: "GROCERIES",
+        groceryInput: "",
+        events,
+        family,
+        groceries,
+        tasks,
+        week,
+      };
+    case "WEEKDAYS":
+      return {
+        state: "WEEKDAYS",
+        events,
+        family,
+        groceries,
+        tasks,
+        week,
+      };
+  }
+};
 
 const reducer = createReducer<Context, Event>({
   AWAITING_AUTHENTICATION: {
@@ -147,6 +209,11 @@ const reducer = createReducer<Context, Event>({
       activeCategory:
         context.activeCategory === category ? undefined : category,
     }),
+    GROCERY_INPUT_CHANGED: ({ input }, context) => ({
+      ...context,
+      groceryInput: input,
+    }),
+    ADD_GROCERY: ({ name, category }, context) => ({}),
   },
   ERROR: {},
 });
@@ -172,6 +239,22 @@ export const selectors = {
     groceries: Groceries,
     category: GroceryCategory
   ) => groceries.filter((grocery) => grocery.category === category),
+  filterGroceriesByInput: (groceries: Groceries, input: string) => {
+    if (input) {
+      const lowerCaseInput = input.toLocaleLowerCase();
+
+      return groceries.filter((grocery) => {
+        const lowerCaseGroceryName = grocery.name.toLowerCase();
+
+        return (
+          lowerCaseGroceryName.includes(lowerCaseInput) ||
+          levenshtein.get(grocery.name.toLowerCase(), input.toLowerCase()) < 3
+        );
+      });
+    }
+
+    return groceries;
+  },
   tasksByWeekday: (week: Week) => {
     const tasksByWeekday: [
       WeekdayTasks,

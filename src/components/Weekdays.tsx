@@ -1,15 +1,11 @@
 import { format } from "date-fns";
 import React from "react";
-import {
-  Tasks,
-  Week,
-  dashboardSelectors,
-} from "../../features/DashboardFeature";
+import { Tasks, Week, dashboardSelectors } from "../features/DashboardFeature";
 import {
   CalendarEvents,
   Family,
-} from "../../features/DashboardFeature/DashboardFeature";
-import { getCurrentDayIndex, weekdays } from "../../utils";
+} from "../features/DashboardFeature/DashboardFeature";
+import { getCurrentDayIndex, weekdays } from "../utils";
 
 const Weekday = React.memo(
   ({
@@ -71,7 +67,7 @@ export const WeekdaysSkeleton = () => (
   </>
 );
 
-export const Weekdays = ({
+export const WeekdaysView = ({
   tasks,
   week,
   family,

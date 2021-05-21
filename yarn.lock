@@ -447,6 +447,11 @@
   resolved "https://registry.yarnpkg.com/@tailwindcss/line-clamp/-/line-clamp-0.2.0.tgz#7f30f26ed3835d64d1eb5a9b0d60cf5291dd2a3b"
   integrity sha512-+jXSdRK3/9V/BCPCr+iNpMMhxWMMv62vn/AS2b3/ClmueGuhCijW3bUwO1IiHnE7uCaF74Sli8jUCv9djwvpLg==
 
+"@types/fast-levenshtein@^0.0.1":
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/@types/fast-levenshtein/-/fast-levenshtein-0.0.1.tgz#3a3615cf173645c8fca58d051e4e32824e4bd286"
+  integrity sha1-OjYVzxc2Rcj8pY0FHk4ygk5L0oY=
+
 "@types/long@^4.0.1":
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/@types/long/-/long-4.0.1.tgz#459c65fa1867dafe6a8f322c4c51695663cc55e9"
@@ -1255,10 +1260,22 @@ fast-glob@^3.2.5:
     micromatch "^4.0.2"
     picomatch "^2.2.1"
 
+fast-levenshtein@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/fast-levenshtein/-/fast-levenshtein-3.0.0.tgz#37b899ae47e1090e40e3fd2318e4d5f0142ca912"
+  integrity sha512-hKKNajm46uNmTlhHSyZkmToAc56uZJwYq7yrciZjqOxnlfQwERDQJmHPUp7m1m9wx8vgOe8IaCKZ5Kv2k1DdCQ==
+  dependencies:
+    fastest-levenshtein "^1.0.7"
+
 fast-text-encoding@^1.0.0:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/fast-text-encoding/-/fast-text-encoding-1.0.3.tgz#ec02ac8e01ab8a319af182dae2681213cfe9ce53"
   integrity sha512-dtm4QZH9nZtcDt8qJiOH9fcQd1NAgi+K1O2DbE6GG1PPCK/BWfOH3idCTRQ4ImXRUOyopDEgDEnVEE7Y/2Wrig==
+
+fastest-levenshtein@^1.0.7:
+  version "1.0.12"
+  resolved "https://registry.yarnpkg.com/fastest-levenshtein/-/fastest-levenshtein-1.0.12.tgz#9990f7d3a88cc5a9ffd1f1745745251700d497e2"
+  integrity sha512-On2N+BpYJ15xIC974QNVuYGMOlEVt4s0EOI3wwMqOmK1fdDY+FN/zltPV8vosq4ad4c/gJ1KHScUn/6AWIgiow==
 
 fastq@^1.6.0:
   version "1.11.0"
