@@ -10,7 +10,7 @@ export type FamilyDTO = {
   };
 };
 
-export enum GroceryCategory {
+export enum GroceryCategoryDTO {
   FruitVegetables = "FRUIT_VEGETABLES",
   MeatDairy = "MEAT_DAIRY",
   Frozen = "FROZEN",
@@ -22,7 +22,7 @@ export type GroceryDTO = {
   id: string;
   created: number;
   name: string;
-  category: GroceryCategory;
+  category: GroceryCategoryDTO;
   shopCount: number;
 };
 
@@ -174,7 +174,11 @@ export interface Storage {
   fetchGroceries(familyId: string): void;
   fetchTasks(familyId: string): void;
   fetchWeek(familyId: string, id: string): void;
-  addGrocery(familyId: string, category: GroceryCategory, name: string): void;
+  addGrocery(
+    familyId: string,
+    category: GroceryCategoryDTO,
+    name: string
+  ): void;
   deleteGrocery(familyId: string, id: string): void;
   fetchFamily(familyId: string, id: string): void;
   setGroceryShopCount(familyId: string, id: string, shopCount: number): void;

@@ -2,7 +2,10 @@ import { CalendarIcon, ShoppingCartIcon } from "@heroicons/react/outline";
 import React from "react";
 import { match } from "react-states";
 import { useDashboard } from "../features/DashboardFeature";
-import { View } from "../features/DashboardFeature/DashboardFeature";
+import { View } from "../features/DashboardFeature/Feature";
+import { GroceriesFeature } from "../features/GroceriesFeature";
+import { GroceryListFeature } from "../features/GroceryListFeature";
+import { WeekdaysFeature } from "../features/WeekdaysFeature";
 import { GroceriesView } from "./GroceriesView";
 import { GroceryList, GroceryListSkeleton } from "./GroceryList";
 import { WeekdaysView, WeekdaysSkeleton } from "./Weekdays";
@@ -95,14 +98,14 @@ const MainContentLayoutSkeleton = ({
   </div>
 );
 const MainContentLayout = ({ children }: { children: React.ReactNode }) => {
-  const [dashboard, send] = useDashboard();
+  const [dashboard, send] = useDashboard("LOADED");
 
-  const renderContent = (view: View) => (
+  return (
     <div className="grid grid-cols-1 gap-4 lg:col-span-6 h-full">
       <section className="h-full flex flex-col">
         <div className="hidden lg:block lg:col-span-3">
           <nav className="flex space-x-4 p-3 pt-0">
-            {getMenuItems(view, (view) => {
+            {getMenuItems(dashboard.view, (view) => {
               send({
                 type: "VIEW_SELECTED",
                 view,
@@ -127,15 +130,6 @@ const MainContentLayout = ({ children }: { children: React.ReactNode }) => {
       </section>
     </div>
   );
-
-  return match(dashboard, {
-    AWAITING_AUTHENTICATION: () => null,
-    ERROR: () => null,
-    LOADING: () => null,
-    REQUIRING_AUTHENTICATION: () => null,
-    GROCERIES: ({ state }) => renderContent(state),
-    WEEKDAYS: ({ state }) => renderContent(state),
-  });
 };
 
 export const DashboardSkeleton = () => (
@@ -153,31 +147,33 @@ export const Dashboard = () => {
   return match(dashboard, {
     AWAITING_AUTHENTICATION: () => <DashboardSkeleton />,
     ERROR: () => <DashboardSkeleton />,
-    WEEKDAYS: ({ groceries, tasks, week, family, events }) => (
-      <DashboardLayout>
-        <GroceryList groceries={groceries} />
-        <MainContentLayout>
-          <WeekdaysView
-            tasks={tasks}
-            week={week}
-            family={family}
-            events={events}
-          />
-        </MainContentLayout>
-      </DashboardLayout>
-    ),
-    GROCERIES: ({ groceries, activeCategory, groceryInput }) => (
-      <DashboardLayout>
-        <GroceryList groceries={groceries} />
-        <MainContentLayout>
-          <GroceriesView
-            groceries={groceries}
-            activeCategory={activeCategory}
-            groceryInput={groceryInput}
-          />
-        </MainContentLayout>
-      </DashboardLayout>
-    ),
+    LOADED: ({ groceries, tasks, week, family, events, view }) => {
+      const views: { [T in View]: () => React.ReactNode } = {
+        WEEKDAYS: () => (
+          <WeekdaysFeature>
+            <WeekdaysView
+              tasks={tasks}
+              week={week}
+              family={family}
+              events={events}
+            />
+          </WeekdaysFeature>
+        ),
+        GROCERIES: () => (
+          <GroceriesFeature familyUid={family.id}>
+            <GroceriesView groceries={groceries} />
+          </GroceriesFeature>
+        ),
+      };
+      return (
+        <DashboardLayout>
+          <GroceryListFeature>
+            <GroceryList groceries={groceries} />
+          </GroceryListFeature>
+          <MainContentLayout>{views[view]()}</MainContentLayout>
+        </DashboardLayout>
+      );
+    },
     LOADING: () => <DashboardSkeleton />,
     REQUIRING_AUTHENTICATION: () => <DashboardSkeleton />,
   });

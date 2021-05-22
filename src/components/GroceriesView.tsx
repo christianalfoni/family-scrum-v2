@@ -1,186 +1,163 @@
 import { Menu, Transition } from "@headlessui/react";
 import { DotsVerticalIcon, PlusIcon } from "@heroicons/react/outline";
-import React, { useState } from "react";
+import React from "react";
 import { match } from "react-states";
-import { GroceryCategory } from "../environment/storage";
-import {
-  Groceries,
-  dashboardSelectors,
-  useDashboard,
-} from "../features/DashboardFeature";
+import { GroceryCategoryDTO } from "../environment/storage";
+import { Groceries, dashboardSelectors } from "../features/DashboardFeature";
+import { useGroceries } from "../features/GroceriesFeature";
 import { groceryCategoryToBackgroundColor } from "../utils";
 
 const GroceriesToolbar = () => {
-  const [dashboard, send] = useDashboard("GROCERIES");
-
-  const renderCategories = (activeCategory?: GroceryCategory) => (
-    <span className="relative z-0 inline-flex shadow-sm rounded-md sm:shadow-none sm:space-x-3">
-      <span className="inline-flex sm:shadow-sm">
-        <button
-          type="button"
-          onClick={() =>
-            send({
-              type: "GROCERY_CATEGORY_TOGGLED",
-              category: GroceryCategory.MeatDairy,
-            })
-          }
-          className={`${
-            activeCategory === GroceryCategory.MeatDairy
-              ? "bg-red-500 text-white hover:bg-red-400"
-              : "bg-white text-gray-500 hover:bg-gray-50"
-          } relative inline-flex items-center px-4 py-2 rounded-l-md border border-gray-300 text-sm font-medium  focus:z-10 focus:outline-none focus:ring-1 focus:ring-red-600 focus:border-red-600`}
-        >
-          <span>Fish, Meat and Dairy</span>
-        </button>
-        <button
-          type="button"
-          onClick={() =>
-            send({
-              type: "GROCERY_CATEGORY_TOGGLED",
-              category: GroceryCategory.FruitVegetables,
-            })
-          }
-          className={`${
-            activeCategory === GroceryCategory.FruitVegetables
-              ? "bg-green-500 text-white hover:bg-green-400"
-              : "bg-white text-gray-500 hover:bg-gray-50"
-          } relative inline-flex items-center px-4 py-2  border border-gray-300 text-sm font-medium  focus:z-10 focus:outline-none focus:ring-1 focus:ring-green-600 focus:border-green-600`}
-        >
-          <span>Fruit and Vegetables</span>
-        </button>
-        <button
-          type="button"
-          onClick={() =>
-            send({
-              type: "GROCERY_CATEGORY_TOGGLED",
-              category: GroceryCategory.DryGoods,
-            })
-          }
-          className={`${
-            activeCategory === GroceryCategory.DryGoods
-              ? "bg-yellow-500 text-white hover:bg-yellow-400"
-              : "bg-white text-gray-500 hover:bg-gray-50"
-          } relative inline-flex items-center px-4 py-2  border border-gray-300 text-sm font-medium  focus:z-10 focus:outline-none focus:ring-1 focus:ring-yellow-600 focus:border-yellow-600`}
-        >
-          <span>Dry Goods</span>
-        </button>
-        <button
-          type="button"
-          onClick={() =>
-            send({
-              type: "GROCERY_CATEGORY_TOGGLED",
-              category: GroceryCategory.Frozen,
-            })
-          }
-          className={`${
-            activeCategory === GroceryCategory.Frozen
-              ? "bg-blue-500 text-white hover:bg-blue-400"
-              : "bg-white text-gray-500 hover:bg-gray-50"
-          } relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium  focus:z-10 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600`}
-        >
-          <span>Frozen</span>
-        </button>
-        <button
-          type="button"
-          onClick={() =>
-            send({
-              type: "GROCERY_CATEGORY_TOGGLED",
-              category: GroceryCategory.Other,
-            })
-          }
-          className={`${
-            activeCategory === GroceryCategory.Other
-              ? "bg-gray-500 text-white hover:bg-gray-400"
-              : "bg-white text-gray-500 hover:bg-gray-50"
-          } relative inline-flex items-center px-4 py-2 rounded-r-md border border-gray-300 text-sm font-medium  focus:z-10 focus:outline-none focus:ring-1 focus:ring-gray-600 focus:border-gray-600`}
-        >
-          <span>Other</span>
-        </button>
-      </span>
-    </span>
-  );
-
-  const renderInput = (onClick?: () => void) => (
-    <div className="flex mt-4">
-      <div className="flex-grow">
-        <input
-          type="text"
-          value={dashboard.groceryInput}
-          onChange={(event) =>
-            send({
-              type: "GROCERY_INPUT_CHANGED",
-              input: event.target.value,
-            })
-          }
-          className="block disabled:opacity-50 w-full shadow-sm focus:ring-light-blue-500 focus:border-light-blue-500 sm:text-sm border-gray-300 rounded-md"
-          placeholder="Find/add grocery"
-          aria-describedby="add_team_members_helper"
-        />
-      </div>
-      <span className="ml-3">
-        <button
-          type="button"
-          disabled={!onClick}
-          onClick={onClick}
-          className="disabled:opacity-50 bg-white inline-flex items-center justify-center w-44 px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-light-blue-500"
-        >
-          <PlusIcon
-            className="-ml-2 mr-1 h-5 w-5 text-gray-400"
-            aria-hidden="true"
-          />
-          <span>{onClick ? "Add grocery" : "Choose category"}</span>
-        </button>
-      </span>
-    </div>
-  );
-
-  const renderCategory = ({ state }: { state: GroceryCategory }) => (
-    <>
-      {renderCategories()}
-      {renderInput(() => {
-        send({
-          type: "ADD_GROCERY",
-          name: dashboard.groceryInput,
-          category: state,
-        });
-      })}
-    </>
-  );
-
+  const [groceries, send] = useGroceries();
+  const activeCategory = match(groceries, {
+    FILTERED: ({ category }) => category,
+    UNFILTERED: () => undefined,
+  });
   return (
     <div className="flex items-center flex-col">
-      {match(dashboard.categories, {
-        NONE: () => (
-          <>
-            {renderCategories()}
-            {renderInput()}
-          </>
-        ),
-        [GroceryCategory.DryGoods]: renderCategory,
-        [GroceryCategory.Frozen]: renderCategory,
-        [GroceryCategory.FruitVegetables]: renderCategory,
-        [GroceryCategory.MeatDairy]: renderCategory,
-        [GroceryCategory.Other]: renderCategory,
-      })}
+      <span className="relative z-0 inline-flex shadow-sm rounded-md sm:shadow-none sm:space-x-3">
+        <span className="inline-flex sm:shadow-sm">
+          <button
+            type="button"
+            onClick={() =>
+              send({
+                type: "GROCERY_CATEGORY_TOGGLED",
+                category: GroceryCategoryDTO.MeatDairy,
+              })
+            }
+            className={`${
+              activeCategory === GroceryCategoryDTO.MeatDairy
+                ? "bg-red-500 text-white hover:bg-red-400"
+                : "bg-white text-gray-500 hover:bg-gray-50"
+            } relative inline-flex items-center px-4 py-2 rounded-l-md border border-gray-300 text-sm font-medium  focus:z-10 focus:outline-none focus:ring-1 focus:ring-red-600 focus:border-red-600`}
+          >
+            <span>Fish, Meat and Dairy</span>
+          </button>
+          <button
+            type="button"
+            onClick={() =>
+              send({
+                type: "GROCERY_CATEGORY_TOGGLED",
+                category: GroceryCategoryDTO.FruitVegetables,
+              })
+            }
+            className={`${
+              activeCategory === GroceryCategoryDTO.FruitVegetables
+                ? "bg-green-500 text-white hover:bg-green-400"
+                : "bg-white text-gray-500 hover:bg-gray-50"
+            } relative inline-flex items-center px-4 py-2  border border-gray-300 text-sm font-medium  focus:z-10 focus:outline-none focus:ring-1 focus:ring-green-600 focus:border-green-600`}
+          >
+            <span>Fruit and Vegetables</span>
+          </button>
+          <button
+            type="button"
+            onClick={() =>
+              send({
+                type: "GROCERY_CATEGORY_TOGGLED",
+                category: GroceryCategoryDTO.DryGoods,
+              })
+            }
+            className={`${
+              activeCategory === GroceryCategoryDTO.DryGoods
+                ? "bg-yellow-500 text-white hover:bg-yellow-400"
+                : "bg-white text-gray-500 hover:bg-gray-50"
+            } relative inline-flex items-center px-4 py-2  border border-gray-300 text-sm font-medium  focus:z-10 focus:outline-none focus:ring-1 focus:ring-yellow-600 focus:border-yellow-600`}
+          >
+            <span>Dry Goods</span>
+          </button>
+          <button
+            type="button"
+            onClick={() =>
+              send({
+                type: "GROCERY_CATEGORY_TOGGLED",
+                category: GroceryCategoryDTO.Frozen,
+              })
+            }
+            className={`${
+              activeCategory === GroceryCategoryDTO.Frozen
+                ? "bg-blue-500 text-white hover:bg-blue-400"
+                : "bg-white text-gray-500 hover:bg-gray-50"
+            } relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium  focus:z-10 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600`}
+          >
+            <span>Frozen</span>
+          </button>
+          <button
+            type="button"
+            onClick={() =>
+              send({
+                type: "GROCERY_CATEGORY_TOGGLED",
+                category: GroceryCategoryDTO.Other,
+              })
+            }
+            className={`${
+              activeCategory === GroceryCategoryDTO.Other
+                ? "bg-gray-500 text-white hover:bg-gray-400"
+                : "bg-white text-gray-500 hover:bg-gray-50"
+            } relative inline-flex items-center px-4 py-2 rounded-r-md border border-gray-300 text-sm font-medium  focus:z-10 focus:outline-none focus:ring-1 focus:ring-gray-600 focus:border-gray-600`}
+          >
+            <span>Other</span>
+          </button>
+        </span>
+      </span>
+      <div className="flex mt-4">
+        <div className="flex-grow">
+          <input
+            type="text"
+            value={groceries.input}
+            onChange={(event) =>
+              send({
+                type: "GROCERY_INPUT_CHANGED",
+                input: event.target.value,
+              })
+            }
+            className="block disabled:opacity-50 w-full shadow-sm focus:ring-light-blue-500 focus:border-light-blue-500 sm:text-sm border-gray-300 rounded-md"
+            placeholder="Find/add grocery"
+            aria-describedby="add_team_members_helper"
+          />
+        </div>
+        <span className="ml-3">
+          <button
+            type="button"
+            disabled={match(groceries, {
+              UNFILTERED: () => true,
+              FILTERED: () => false,
+            })}
+            onClick={() => {
+              send({
+                type: "ADD_GROCERY",
+              });
+            }}
+            className="disabled:opacity-50 bg-white inline-flex items-center justify-center w-44 px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-light-blue-500"
+          >
+            <PlusIcon
+              className="-ml-2 mr-1 h-5 w-5 text-gray-400"
+              aria-hidden="true"
+            />
+            <span>
+              {match(groceries, {
+                FILTERED: () => "Add grocery",
+                UNFILTERED: () => "Choose category",
+              })}
+            </span>
+          </button>
+        </span>
+      </div>
     </div>
   );
 };
 
-export const GroceriesView = ({
-  groceries,
-  activeCategory,
-  groceryInput,
-}: {
-  groceries: Groceries;
-  activeCategory?: GroceryCategory;
-  groceryInput: string;
-}) => {
-  const sortedAndFilteredGroceries = activeCategory
-    ? dashboardSelectors.filterGroceriesByCategory(groceries, activeCategory)
-    : dashboardSelectors.filterGroceriesByInput(
+export const GroceriesView = ({ groceries }: { groceries: Groceries }) => {
+  const [groceriesFeature] = useGroceries();
+
+  const sortedAndFilteredGroceries = match(groceriesFeature, {
+    FILTERED: ({ category }) =>
+      dashboardSelectors.filterGroceriesByCategory(groceries, category),
+    UNFILTERED: ({ input }) =>
+      dashboardSelectors.filterGroceriesByInput(
         dashboardSelectors.groceriesByCategory(groceries),
-        groceryInput
-      );
+        input
+      ),
+  });
 
   return (
     <div className="bg-white col-span-3 p-6">

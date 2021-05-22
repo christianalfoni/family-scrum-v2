@@ -2,7 +2,7 @@ export {
   Feature as DashboardFeature,
   useFeature as useDashboard,
   selectors as dashboardSelectors,
-} from "./DashboardFeature";
+} from "./Feature";
 
 export type {
   Groceries,
@@ -11,4 +11,5 @@ export type {
   Tasks,
   Week,
   UIEvent as DashboardUIEvent,
-} from "./DashboardFeature";
+  View,
+} from "./Feature";

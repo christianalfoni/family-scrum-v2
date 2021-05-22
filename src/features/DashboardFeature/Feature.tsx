@@ -11,7 +11,7 @@ import { useEnvironment } from "../../environment";
 import {
   CalendarEventDTO,
   FamilyDTO,
-  GroceryCategory,
+  GroceryCategoryDTO,
   GroceryDTO,
   StorageEvent,
   TaskDTO,
@@ -22,6 +22,8 @@ import { getCurrentWeekDayId } from "../../utils";
 import { useDevtools } from "react-states/devtools";
 import { AuthenticationEvent } from "../../environment/authentication";
 import levenshtein from "fast-levenshtein";
+
+export type GroceryCategory = GroceryCategoryDTO;
 
 export type Family = FamilyDTO;
 
@@ -49,43 +51,6 @@ export type WeekdayTasks = {
   [taskId: string]: string[];
 };
 
-type BaseContext = {
-  family: Family;
-  groceries: Groceries;
-  tasks: Tasks;
-  week: Week;
-  events: CalendarEvents;
-};
-
-type CategoriesContext =
-  | {
-      state: "NONE";
-    }
-  | {
-      state: GroceryCategory.DryGoods;
-    }
-  | {
-      state: GroceryCategory.Frozen;
-    }
-  | {
-      state: GroceryCategory.FruitVegetables;
-    }
-  | {
-      state: GroceryCategory.MeatDairy;
-    }
-  | {
-      state: GroceryCategory.Other;
-    };
-
-type GroceryInputContext =
-  | {
-      state: "EMPTY";
-    }
-  | {
-      state: "VALUE";
-      value: string;
-    };
-
 type Context =
   | {
       state: "AWAITING_AUTHENTICATION";
@@ -98,20 +63,18 @@ type Context =
       familyUid: string;
     }
   | {
+      state: "LOADED";
+      family: Family;
+      groceries: Groceries;
+      tasks: Tasks;
+      week: Week;
+      events: CalendarEvents;
+      view: "WEEKDAYS" | "GROCERIES";
+    }
+  | {
       state: "ERROR";
       error: string;
-    }
-  | (BaseContext &
-      (
-        | {
-            state: "WEEKDAYS";
-          }
-        | {
-            state: "GROCERIES";
-            categories: CategoriesContext;
-            groceryInput: string;
-          }
-      ));
+    };
 
 export type UIEvent =
   | {
@@ -138,33 +101,6 @@ const featureContext = createContext<Context, UIEvent>();
 
 export const useFeature = createHook(featureContext);
 
-const selectView = (
-  { view }: { view: View },
-  { events, family, groceries, tasks, week }: BaseContext
-): Context => {
-  switch (view) {
-    case "GROCERIES":
-      return {
-        state: "GROCERIES",
-        groceryInput: "",
-        events,
-        family,
-        groceries,
-        tasks,
-        week,
-      };
-    case "WEEKDAYS":
-      return {
-        state: "WEEKDAYS",
-        events,
-        family,
-        groceries,
-        tasks,
-        week,
-      };
-  }
-};
-
 const reducer = createReducer<Context, Event>({
   AWAITING_AUTHENTICATION: {
     "AUTHENTICATION:AUTHENTICATED": ({ user }) => ({
@@ -186,7 +122,8 @@ const reducer = createReducer<Context, Event>({
       { groceries, tasks, week, family, events },
       { familyUid }
     ) => ({
-      state: "WEEKDAYS",
+      state: "LOADED",
+      view: "WEEKDAYS",
       familyUid,
       groceries,
       tasks,
@@ -199,21 +136,18 @@ const reducer = createReducer<Context, Event>({
       error,
     }),
   },
-  WEEKDAYS: {
-    VIEW_SELECTED: selectView,
-  },
-  GROCERIES: {
-    VIEW_SELECTED: selectView,
-    GROCERY_CATEGORY_TOGGLED: ({ category }, context) => ({
+  LOADED: {
+    "STORAGE:ADD_GROCERY_SUCCESS": ({ grocery }, context) => {
+      console.log("WTF?!?");
+      return {
+        ...context,
+        groceries: context.groceries.concat(grocery),
+      };
+    },
+    VIEW_SELECTED: ({ view }, context) => ({
       ...context,
-      activeCategory:
-        context.activeCategory === category ? undefined : category,
+      view,
     }),
-    GROCERY_INPUT_CHANGED: ({ input }, context) => ({
-      ...context,
-      groceryInput: input,
-    }),
-    ADD_GROCERY: ({ name, category }, context) => ({}),
   },
   ERROR: {},
 });
@@ -238,7 +172,7 @@ export const selectors = {
   filterGroceriesByCategory: (
     groceries: Groceries,
     category: GroceryCategory
-  ) => groceries.filter((grocery) => grocery.category === category),
+  ): Groceries => groceries.filter((grocery) => grocery.category === category),
   filterGroceriesByInput: (groceries: Groceries, input: string) => {
     if (input) {
       const lowerCaseInput = input.toLocaleLowerCase();

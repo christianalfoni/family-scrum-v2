@@ -1,6 +1,3 @@
-export {
-  Feature as SessionFeature,
-  useFeature as useSession,
-} from "./SessionFeature";
+export { Feature as SessionFeature, useFeature as useSession } from "./Feature";
 
-export type { User } from "./SessionFeature";
+export type { User } from "./Feature";

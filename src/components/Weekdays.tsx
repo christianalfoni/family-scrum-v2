@@ -1,10 +1,7 @@
 import { format } from "date-fns";
 import React from "react";
 import { Tasks, Week, dashboardSelectors } from "../features/DashboardFeature";
-import {
-  CalendarEvents,
-  Family,
-} from "../features/DashboardFeature/DashboardFeature";
+import { CalendarEvents, Family } from "../features/DashboardFeature/Feature";
 import { getCurrentDayIndex, weekdays } from "../utils";
 
 const Weekday = React.memo(

@@ -1,5 +1,5 @@
 import { setDay, format, subDays, addDays, getDay, parse } from "date-fns";
-import { GroceryCategory } from "./environment/storage";
+import { GroceryCategoryDTO } from "./environment/storage";
 
 const getFirstDateOfPreviousWeek = () =>
   setDay(subDays(new Date(), 7), 1, { weekStartsOn: 1 });
@@ -89,18 +89,18 @@ export const getWeekdayIndexes = (dates: string[], weekDates: string[]) => {
 };
 
 export const groceryCategoryToBackgroundColor = (
-  groceryCategory: GroceryCategory
+  groceryCategory: GroceryCategoryDTO
 ) => {
   switch (groceryCategory) {
-    case GroceryCategory.DryGoods:
+    case GroceryCategoryDTO.DryGoods:
       return "bg-yellow-500";
-    case GroceryCategory.Frozen:
+    case GroceryCategoryDTO.Frozen:
       return "bg-blue-500";
-    case GroceryCategory.FruitVegetables:
+    case GroceryCategoryDTO.FruitVegetables:
       return "bg-green-500";
-    case GroceryCategory.MeatDairy:
+    case GroceryCategoryDTO.MeatDairy:
       return "bg-red-500";
-    case GroceryCategory.Other:
+    case GroceryCategoryDTO.Other:
       return "bg-gray-500";
   }
 };

@@ -1,7 +1,7 @@
 import { events as reactStatesEvents } from "react-states";
 import {
   GroceryDTO,
-  GroceryCategory,
+  GroceryCategoryDTO,
   Storage,
   WeekDTO,
   TaskDTO,
@@ -31,7 +31,7 @@ export const createStorage = (): Storage => {
     {
       id: "grocery_1",
       created: Date.now(),
-      category: GroceryCategory.DryGoods,
+      category: GroceryCategoryDTO.DryGoods,
       name: "Gryn",
       shopCount: 1,
     },
@@ -114,7 +114,7 @@ export const createStorage = (): Storage => {
         name,
         shopCount: 0,
       };
-      groceries.push(newGrocery);
+      groceries = groceries.concat(newGrocery);
 
       this.events.emit({
         type: "STORAGE:ADD_GROCERY_SUCCESS",
@@ -138,7 +138,6 @@ export const createStorage = (): Storage => {
       });
     },
     async fetchFamilyData(_, weekId) {
-      console.log(weekId);
       await randomWait();
       this.events.emit({
         type: "STORAGE:FETCH_FAMILY_DATA_SUCCESS",
