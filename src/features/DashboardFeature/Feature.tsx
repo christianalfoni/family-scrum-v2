@@ -138,10 +138,24 @@ const reducer = createReducer<Context, Event>({
   },
   LOADED: {
     "STORAGE:ADD_GROCERY_SUCCESS": ({ grocery }, context) => {
-      console.log("WTF?!?");
       return {
         ...context,
         groceries: context.groceries.concat(grocery),
+      };
+    },
+    "STORAGE:SET_GROCERY_SHOP_COUNT_SUCCESS": ({ grocery }, context) => {
+      return {
+        ...context,
+        groceries: context.groceries.reduce<Grocery[]>(
+          (aggr, existingGrocery) => {
+            if (existingGrocery.id === grocery.id) {
+              return aggr.concat(grocery);
+            }
+
+            return aggr.concat(existingGrocery);
+          },
+          []
+        ),
       };
     },
     VIEW_SELECTED: ({ view }, context) => ({

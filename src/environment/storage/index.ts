@@ -181,7 +181,8 @@ export interface Storage {
   ): void;
   deleteGrocery(familyId: string, id: string): void;
   fetchFamily(familyId: string, id: string): void;
-  setGroceryShopCount(familyId: string, id: string, shopCount: number): void;
+  increaseGroceryShopCount(familyId: string, id: string): void;
+  resetGroceryShopCount(familyId: string, id: string): void;
   archiveTask(familyId: string, id: string): void;
   setWeekTaskActivity(
     familyId: string,

@@ -8,6 +8,7 @@ import {
   FamilyDTO,
   CalendarEventDTO,
 } from ".";
+import { getCurrentWeekDayId } from "../../utils";
 import { randomWait } from "../utils";
 
 export const createStorage = (): Storage => {
@@ -29,7 +30,7 @@ export const createStorage = (): Storage => {
 
   let groceries: GroceryDTO[] = [
     {
-      id: "grocery_1",
+      id: "grocery_0",
       created: Date.now(),
       category: GroceryCategoryDTO.DryGoods,
       name: "Gryn",
@@ -64,11 +65,13 @@ export const createStorage = (): Storage => {
     },
   };
 
+  const currentWeekId = getCurrentWeekDayId(0);
+
   let weeks: {
     [id: string]: WeekDTO;
   } = {
-    "20210516": {
-      id: "20210516",
+    [currentWeekId]: {
+      id: currentWeekId,
       tasks: {
         task_1: {
           user_1: [false, false, false, false, true, false, false],
@@ -155,14 +158,33 @@ export const createStorage = (): Storage => {
         id,
       });
     },
-    async setGroceryShopCount(_, id, shopCount) {
+    async increaseGroceryShopCount(_, id) {
       await randomWait();
 
       groceries = groceries.map((grocery) =>
         grocery.id === id
           ? {
               ...grocery,
-              shopCount,
+              shopCount: grocery.shopCount + 1,
+            }
+          : grocery
+      );
+
+      const grocery = groceries.find((grocery) => grocery.id === id)!;
+
+      this.events.emit({
+        type: "STORAGE:SET_GROCERY_SHOP_COUNT_SUCCESS",
+        grocery,
+      });
+    },
+    async resetGroceryShopCount(_, id) {
+      await randomWait();
+
+      groceries = groceries.map((grocery) =>
+        grocery.id === id
+          ? {
+              ...grocery,
+              shopCount: 0,
             }
           : grocery
       );

@@ -111,7 +111,7 @@ const GroceriesToolbar = () => {
               })
             }
             className="block disabled:opacity-50 w-full shadow-sm focus:ring-light-blue-500 focus:border-light-blue-500 sm:text-sm border-gray-300 rounded-md"
-            placeholder="Find/add grocery"
+            placeholder="Find/New grocery"
             aria-describedby="add_team_members_helper"
           />
         </div>
@@ -120,25 +120,20 @@ const GroceriesToolbar = () => {
             type="button"
             disabled={match(groceries, {
               UNFILTERED: () => true,
-              FILTERED: () => false,
+              FILTERED: ({ input }) => (input ? false : true),
             })}
             onClick={() => {
               send({
                 type: "ADD_GROCERY",
               });
             }}
-            className="disabled:opacity-50 bg-white inline-flex items-center justify-center w-44 px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-light-blue-500"
+            className="disabled:opacity-50 bg-white inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-light-blue-500"
           >
             <PlusIcon
-              className="-ml-2 mr-1 h-5 w-5 text-gray-400"
+              className="-ml-2 mr-1 h-5 text-gray-400"
               aria-hidden="true"
             />
-            <span>
-              {match(groceries, {
-                FILTERED: () => "Add grocery",
-                UNFILTERED: () => "Choose category",
-              })}
-            </span>
+            <span>Add</span>
           </button>
         </span>
       </div>
@@ -147,7 +142,7 @@ const GroceriesToolbar = () => {
 };
 
 export const GroceriesView = ({ groceries }: { groceries: Groceries }) => {
-  const [groceriesFeature] = useGroceries();
+  const [groceriesFeature, send] = useGroceries();
 
   const sortedAndFilteredGroceries = match(groceriesFeature, {
     FILTERED: ({ category }) =>
@@ -162,13 +157,19 @@ export const GroceriesView = ({ groceries }: { groceries: Groceries }) => {
   return (
     <div className="bg-white col-span-3 p-6">
       <GroceriesToolbar />
-      <ul className="grid gap-4 sm:gap-6 sm:grid-cols-2 xl:grid-cols-6 mt-3">
+      <ul className="grid gap-4 grid-cols-4 mt-3">
         {sortedAndFilteredGroceries.map((grocery) => (
           <li
             key={grocery.id}
             className="relative col-span-1 flex shadow-sm rounded-md"
           >
             <div
+              onClick={() => {
+                send({
+                  type: "INCREASE_SHOP_COUNT",
+                  id: grocery.id,
+                });
+              }}
               className={`${groceryCategoryToBackgroundColor(
                 grocery.category
               )} flex-shrink-0 flex items-center justify-center w-16 text-white text-sm font-medium rounded-l-md`}
@@ -176,7 +177,15 @@ export const GroceriesView = ({ groceries }: { groceries: Groceries }) => {
               {grocery.shopCount}
             </div>
             <div className="flex-1 flex items-center justify-between border-t border-r border-b border-gray-200 bg-white rounded-r-md truncate">
-              <div className="flex-1 px-4 py-4 text-md truncate text-gray-900 font-medium hover:text-gray-600">
+              <div
+                onClick={() => {
+                  send({
+                    type: "INCREASE_SHOP_COUNT",
+                    id: grocery.id,
+                  });
+                }}
+                className="flex-1 px-4 py-4 text-md truncate text-gray-900 font-medium hover:text-gray-600"
+              >
                 {grocery.name}
               </div>
               <Menu as="div" className="flex-shrink-0 pr-2">
@@ -203,6 +212,28 @@ export const GroceriesView = ({ groceries }: { groceries: Groceries }) => {
                         static
                         className="z-10 mx-3 origin-top-right absolute right-10 top-3 w-48 mt-1 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-200 focus:outline-none"
                       >
+                        <div className="py-1">
+                          <Menu.Item>
+                            {({ active }) => (
+                              <a
+                                onClick={() => {
+                                  send({
+                                    type: "RESET_SHOP_COUNT",
+                                    id: grocery.id,
+                                  });
+                                }}
+                                className={`${
+                                  active
+                                    ? "bg-gray-100 text-gray-900"
+                                    : "text-gray-700"
+                                }
+                                  block px-4 py-2 text-sm`}
+                              >
+                                Reset shop count
+                              </a>
+                            )}
+                          </Menu.Item>
+                        </div>
                         <div className="py-1">
                           <Menu.Item>
                             {({ active }) => (

@@ -22,11 +22,20 @@ type Context =
       input: string;
     };
 
-type TransientContext = {
-  state: "ADDING_GROCERY";
-  name: string;
-  category: GroceryCategory;
-};
+type TransientContext =
+  | {
+      state: "ADDING_GROCERY";
+      name: string;
+      category: GroceryCategory;
+    }
+  | {
+      state: "INCREASING_SHOP_COUNT";
+      id: string;
+    }
+  | {
+      state: "RESETTING_SHOP_COUNT";
+      id: string;
+    };
 
 type UIEvent =
   | {
@@ -39,6 +48,14 @@ type UIEvent =
   | {
       type: "GROCERY_CATEGORY_TOGGLED";
       category: GroceryCategory;
+    }
+  | {
+      type: "INCREASE_SHOP_COUNT";
+      id: string;
+    }
+  | {
+      type: "RESET_SHOP_COUNT";
+      id: string;
     };
 
 type Event = UIEvent;
@@ -71,6 +88,14 @@ const reducer = createReducer<Context, Event, TransientContext>(
         category,
         name: input,
       }),
+      INCREASE_SHOP_COUNT: ({ id }, context) => ({
+        state: "INCREASING_SHOP_COUNT",
+        id,
+      }),
+      RESET_SHOP_COUNT: ({ id }, context) => ({
+        state: "RESETTING_SHOP_COUNT",
+        id,
+      }),
     },
     UNFILTERED: {
       GROCERY_CATEGORY_TOGGLED: ({ category }, { input }) => ({
@@ -82,6 +107,14 @@ const reducer = createReducer<Context, Event, TransientContext>(
         ...context,
         input,
       }),
+      INCREASE_SHOP_COUNT: ({ id }) => ({
+        state: "INCREASING_SHOP_COUNT",
+        id,
+      }),
+      RESET_SHOP_COUNT: ({ id }) => ({
+        state: "RESETTING_SHOP_COUNT",
+        id,
+      }),
     },
   },
   {
@@ -90,6 +123,8 @@ const reducer = createReducer<Context, Event, TransientContext>(
       category,
       input: "",
     }),
+    INCREASING_SHOP_COUNT: (_, prevContext) => prevContext,
+    RESETTING_SHOP_COUNT: (_, prevContext) => prevContext,
   }
 );
 
@@ -118,6 +153,14 @@ export const Feature = ({
 
   useEnterEffect(context, "ADDING_GROCERY", ({ category, name }) => {
     storage.addGrocery(familyUid, category, name);
+  });
+
+  useEnterEffect(context, "INCREASING_SHOP_COUNT", ({ id }) => {
+    storage.increaseGroceryShopCount(familyUid, id);
+  });
+
+  useEnterEffect(context, "RESETTING_SHOP_COUNT", ({ id }) => {
+    storage.resetGroceryShopCount(familyUid, id);
   });
 
   return (

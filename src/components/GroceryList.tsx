@@ -29,8 +29,9 @@ export const GroceryListSkeleton = () => (
 
 export const GroceryList = React.memo(
   ({ groceries }: { groceries: Groceries }) => {
-    const groceriesByCategory =
-      dashboardSelectors.groceriesByCategory(groceries);
+    const groceriesByCategory = dashboardSelectors
+      .groceriesByCategory(groceries)
+      .filter((grocery) => Boolean(grocery.shopCount));
 
     return (
       <GroceryListLayout>
@@ -41,9 +42,9 @@ export const GroceryList = React.memo(
           <h4 className="text-gray-600 ml-2 text-lg">Shopping list</h4>
         </div>
         <div className="flow-root mt-6 flex-grow">
-          <ul className="-my-5 divide-y divide-gray-200">
+          <ul className="-my-5">
             {groceriesByCategory.map((grocery) => (
-              <li key={grocery.id} className="py-4">
+              <li key={grocery.id} className="py-2">
                 <div className="flex items-center">
                   <span className="flex items-center truncate space-x-3">
                     <span
