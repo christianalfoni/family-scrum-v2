@@ -1,7 +1,7 @@
 import { CalendarIcon, ShoppingCartIcon } from "@heroicons/react/outline";
 import React from "react";
 import { match } from "react-states";
-import { useDashboard } from "../features/DashboardFeature";
+import { useDasbhoard } from "../features/DashboardFeature";
 import { View } from "../features/DashboardFeature/Feature";
 import { GroceriesFeature } from "../features/GroceriesFeature";
 import { GroceryListFeature } from "../features/GroceryListFeature";
@@ -98,7 +98,7 @@ const MainContentLayoutSkeleton = ({
   </div>
 );
 const MainContentLayout = ({ children }: { children: React.ReactNode }) => {
-  const [dashboard, send] = useDashboard("LOADED");
+  const [dashboard, send] = useDasbhoard("LOADED");
 
   return (
     <div className="grid grid-cols-1 gap-4 lg:col-span-6 h-full">
@@ -142,7 +142,7 @@ export const DashboardSkeleton = () => (
 );
 
 export const Dashboard = () => {
-  const [dashboard, send] = useDashboard();
+  const [dashboard, send] = useDasbhoard();
 
   return match(dashboard, {
     AWAITING_AUTHENTICATION: () => <DashboardSkeleton />,

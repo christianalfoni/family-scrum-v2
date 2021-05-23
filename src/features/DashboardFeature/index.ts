@@ -1,6 +1,6 @@
 export {
   Feature as DashboardFeature,
-  useFeature as useDashboard,
+  useFeature as useDasbhoard,
   selectors as dashboardSelectors,
 } from "./Feature";
 

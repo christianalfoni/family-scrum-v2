@@ -3,7 +3,7 @@ import { DashboardFeature } from "../features/DashboardFeature";
 import { PageContainer } from "../components/PageContainer";
 import { Dashboard } from "../components/Dashboard";
 
-function FamilyPage() {
+function DashboardPage() {
   return (
     <PageContainer>
       <DashboardFeature>
@@ -13,4 +13,4 @@ function FamilyPage() {
   );
 }
 
-export default FamilyPage;
+export default DashboardPage;
