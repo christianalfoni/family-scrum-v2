@@ -277,7 +277,7 @@ export const Feature = ({ children, initialContext }: Props) => {
 
   const feature = useReducer(reducer, initialContext);
 
-  if (process.browser) {
+  if (process.env.NODE_ENV === "development" && process.browser) {
     useDevtools("Dashboard", feature);
   }
 

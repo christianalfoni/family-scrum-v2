@@ -36,7 +36,7 @@ export const Feature = ({
 }) => {
   const feature = useReducer(reducer, initialContext);
 
-  if (process.browser) {
+  if (process.env.NODE_ENV === "development" && process.browser) {
     useDevtools("PlanWeek", feature);
   }
 
