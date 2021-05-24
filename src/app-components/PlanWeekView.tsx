@@ -79,24 +79,7 @@ export const PlanWeekView = ({
                                   }
                                     block px-4 py-2 text-sm`}
                                 >
-                                  Reset shop count
-                                </a>
-                              )}
-                            </Menu.Item>
-                          </div>
-                          <div className="py-1">
-                            <Menu.Item>
-                              {({ active }) => (
-                                <a
-                                  href="#"
-                                  className={`${
-                                    active
-                                      ? "bg-gray-100 text-gray-900"
-                                      : "text-gray-700"
-                                  }
-                                    block px-4 py-2 text-sm`}
-                                >
-                                  Delete
+                                  Archive
                                 </a>
                               )}
                             </Menu.Item>
@@ -119,7 +102,7 @@ export const PlanWeekView = ({
                     <button
                       key={weekday}
                       type="button"
-                      className="order-1 w-10 justify-center inline-flex items-center px-2 py-1 border border-gray-300 shadow-sm text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:order-0 sm:ml-0"
+                      className="order-1 w-10 h-8 justify-center inline-flex items-center px-2 py-1 border border-gray-300 shadow-sm text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:order-0 sm:ml-0"
                     >
                       {weekday.substr(0, 2)}
                     </button>

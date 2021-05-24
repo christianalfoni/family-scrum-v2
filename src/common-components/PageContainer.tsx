@@ -134,12 +134,19 @@ export const PageContainer = ({ children }: Props) => {
             content="initial-scale=1.0, width=device-width"
           />
         </Head>
-        <DevtoolsProvider>
+        {process.env.NODE_ENV === "production" ? (
           <SessionFeature>
             {children}
             <Auth />
           </SessionFeature>
-        </DevtoolsProvider>
+        ) : (
+          <DevtoolsProvider>
+            <SessionFeature>
+              {children}
+              <Auth />
+            </SessionFeature>
+          </DevtoolsProvider>
+        )}
       </div>
     </EnvironmentProvider>
   );
