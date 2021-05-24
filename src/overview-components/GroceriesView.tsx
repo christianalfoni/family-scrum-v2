@@ -2,9 +2,9 @@ import { Menu, Transition } from "@headlessui/react";
 import { DotsVerticalIcon, PlusIcon } from "@heroicons/react/outline";
 import React from "react";
 import { match } from "react-states";
-import { GroceryCategoryDTO } from "../environment/storage";
+
 import { Groceries, dashboardSelectors } from "../features/DashboardFeature";
-import { useGroceries } from "../features/GroceriesFeature";
+import { GroceryCategory, useGroceries } from "../features/GroceriesFeature";
 import { groceryCategoryToBackgroundColor } from "../utils";
 
 const GroceriesToolbar = () => {
@@ -22,11 +22,11 @@ const GroceriesToolbar = () => {
             onClick={() =>
               send({
                 type: "GROCERY_CATEGORY_TOGGLED",
-                category: GroceryCategoryDTO.MeatDairy,
+                category: GroceryCategory.MeatDairy,
               })
             }
             className={`${
-              activeCategory === GroceryCategoryDTO.MeatDairy
+              activeCategory === GroceryCategory.MeatDairy
                 ? "bg-red-500 text-white hover:bg-red-400"
                 : "bg-white text-gray-500 hover:bg-gray-50"
             } relative inline-flex items-center px-4 py-2 rounded-l-md border border-gray-300 text-sm font-medium  focus:z-10 focus:outline-none focus:ring-1 focus:ring-red-600 focus:border-red-600`}
@@ -38,11 +38,11 @@ const GroceriesToolbar = () => {
             onClick={() =>
               send({
                 type: "GROCERY_CATEGORY_TOGGLED",
-                category: GroceryCategoryDTO.FruitVegetables,
+                category: GroceryCategory.FruitVegetables,
               })
             }
             className={`${
-              activeCategory === GroceryCategoryDTO.FruitVegetables
+              activeCategory === GroceryCategory.FruitVegetables
                 ? "bg-green-500 text-white hover:bg-green-400"
                 : "bg-white text-gray-500 hover:bg-gray-50"
             } relative inline-flex items-center px-4 py-2  border border-gray-300 text-sm font-medium  focus:z-10 focus:outline-none focus:ring-1 focus:ring-green-600 focus:border-green-600`}
@@ -54,11 +54,11 @@ const GroceriesToolbar = () => {
             onClick={() =>
               send({
                 type: "GROCERY_CATEGORY_TOGGLED",
-                category: GroceryCategoryDTO.DryGoods,
+                category: GroceryCategory.DryGoods,
               })
             }
             className={`${
-              activeCategory === GroceryCategoryDTO.DryGoods
+              activeCategory === GroceryCategory.DryGoods
                 ? "bg-yellow-500 text-white hover:bg-yellow-400"
                 : "bg-white text-gray-500 hover:bg-gray-50"
             } relative inline-flex items-center px-4 py-2  border border-gray-300 text-sm font-medium  focus:z-10 focus:outline-none focus:ring-1 focus:ring-yellow-600 focus:border-yellow-600`}
@@ -70,11 +70,11 @@ const GroceriesToolbar = () => {
             onClick={() =>
               send({
                 type: "GROCERY_CATEGORY_TOGGLED",
-                category: GroceryCategoryDTO.Frozen,
+                category: GroceryCategory.Frozen,
               })
             }
             className={`${
-              activeCategory === GroceryCategoryDTO.Frozen
+              activeCategory === GroceryCategory.Frozen
                 ? "bg-blue-500 text-white hover:bg-blue-400"
                 : "bg-white text-gray-500 hover:bg-gray-50"
             } relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium  focus:z-10 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600`}
@@ -86,11 +86,11 @@ const GroceriesToolbar = () => {
             onClick={() =>
               send({
                 type: "GROCERY_CATEGORY_TOGGLED",
-                category: GroceryCategoryDTO.Other,
+                category: GroceryCategory.Other,
               })
             }
             className={`${
-              activeCategory === GroceryCategoryDTO.Other
+              activeCategory === GroceryCategory.Other
                 ? "bg-gray-500 text-white hover:bg-gray-400"
                 : "bg-white text-gray-500 hover:bg-gray-50"
             } relative inline-flex items-center px-4 py-2 rounded-r-md border border-gray-300 text-sm font-medium  focus:z-10 focus:outline-none focus:ring-1 focus:ring-gray-600 focus:border-gray-600`}
@@ -170,9 +170,9 @@ export const GroceriesView = ({ groceries }: { groceries: Groceries }) => {
                   id: grocery.id,
                 });
               }}
-              className={`${groceryCategoryToBackgroundColor(
+              className={`bg-${groceryCategoryToBackgroundColor(
                 grocery.category
-              )} flex-shrink-0 flex items-center justify-center w-16 text-white text-sm font-medium rounded-l-md`}
+              )}-500 flex-shrink-0 flex items-center justify-center w-16 text-white text-sm font-medium rounded-l-md`}
             >
               {grocery.shopCount}
             </div>

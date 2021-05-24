@@ -93,14 +93,14 @@ export const groceryCategoryToBackgroundColor = (
 ) => {
   switch (groceryCategory) {
     case GroceryCategoryDTO.DryGoods:
-      return "bg-yellow-500";
+      return "yellow";
     case GroceryCategoryDTO.Frozen:
-      return "bg-blue-500";
+      return "blue";
     case GroceryCategoryDTO.FruitVegetables:
-      return "bg-green-500";
+      return "green";
     case GroceryCategoryDTO.MeatDairy:
-      return "bg-red-500";
+      return "red";
     case GroceryCategoryDTO.Other:
-      return "bg-gray-500";
+      return "gray";
   }
 };

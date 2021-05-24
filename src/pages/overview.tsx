@@ -1,9 +1,9 @@
 import React from "react";
 import { DashboardFeature } from "../features/DashboardFeature";
-import { PageContainer } from "../components/PageContainer";
-import { Dashboard } from "../components/Dashboard";
+import { PageContainer } from "../common-components/PageContainer";
+import { Dashboard } from "../overview-components/Dashboard";
 
-function DashboardPage() {
+function OverviewPage() {
   return (
     <PageContainer>
       <DashboardFeature>
@@ -13,4 +13,4 @@ function DashboardPage() {
   );
 }
 
-export default DashboardPage;
+export default OverviewPage;

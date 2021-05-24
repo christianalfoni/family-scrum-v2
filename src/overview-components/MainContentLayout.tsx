@@ -1,26 +1,8 @@
 import { CalendarIcon, ShoppingCartIcon } from "@heroicons/react/outline";
-import React from "react";
-import { match } from "react-states";
-import { useDasbhoard } from "../features/DashboardFeature";
-import { View } from "../features/DashboardFeature/Feature";
-import { GroceriesFeature } from "../features/GroceriesFeature";
-import { GroceryListFeature } from "../features/GroceryListFeature";
-import { WeekdaysFeature } from "../features/WeekdaysFeature";
-import { GroceriesView } from "./GroceriesView";
-import { GroceryList, GroceryListSkeleton } from "./GroceryList";
-import { WeekdaysView, WeekdaysSkeleton } from "./Weekdays";
-
-const DashboardLayout = ({ children }: { children: React.ReactNode }) => (
-  <div className="bg-gray-50">
-    <main className="pt-8 pb-8 h-screen w-screen">
-      <div className="mx-auto px-8 h-full flex items-stretch">
-        <div className="grid grid-cols-1 gap-4 items-start lg:grid-cols-8 lg:gap-8 flex-grow">
-          {children}
-        </div>
-      </div>
-    </main>
-  </div>
-);
+import {
+  useDasbhoard,
+  DashboardViewContext,
+} from "../features/DashboardFeature";
 
 const MenuItem = ({
   active = false,
@@ -52,24 +34,24 @@ const MenuItem = ({
 );
 
 const getMenuItems = (
-  currentView: View | undefined,
-  onClick: (view: View) => void
+  currentView: DashboardViewContext | undefined,
+  onClick: (view: DashboardViewContext) => void
 ) => [
   {
     title: "Weekdays",
-    active: currentView === "WEEKDAYS",
+    active: currentView?.state === "WEEKDAYS",
     Icon: CalendarIcon,
-    onClick: () => onClick("WEEKDAYS"),
+    onClick: () => onClick({ state: "WEEKDAYS" }),
   },
   {
     title: "Groceries",
-    active: currentView === "GROCERIES",
+    active: currentView?.state === "GROCERIES",
     Icon: ShoppingCartIcon,
-    onClick: () => onClick("GROCERIES"),
+    onClick: () => onClick({ state: "GROCERIES" }),
   },
 ];
 
-const MainContentLayoutSkeleton = ({
+export const MainContentLayoutSkeleton = ({
   children,
 }: {
   children: React.ReactNode;
@@ -97,7 +79,11 @@ const MainContentLayoutSkeleton = ({
     </section>
   </div>
 );
-const MainContentLayout = ({ children }: { children: React.ReactNode }) => {
+export const MainContentLayout = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
   const [dashboard, send] = useDasbhoard("LOADED");
 
   return (
@@ -131,54 +117,3 @@ const MainContentLayout = ({ children }: { children: React.ReactNode }) => {
     </div>
   );
 };
-
-export const DashboardSkeleton = () => (
-  <DashboardLayout>
-    <GroceryListSkeleton />
-    <MainContentLayoutSkeleton>
-      <WeekdaysSkeleton />
-    </MainContentLayoutSkeleton>
-  </DashboardLayout>
-);
-
-export const Dashboard = () => {
-  const [dashboard, send] = useDasbhoard();
-
-  return match(dashboard, {
-    AWAITING_AUTHENTICATION: () => <DashboardSkeleton />,
-    ERROR: () => <DashboardSkeleton />,
-    LOADED: ({ groceries, tasks, week, family, events, view }) => {
-      const views: { [T in View]: () => React.ReactNode } = {
-        WEEKDAYS: () => (
-          <WeekdaysFeature>
-            <WeekdaysView
-              tasks={tasks}
-              week={week}
-              family={family}
-              events={events}
-            />
-          </WeekdaysFeature>
-        ),
-        GROCERIES: () => (
-          <GroceriesFeature familyUid={family.id}>
-            <GroceriesView groceries={groceries} />
-          </GroceriesFeature>
-        ),
-      };
-      return (
-        <DashboardLayout>
-          <GroceryListFeature>
-            <GroceryList groceries={groceries} />
-          </GroceryListFeature>
-          <MainContentLayout>{views[view]()}</MainContentLayout>
-        </DashboardLayout>
-      );
-    },
-    LOADING: () => <DashboardSkeleton />,
-    REQUIRING_AUTHENTICATION: () => <DashboardSkeleton />,
-  });
-};
-
-/*
-
-*/

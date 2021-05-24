@@ -35,7 +35,16 @@ export type Task = TaskDTO;
 
 export type CalendarEvent = CalendarEventDTO;
 
-export type View = "WEEKDAYS" | "GROCERIES";
+export type ViewContext =
+  | {
+      state: "WEEKDAYS";
+    }
+  | {
+      state: "GROCERIES";
+    }
+  | {
+      state: "SHOPPING_LIST";
+    };
 
 export type Tasks = {
   [taskId: string]: Task;
@@ -69,7 +78,7 @@ type Context =
       tasks: Tasks;
       week: Week;
       events: CalendarEvents;
-      view: "WEEKDAYS" | "GROCERIES";
+      view: ViewContext;
     }
   | {
       state: "ERROR";
@@ -79,7 +88,7 @@ type Context =
 export type UIEvent =
   | {
       type: "VIEW_SELECTED";
-      view: View;
+      view: ViewContext;
     }
   | {
       type: "GROCERY_CATEGORY_TOGGLED";
@@ -123,7 +132,9 @@ const reducer = createReducer<Context, Event>({
       { familyUid }
     ) => ({
       state: "LOADED",
-      view: "WEEKDAYS",
+      view: {
+        state: "WEEKDAYS",
+      },
       familyUid,
       groceries,
       tasks,
@@ -140,7 +151,7 @@ const reducer = createReducer<Context, Event>({
     "STORAGE:ADD_GROCERY_SUCCESS": ({ grocery }, context) => {
       return {
         ...context,
-        groceries: context.groceries.concat(grocery),
+        groceries: [grocery].concat(context.groceries),
       };
     },
     "STORAGE:SET_GROCERY_SHOP_COUNT_SUCCESS": ({ grocery }, context) => {

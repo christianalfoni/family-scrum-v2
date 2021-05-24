@@ -1,6 +1,5 @@
 export {
   Feature as GroceriesFeature,
   useFeature as useGroceries,
+  GroceryCategory,
 } from "./Feature";
-
-export type { GroceryCategory } from "./Feature";

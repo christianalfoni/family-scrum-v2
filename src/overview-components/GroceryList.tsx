@@ -48,9 +48,9 @@ export const GroceryList = React.memo(
                 <div className="flex items-center">
                   <span className="flex items-center truncate space-x-3">
                     <span
-                      className={`${groceryCategoryToBackgroundColor(
+                      className={`bg-${groceryCategoryToBackgroundColor(
                         grocery.category
-                      )} w-2.5 h-2.5 flex-shrink-0 rounded-full`}
+                      )}-500 w-2.5 h-2.5 flex-shrink-0 rounded-full`}
                       aria-hidden="true"
                     />
                     <span className="font-medium truncate leading-6 text-lg">

@@ -7,9 +7,9 @@ import {
 } from "react-states";
 import { useDevtools } from "react-states/devtools";
 import { useEnvironment } from "../../environment";
-import { GroceryCategoryDTO } from "../../environment/storage";
+import { GroceryCategoryDTO as GroceryCategory } from "../../environment/storage";
 
-export type GroceryCategory = GroceryCategoryDTO;
+export { GroceryCategory };
 
 type Context =
   | {
