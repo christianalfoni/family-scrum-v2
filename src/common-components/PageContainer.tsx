@@ -1,5 +1,6 @@
 import { match } from "react-states";
 import { DevtoolsProvider } from "react-states/devtools";
+import Head from "next/head";
 
 /* This example requires Tailwind CSS v2.0+ */
 import { Fragment } from "react";
@@ -126,6 +127,13 @@ export const PageContainer = ({ children }: Props) => {
       }}
     >
       <div>
+        <Head>
+          <meta name="apple-mobile-web-app-capable" content="yes" />
+          <meta
+            name="viewport"
+            content="initial-scale=1.0, width=device-width"
+          />
+        </Head>
         <DevtoolsProvider>
           <SessionFeature>
             {children}

@@ -130,7 +130,7 @@ export const DashboardContentSkeleton = () => {
   );
 };
 
-export const DashboardContent = () => {
+export const DashboardView = () => {
   const [dashboard, send] = useDasbhoard("LOADED");
   const { groceries, family, week, tasks } = dashboard;
   const shopCount = groceries.reduce(
@@ -175,10 +175,32 @@ export const DashboardContent = () => {
         >
           Groceries
         </MenuCard>
-        <MenuCard Icon={CalendarIcon} onClick={() => {}} color="bg-green-500">
+        <MenuCard
+          Icon={CalendarIcon}
+          onClick={() => {
+            send({
+              type: "VIEW_SELECTED",
+              view: {
+                state: "PLAN_CURRENT_WEEK",
+              },
+            });
+          }}
+          color="bg-green-500"
+        >
           Plan current week
         </MenuCard>
-        <MenuCard Icon={CalendarIcon} onClick={() => {}} color="bg-blue-500">
+        <MenuCard
+          Icon={CalendarIcon}
+          onClick={() => {
+            send({
+              type: "VIEW_SELECTED",
+              view: {
+                state: "PLAN_NEXT_WEEK",
+              },
+            });
+          }}
+          color="bg-blue-500"
+        >
           Plan next week
         </MenuCard>
       </ul>

@@ -47,8 +47,11 @@ export const Dashboard = () => {
           </GroceryListFeature>
           <MainContentLayout>
             {match(view, {
-              // Shopping list is always displayed
+              // Not available in this version of the app
               SHOPPING_LIST: () => null,
+              PLAN_CURRENT_WEEK: () => null,
+              PLAN_NEXT_WEEK: () => null,
+
               WEEKDAYS: () => (
                 <WeekdaysFeature>
                   <WeekdaysView

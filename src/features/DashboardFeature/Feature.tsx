@@ -44,6 +44,12 @@ export type ViewContext =
     }
   | {
       state: "SHOPPING_LIST";
+    }
+  | {
+      state: "PLAN_CURRENT_WEEK";
+    }
+  | {
+      state: "PLAN_NEXT_WEEK";
     };
 
 export type Tasks = {
