@@ -18,7 +18,7 @@ const Button = ({
 function HomePage() {
   return (
     <div className="bg-gray-100 h-screen w-screen flex items-center justify-center">
-      <Button href="/dashboard">Dashboard</Button>
+      <Button href="/overview">Overview</Button>
       <Button href="/app">App</Button>
     </div>
   );

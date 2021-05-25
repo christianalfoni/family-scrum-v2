@@ -19,7 +19,7 @@ export const Dashboard = () => {
         ERROR: () => <DashboardContentSkeleton />,
         LOADING: () => <DashboardContentSkeleton />,
         REQUIRING_AUTHENTICATION: () => <DashboardContentSkeleton />,
-        LOADED: ({ family, groceries, view, tasks }) => {
+        LOADED: ({ family, groceries, view, tasks, week }) => {
           return match(view, {
             SHOPPING_LIST: () => (
               <GroceryListFeature familyId={family.id}>
@@ -60,6 +60,7 @@ export const Dashboard = () => {
                 <PlanWeekView
                   tasks={tasks}
                   family={family}
+                  week={week}
                   onBackClick={() =>
                     send({
                       type: "VIEW_SELECTED",
@@ -79,6 +80,7 @@ export const Dashboard = () => {
                 <PlanWeekView
                   tasks={tasks}
                   family={family}
+                  week={week}
                   onBackClick={() =>
                     send({
                       type: "VIEW_SELECTED",

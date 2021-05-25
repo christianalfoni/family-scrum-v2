@@ -1,22 +1,23 @@
 import * as React from "react";
-import { Tasks } from "../features/DashboardFeature";
+import { dashboardSelectors, Tasks } from "../features/DashboardFeature";
 import { usePlanWeek } from "../features/PlanWeekFeature";
 import { Menu, Transition } from "@headlessui/react";
 import { ChevronLeftIcon, DotsVerticalIcon } from "@heroicons/react/outline";
-import { Family } from "../features/DashboardFeature/Feature";
+import { Family, Week } from "../features/DashboardFeature/Feature";
 import { weekdays } from "../utils";
 
 export const PlanWeekView = ({
   family,
   tasks,
+  week,
   onBackClick,
 }: {
   family: Family;
+  week: Week;
   tasks: Tasks;
   onBackClick: () => void;
 }) => {
   const [planWeek, send] = usePlanWeek();
-
   const tasksList = Object.values(tasks);
 
   return (
@@ -98,13 +99,17 @@ export const PlanWeekView = ({
                     src={family.users[userId].avatar!}
                     alt={family.users[userId].name}
                   />
-                  {weekdays.map((weekday) => (
+                  {week.tasks[task.id][userId].map((isActive, index) => (
                     <button
-                      key={weekday}
+                      key={index}
                       type="button"
-                      className="order-1 w-10 h-8 justify-center inline-flex items-center px-2 py-1 border border-gray-300 shadow-sm text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:order-0 sm:ml-0"
+                      className={`${
+                        isActive
+                          ? "text-white bg-red-500"
+                          : "text-gray-700 bg-white"
+                      } order-1 w-10 h-8 justify-center inline-flex items-center px-2 py-1 border border-gray-300 shadow-sm text-xs font-medium rounded-md  hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:order-0 sm:ml-0`}
                     >
-                      {weekday.substr(0, 2)}
+                      {weekdays[index].substr(0, 2)}
                     </button>
                   ))}
                 </div>
