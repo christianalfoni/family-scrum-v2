@@ -10,6 +10,7 @@ export type {
   Task,
   Tasks,
   Week,
+  User,
   UIEvent as DashboardUIEvent,
   ViewContext as DashboardViewContext,
 } from "./Feature";

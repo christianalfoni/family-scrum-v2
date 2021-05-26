@@ -7,7 +7,7 @@ import { ShoppingListView } from "./ShoppingListView";
 import { GroceriesFeature } from "../features/GroceriesFeature";
 import { PlanWeekView } from "./PlanWeekView";
 import { PlanWeekFeature } from "../features/PlanWeekFeature";
-import { getCurrentWeekDayId } from "../utils";
+import { getCurrentWeekId } from "../utils";
 
 export const Dashboard = () => {
   const [dashboard, send] = useDasbhoard();
@@ -19,7 +19,15 @@ export const Dashboard = () => {
         ERROR: () => <DashboardContentSkeleton />,
         LOADING: () => <DashboardContentSkeleton />,
         REQUIRING_AUTHENTICATION: () => <DashboardContentSkeleton />,
-        LOADED: ({ family, groceries, view, tasks, week }) => {
+        LOADED: ({
+          family,
+          groceries,
+          view,
+          tasks,
+          currentWeek,
+          nextWeek,
+          user,
+        }) => {
           return match(view, {
             SHOPPING_LIST: () => (
               <GroceryListFeature familyId={family.id}>
@@ -38,7 +46,7 @@ export const Dashboard = () => {
             ),
             WEEKDAYS: () => <DashboardView />,
             GROCERIES: () => (
-              <GroceriesFeature familyUid={family.id}>
+              <GroceriesFeature familyId={family.id}>
                 <GroceriesView
                   groceries={groceries}
                   onBackClick={() =>
@@ -53,14 +61,11 @@ export const Dashboard = () => {
               </GroceriesFeature>
             ),
             PLAN_CURRENT_WEEK: () => (
-              <PlanWeekFeature
-                familyId={family.id}
-                weekId={getCurrentWeekDayId(0)}
-              >
+              <PlanWeekFeature user={user} weekId={currentWeek.id}>
                 <PlanWeekView
                   tasks={tasks}
                   family={family}
-                  week={week}
+                  week={currentWeek}
                   onBackClick={() =>
                     send({
                       type: "VIEW_SELECTED",
@@ -73,14 +78,11 @@ export const Dashboard = () => {
               </PlanWeekFeature>
             ),
             PLAN_NEXT_WEEK: () => (
-              <PlanWeekFeature
-                familyId={family.id}
-                weekId={getCurrentWeekDayId(0)}
-              >
+              <PlanWeekFeature user={user} weekId={nextWeek.id}>
                 <PlanWeekView
                   tasks={tasks}
                   family={family}
-                  week={week}
+                  week={nextWeek}
                   onBackClick={() =>
                     send({
                       type: "VIEW_SELECTED",

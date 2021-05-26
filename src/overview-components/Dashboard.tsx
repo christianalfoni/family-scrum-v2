@@ -39,7 +39,7 @@ export const Dashboard = () => {
   return match(dashboard, {
     AWAITING_AUTHENTICATION: () => <DashboardSkeleton />,
     ERROR: () => <DashboardSkeleton />,
-    LOADED: ({ groceries, tasks, week, family, events, view }) => {
+    LOADED: ({ groceries, tasks, currentWeek, family, events, view }) => {
       return (
         <DashboardLayout>
           <GroceryListFeature familyId={family.id}>
@@ -56,14 +56,14 @@ export const Dashboard = () => {
                 <WeekdaysFeature>
                   <WeekdaysView
                     tasks={tasks}
-                    week={week}
+                    week={currentWeek}
                     family={family}
                     events={events}
                   />
                 </WeekdaysFeature>
               ),
               GROCERIES: () => (
-                <GroceriesFeature familyUid={family.id}>
+                <GroceriesFeature familyId={family.id}>
                   <GroceriesView groceries={groceries} />
                 </GroceriesFeature>
               ),

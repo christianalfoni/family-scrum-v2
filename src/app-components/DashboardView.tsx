@@ -132,14 +132,14 @@ export const DashboardContentSkeleton = () => {
 
 export const DashboardView = () => {
   const [dashboard, send] = useDasbhoard("LOADED");
-  const { groceries, family, week, tasks } = dashboard;
+  const { groceries, family, currentWeek, tasks } = dashboard;
   const shopCount = groceries.reduce(
     (aggr, grocery) => aggr + grocery.shopCount,
     0
   );
   const currentDayIndex = getCurrentDayIndex();
   const [slideIndex, setSlideIndex] = useState(currentDayIndex);
-  const tasksByWeekday = dashboardSelectors.tasksByWeekday(week);
+  const tasksByWeekday = dashboardSelectors.tasksByWeekday(currentWeek);
   const [controlledSwiper, setControlledSwiper] =
     useState<SwiperCore | null>(null);
 

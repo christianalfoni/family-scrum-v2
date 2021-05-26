@@ -92,7 +92,10 @@ export const PlanWeekView = ({
                 </Menu>
               </div>
               {Object.keys(family.users).map((userId) => (
-                <div className="flex pt-2 items-center justify-between">
+                <div
+                  key={userId}
+                  className="flex pt-2 items-center justify-between"
+                >
                   <img
                     key={userId}
                     className="max-w-none h-6 w-6 rounded-full ring-2 ring-white"
@@ -103,6 +106,15 @@ export const PlanWeekView = ({
                     <button
                       key={index}
                       type="button"
+                      onClick={() => {
+                        send({
+                          type: "TOGGLE_WEEKDAY",
+                          active: !isActive,
+                          taskId: task.id,
+                          userId,
+                          weekdayIndex: index,
+                        });
+                      }}
                       className={`${
                         isActive
                           ? "text-white bg-red-500"

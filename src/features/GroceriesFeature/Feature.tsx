@@ -132,14 +132,14 @@ export const useFeature = createHook(featureContext);
 
 export const Feature = ({
   children,
-  familyUid,
+  familyId,
   initialContext = {
     state: "UNFILTERED",
     input: "",
   },
 }: {
   children: React.ReactNode;
-  familyUid: string;
+  familyId: string;
   initialContext?: Context;
 }) => {
   const { storage } = useEnvironment();
@@ -152,15 +152,15 @@ export const Feature = ({
   const [context] = feature;
 
   useEnterEffect(context, "ADDING_GROCERY", ({ category, name }) => {
-    storage.addGrocery(familyUid, category, name);
+    storage.addGrocery(familyId, category, name);
   });
 
   useEnterEffect(context, "INCREASING_SHOP_COUNT", ({ id }) => {
-    storage.increaseGroceryShopCount(familyUid, id);
+    storage.increaseGroceryShopCount(familyId, id);
   });
 
   useEnterEffect(context, "RESETTING_SHOP_COUNT", ({ id }) => {
-    storage.resetGroceryShopCount(familyUid, id);
+    storage.resetGroceryShopCount(familyId, id);
   });
 
   return (

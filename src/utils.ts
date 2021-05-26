@@ -10,8 +10,16 @@ const getFirstDateOfCurrentWeek = () =>
 const getFirstDateOfNextWeek = () =>
   setDay(addDays(new Date(), 7), 1, { weekStartsOn: 1 });
 
-export const getCurrentWeekDayId = (weekDay: number) => {
-  return format(setDay(new Date(), weekDay), "yyyyMMdd");
+export const getPreviousWeekId = () => {
+  return format(getFirstDateOfPreviousWeek(), "yyyyMMdd");
+};
+
+export const getCurrentWeekId = () => {
+  return format(getFirstDateOfCurrentWeek(), "yyyyMMdd");
+};
+
+export const getNextWeekId = () => {
+  return format(getFirstDateOfNextWeek(), "yyyyMMdd");
 };
 
 export const getFirstDayOfPreviousWeek = () => {

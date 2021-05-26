@@ -70,7 +70,6 @@ export type StorageEvent =
       tasks: {
         [taskId: string]: TaskDTO;
       };
-      week: WeekDTO;
       events: {
         [eventId: string]: CalendarEventDTO;
       };
@@ -78,6 +77,28 @@ export type StorageEvent =
   | {
       type: "STORAGE:FETCH_FAMILY_DATA_ERROR";
       error: string;
+    }
+  | {
+      type: "STORAGE:WEEKS_UPDATE";
+      previousWeek: WeekDTO;
+      currentWeek: WeekDTO;
+      nextWeek: WeekDTO;
+    }
+  | {
+      type: "STORAGE:FETCH_WEEKS_ERROR";
+      error: string;
+    }
+  | {
+      type: "STORAGE:CURRENT_WEEK_TASK_ACTIVITY_UPDATE";
+      taskId: string;
+      userId: string;
+      activity: WeekTaskActivity;
+    }
+  | {
+      type: "STORAGE:NEXT_WEEK_TASK_ACTIVITY_UPDATE";
+      taskId: string;
+      userId: string;
+      activity: WeekTaskActivity;
     }
   | {
       type: "STORAGE:FETCH_GROCERIES_SUCCESS";
@@ -148,12 +169,6 @@ export type StorageEvent =
       error: string;
     }
   | {
-      type: "STORAGE:SET_WEEK_TASK_ACTIVITY_SUCCESS";
-      weekId: string;
-      taskId: string;
-      userId: string;
-    }
-  | {
       type: "STORAGE:SET_WEEK_TASK_ACTIVITY_ERROR";
       weekId: string;
       taskId: string;
@@ -166,14 +181,19 @@ export interface Storage {
   /**
    *
    * @param familyId
-   * @param weekId
    * @fires STORAGE:FETCH_FAMILY_DATA_SUCCESS
    * @fires STORAGE:FETCH_FAMILY_DATA_ERROR
    */
-  fetchFamilyData(familyId: string, weekId: string): void;
-  fetchGroceries(familyId: string): void;
-  fetchTasks(familyId: string): void;
-  fetchWeek(familyId: string, id: string): void;
+  fetchFamilyData(familyId: string): void;
+  /**
+   *
+   * @param familyId
+   * @fires STORAGE:WEEKS_UPDATE
+   * @fires STORAGE:CURRENT_WEEK_TASK_ACTIVITY_UPDATE
+   * @fires STORAGE:NEXT_WEEK_TASK_ACTIVITY_UPDATE
+   * @fires STORAGE:FETCH_WEEKS_ERROR
+   */
+  fetchWeeks(familyId: string): void;
   addGrocery(
     familyId: string,
     category: GroceryCategoryDTO,
@@ -184,11 +204,19 @@ export interface Storage {
   increaseGroceryShopCount(familyId: string, id: string): void;
   resetGroceryShopCount(familyId: string, id: string): void;
   archiveTask(familyId: string, id: string): void;
-  setWeekTaskActivity(
-    familyId: string,
-    weekId: string,
-    taskId: string,
-    userId: string,
-    weekTaskActivity: WeekTaskActivity
-  ): void;
+  /**
+   *
+   * @param familyId
+   * @param weekId
+   * @param userId
+   * @fires STORAGE:SET_WEEK_TASK_ACTIVITY_ERROR
+   */
+  setWeekTaskActivity(options: {
+    familyId: string;
+    weekId: string;
+    taskId: string;
+    userId: string;
+    weekdayIndex: number;
+    active: boolean;
+  }): void;
 }

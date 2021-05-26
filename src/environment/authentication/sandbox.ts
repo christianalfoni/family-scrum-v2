@@ -5,7 +5,7 @@ import { randomWait } from "../utils";
 export const createAuthentication = (): Authentication => {
   const authenticationEvents = events<AuthenticationEvent>();
   const user = {
-    id: "123",
+    id: "user_1",
     name: "Bob Saget",
     familyId: "456",
   };

@@ -7,8 +7,13 @@ import {
   TaskDTO,
   FamilyDTO,
   CalendarEventDTO,
+  WeekTaskActivity,
 } from ".";
-import { getCurrentWeekDayId } from "../../utils";
+import {
+  getCurrentWeekId,
+  getNextWeekId,
+  getPreviousWeekId,
+} from "../../utils";
 import { randomWait } from "../utils";
 
 export const createStorage = (): Storage => {
@@ -65,11 +70,26 @@ export const createStorage = (): Storage => {
     },
   };
 
-  const currentWeekId = getCurrentWeekDayId(0);
+  const previousWeekId = getPreviousWeekId();
+  const currentWeekId = getCurrentWeekId();
+  const nextWeekId = getNextWeekId();
 
   let weeks: {
     [id: string]: WeekDTO;
   } = {
+    [previousWeekId]: {
+      id: previousWeekId,
+      tasks: {
+        task_1: {
+          user_1: [true, false, false, false, false, false, false],
+          user_2: [false, false, false, true, false, false, false],
+        },
+        task_2: {
+          user_1: [false, false, false, false, true, false, false],
+          user_2: [false, true, true, false, false, false, false],
+        },
+      },
+    },
     [currentWeekId]: {
       id: currentWeekId,
       tasks: {
@@ -83,29 +103,29 @@ export const createStorage = (): Storage => {
         },
       },
     },
+    [nextWeekId]: {
+      id: nextWeekId,
+      tasks: {
+        task_1: {
+          user_1: [false, false, false, false, false, false, false],
+          user_2: [false, false, false, false, false, false, false],
+        },
+        task_2: {
+          user_1: [false, false, false, false, false, false, false],
+          user_2: [false, false, false, false, false, false, false],
+        },
+      },
+    },
   };
 
   return {
     events: reactStatesEvents(),
-    async fetchGroceries() {
-      await randomWait();
+    async fetchWeeks() {
       this.events.emit({
-        type: "STORAGE:FETCH_GROCERIES_SUCCESS",
-        groceries,
-      });
-    },
-    async fetchWeek(_, id) {
-      await randomWait();
-      this.events.emit({
-        type: "STORAGE:FETCH_WEEK_SUCCESS",
-        week: weeks[id],
-      });
-    },
-    async fetchTasks() {
-      await randomWait();
-      this.events.emit({
-        type: "STORAGE:FETCH_TASKS_SUCCESS",
-        tasks,
+        type: "STORAGE:WEEKS_UPDATE",
+        currentWeek: weeks[currentWeekId],
+        nextWeek: weeks[nextWeekId],
+        previousWeek: weeks[previousWeekId],
       });
     },
     async addGrocery(_, category, name) {
@@ -140,13 +160,12 @@ export const createStorage = (): Storage => {
         family,
       });
     },
-    async fetchFamilyData(_, weekId) {
+    async fetchFamilyData() {
       await randomWait();
       this.events.emit({
         type: "STORAGE:FETCH_FAMILY_DATA_SUCCESS",
         groceries,
         tasks,
-        week: weeks[weekId],
         family,
         events,
       });
@@ -196,7 +215,14 @@ export const createStorage = (): Storage => {
         grocery,
       });
     },
-    async setWeekTaskActivity(_, weekId, taskId, userId, weekTaskActivity) {
+    async setWeekTaskActivity({
+      familyId,
+      weekId,
+      userId,
+      taskId,
+      weekdayIndex,
+      active,
+    }) {
       await randomWait();
 
       weeks = {
@@ -207,17 +233,25 @@ export const createStorage = (): Storage => {
             ...weeks[weekId].tasks,
             [taskId]: {
               ...weeks[weekId].tasks[taskId],
-              [userId]: weekTaskActivity,
+              [userId]: [
+                ...weeks[weekId].tasks[taskId][userId].slice(0, weekdayIndex),
+                active,
+                ...weeks[weekId].tasks[taskId][userId].slice(weekdayIndex + 1),
+              ] as WeekTaskActivity,
             },
           },
         },
       };
 
       this.events.emit({
-        type: "STORAGE:SET_WEEK_TASK_ACTIVITY_SUCCESS",
+        type:
+          weekId === currentWeekId
+            ? "STORAGE:CURRENT_WEEK_TASK_ACTIVITY_UPDATE"
+            : "STORAGE:NEXT_WEEK_TASK_ACTIVITY_UPDATE",
         weekId,
         taskId,
         userId,
+        activity: weeks[weekId].tasks[taskId][userId],
       });
     },
   };

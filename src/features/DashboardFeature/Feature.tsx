@@ -18,14 +18,16 @@ import {
   WeekDTO,
 } from "../../environment/storage";
 import { useSession } from "../SessionFeature";
-import { getCurrentWeekDayId } from "../../utils";
+import { getCurrentWeekId } from "../../utils";
 import { useDevtools } from "react-states/devtools";
-import { AuthenticationEvent } from "../../environment/authentication";
+import { AuthenticationEvent, UserDTO } from "../../environment/authentication";
 import levenshtein from "fast-levenshtein";
 
 export type GroceryCategory = GroceryCategoryDTO;
 
 export type Family = FamilyDTO;
+
+export type User = UserDTO;
 
 export type Grocery = GroceryDTO;
 
@@ -66,6 +68,29 @@ export type WeekdayTasks = {
   [taskId: string]: string[];
 };
 
+type FamilyDataContext =
+  | {
+      state: "LOADING";
+    }
+  | {
+      state: "LOADED";
+      family: Family;
+      groceries: Groceries;
+      tasks: Tasks;
+      events: CalendarEvents;
+    };
+
+type WeeksDataContext =
+  | {
+      state: "LOADING";
+    }
+  | {
+      state: "LOADED";
+      previousWeek: Week;
+      currentWeek: Week;
+      nextWeek: Week;
+    };
+
 type Context =
   | {
       state: "AWAITING_AUTHENTICATION";
@@ -75,16 +100,21 @@ type Context =
     }
   | {
       state: "LOADING";
-      familyUid: string;
+      user: User;
+      familyData: FamilyDataContext;
+      weeksData: WeeksDataContext;
     }
   | {
       state: "LOADED";
       family: Family;
       groceries: Groceries;
       tasks: Tasks;
-      week: Week;
       events: CalendarEvents;
+      previousWeek: Week;
+      currentWeek: Week;
+      nextWeek: Week;
       view: ViewContext;
+      user: User;
     }
   | {
       state: "ERROR";
@@ -120,7 +150,13 @@ const reducer = createReducer<Context, Event>({
   AWAITING_AUTHENTICATION: {
     "AUTHENTICATION:AUTHENTICATED": ({ user }) => ({
       state: "LOADING",
-      familyUid: user.familyId,
+      familyData: {
+        state: "LOADING",
+      },
+      weeksData: {
+        state: "LOADING",
+      },
+      user,
     }),
     "AUTHENTICATION:UNAUTHENTICATED": () => ({
       state: "REQUIRING_AUTHENTICATION",
@@ -129,24 +165,78 @@ const reducer = createReducer<Context, Event>({
   REQUIRING_AUTHENTICATION: {
     "AUTHENTICATION:AUTHENTICATED": ({ user }) => ({
       state: "LOADING",
-      familyUid: user.familyId,
+      familyData: {
+        state: "LOADING",
+      },
+      weeksData: {
+        state: "LOADING",
+      },
+      user,
     }),
   },
   LOADING: {
     "STORAGE:FETCH_FAMILY_DATA_SUCCESS": (
-      { groceries, tasks, week, family, events },
-      { familyUid }
-    ) => ({
-      state: "LOADED",
-      view: {
-        state: "WEEKDAYS",
-      },
-      familyUid,
-      groceries,
-      tasks,
-      week,
-      family,
-      events,
+      { groceries, tasks, family, events },
+      context
+    ) =>
+      match(context.weeksData, {
+        LOADING: (): Context => ({
+          ...context,
+          familyData: {
+            state: "LOADED",
+            groceries,
+            tasks,
+            family,
+            events,
+          },
+        }),
+        LOADED: ({ currentWeek, nextWeek, previousWeek }): Context => ({
+          state: "LOADED",
+          view: {
+            state: "WEEKDAYS",
+          },
+          user: context.user,
+          currentWeek,
+          nextWeek,
+          previousWeek,
+          groceries,
+          tasks,
+          family,
+          events,
+        }),
+      }),
+    "STORAGE:WEEKS_UPDATE": (
+      { previousWeek, currentWeek, nextWeek },
+      context
+    ) =>
+      match(context.familyData, {
+        LOADING: (): Context => ({
+          ...context,
+          weeksData: {
+            state: "LOADED",
+            previousWeek,
+            currentWeek,
+            nextWeek,
+          },
+        }),
+        LOADED: ({ events, family, tasks, groceries }): Context => ({
+          state: "LOADED",
+          view: {
+            state: "WEEKDAYS",
+          },
+          user: context.user,
+          currentWeek,
+          nextWeek,
+          previousWeek,
+          groceries,
+          tasks,
+          family,
+          events,
+        }),
+      }),
+    "STORAGE:FETCH_WEEKS_ERROR": ({ error }) => ({
+      state: "ERROR",
+      error,
     }),
     "STORAGE:FETCH_FAMILY_DATA_ERROR": ({ error }) => ({
       state: "ERROR",
@@ -173,6 +263,42 @@ const reducer = createReducer<Context, Event>({
           },
           []
         ),
+      };
+    },
+    "STORAGE:CURRENT_WEEK_TASK_ACTIVITY_UPDATE": (
+      { taskId, userId, activity },
+      context
+    ) => {
+      return {
+        ...context,
+        currentWeek: {
+          ...context.currentWeek,
+          tasks: {
+            ...context.currentWeek.tasks,
+            [taskId]: {
+              ...context.currentWeek.tasks[taskId],
+              [userId]: activity,
+            },
+          },
+        },
+      };
+    },
+    "STORAGE:NEXT_WEEK_TASK_ACTIVITY_UPDATE": (
+      { taskId, userId, activity },
+      context
+    ) => {
+      return {
+        ...context,
+        nextWeek: {
+          ...context.nextWeek,
+          tasks: {
+            ...context.nextWeek.tasks,
+            [taskId]: {
+              ...context.nextWeek.tasks[taskId],
+              [userId]: activity,
+            },
+          },
+        },
       };
     },
     VIEW_SELECTED: ({ view }, context) => ({
@@ -268,7 +394,13 @@ export const Feature = ({ children, initialContext }: Props) => {
       }),
       SIGNED_IN: ({ user }) => ({
         state: "LOADING",
-        familyUid: user.familyId,
+        familyData: {
+          state: "LOADING",
+        },
+        weeksData: {
+          state: "LOADING",
+        },
+        user,
       }),
       SIGNED_OUT: () => ({
         state: "REQUIRING_AUTHENTICATION",
@@ -286,10 +418,9 @@ export const Feature = ({ children, initialContext }: Props) => {
   useEvents(authentication.events, send);
   useEvents(storage.events, send);
 
-  useEnterEffect(context, "LOADING", ({ familyUid }) => {
-    const weekId = getCurrentWeekDayId(0);
-
-    storage.fetchFamilyData(familyUid, weekId);
+  useEnterEffect(context, "LOADING", ({ user }) => {
+    storage.fetchFamilyData(user.familyId);
+    storage.fetchWeeks(user.familyId);
   });
 
   return (
