@@ -15,20 +15,30 @@ type Context = {
   userId: string;
 };
 
-type TransientContext = {
-  state: "TOGGLING_WEEKDAY";
-  taskId: string;
-  weekdayIndex: number;
-  active: boolean;
-};
+type TransientContext =
+  | {
+      state: "TOGGLING_WEEKDAY";
+      todoId: string;
+      weekdayIndex: number;
+      active: boolean;
+    }
+  | {
+      state: "ARCHIVING_TODO";
+      todoId: string;
+    };
 
-type UIEvent = {
-  type: "TOGGLE_WEEKDAY";
-  taskId: string;
-  userId: string;
-  weekdayIndex: number;
-  active: boolean;
-};
+type UIEvent =
+  | {
+      type: "TOGGLE_WEEKDAY";
+      todoId: string;
+      userId: string;
+      weekdayIndex: number;
+      active: boolean;
+    }
+  | {
+      type: "ARCHIVE_TODO";
+      todoId: string;
+    };
 
 type Event = UIEvent | StorageEvent;
 
@@ -37,19 +47,24 @@ const featureContext = createContext<Context, UIEvent, TransientContext>();
 const reducer = createReducer<Context, Event, TransientContext>(
   {
     PLANNING: {
-      TOGGLE_WEEKDAY: ({ userId, taskId, weekdayIndex, active }, context) =>
+      TOGGLE_WEEKDAY: ({ userId, todoId, weekdayIndex, active }, context) =>
         userId === context.userId
           ? {
               state: "TOGGLING_WEEKDAY",
-              taskId,
+              todoId,
               weekdayIndex,
               active,
             }
           : context,
+      ARCHIVE_TODO: ({ todoId }) => ({
+        state: "ARCHIVING_TODO",
+        todoId,
+      }),
     },
   },
   {
     TOGGLING_WEEKDAY: (_, prevContext) => prevContext,
+    ARCHIVING_TODO: (_, prevContext) => prevContext,
   }
 );
 
@@ -81,17 +96,21 @@ export const Feature = ({
   useEnterEffect(
     context,
     "TOGGLING_WEEKDAY",
-    ({ taskId, weekdayIndex, active }) => {
+    ({ todoId, weekdayIndex, active }) => {
       storage.setWeekTaskActivity({
         familyId: user.familyId,
         weekId,
-        taskId: taskId,
+        todoId,
         userId: user.id,
         active,
         weekdayIndex,
       });
     }
   );
+
+  useEnterEffect(context, "ARCHIVING_TODO", ({ todoId }) => {
+    storage.archiveTodo(user.familyId, todoId);
+  });
 
   return (
     <featureContext.Provider value={feature}>

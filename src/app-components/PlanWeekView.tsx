@@ -1,24 +1,42 @@
 import * as React from "react";
-import { dashboardSelectors, Tasks } from "../features/DashboardFeature";
 import { usePlanWeek } from "../features/PlanWeekFeature";
 import { Menu, Transition } from "@headlessui/react";
 import { ChevronLeftIcon, DotsVerticalIcon } from "@heroicons/react/outline";
-import { Family, Week } from "../features/DashboardFeature/Feature";
+import {
+  Family,
+  Todos,
+  User,
+  Week,
+} from "../features/DashboardFeature/Feature";
 import { weekdays } from "../utils";
+import { WeekTodoActivity } from "../environment/storage";
 
 export const PlanWeekView = ({
+  user,
+  title,
   family,
-  tasks,
+  todos,
   week,
+  previousWeek,
   onBackClick,
 }: {
+  user: User;
+  title: string;
   family: Family;
   week: Week;
-  tasks: Tasks;
+  previousWeek: Week;
+  todos: Todos;
   onBackClick: () => void;
 }) => {
   const [planWeek, send] = usePlanWeek();
-  const tasksList = Object.values(tasks);
+  const todosList = Object.values(todos);
+  const userIds = Object.keys(family.users).sort((a) => {
+    if (a === user.id) {
+      return -1;
+    }
+
+    return 1;
+  });
 
   return (
     <div className="bg-white lg:min-w-0 lg:flex-1">
@@ -30,17 +48,17 @@ export const PlanWeekView = ({
           >
             <ChevronLeftIcon className="h-6 w-6" aria-hidden="true" />
           </button>
-          <h1 className="flex-2 text-lg font-medium">Plan Week</h1>
+          <h1 className="flex-2 text-lg font-medium">Plan {title} Week</h1>
           <span className="flex-1" />
         </div>
       </div>
       <ul className="relative z-0 divide-y divide-gray-200 border-b border-gray-200">
-        {tasksList.map((task) => {
+        {todosList.map((todo) => {
           return (
-            <li key={task.id} className="relative pl-4 pr-6 py-5 ">
+            <li key={todo.id} className="relative pl-4 pr-6 py-5 ">
               <div className="flex items-center">
                 <span className="block">
-                  <h2 className="font-medium">{task.description}</h2>
+                  <h2 className="font-medium">{todo.description}</h2>
                 </span>
                 <Menu as="div" className="ml-auto flex-shrink-0">
                   {({ open }) => (
@@ -72,6 +90,10 @@ export const PlanWeekView = ({
                                 <a
                                   onClick={(event) => {
                                     event.stopPropagation();
+                                    send({
+                                      type: "ARCHIVE_TODO",
+                                      todoId: todo.id,
+                                    });
                                   }}
                                   className={`${
                                     active
@@ -91,41 +113,58 @@ export const PlanWeekView = ({
                   )}
                 </Menu>
               </div>
-              {Object.keys(family.users).map((userId) => (
-                <div
-                  key={userId}
-                  className="flex pt-2 items-center justify-between"
-                >
-                  <img
+              {userIds.map((userId) => {
+                const weekActivity: WeekTodoActivity = week.todos[todo.id]?.[
+                  userId
+                ] ?? [false, false, false, false, false, false, false];
+                return (
+                  <div
                     key={userId}
-                    className="max-w-none h-6 w-6 rounded-full ring-2 ring-white"
-                    src={family.users[userId].avatar!}
-                    alt={family.users[userId].name}
-                  />
-                  {week.tasks[task.id][userId].map((isActive, index) => (
-                    <button
-                      key={index}
-                      type="button"
-                      onClick={() => {
-                        send({
-                          type: "TOGGLE_WEEKDAY",
-                          active: !isActive,
-                          taskId: task.id,
-                          userId,
-                          weekdayIndex: index,
-                        });
-                      }}
-                      className={`${
-                        isActive
-                          ? "text-white bg-red-500"
-                          : "text-gray-700 bg-white"
-                      } order-1 w-10 h-8 justify-center inline-flex items-center px-2 py-1 border border-gray-300 shadow-sm text-xs font-medium rounded-md  hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:order-0 sm:ml-0`}
-                    >
-                      {weekdays[index].substr(0, 2)}
-                    </button>
-                  ))}
-                </div>
-              ))}
+                    className="flex pt-2 items-center justify-between"
+                  >
+                    <img
+                      key={userId}
+                      className="max-w-none h-6 w-6 rounded-full ring-2 ring-white"
+                      src={family.users[userId].avatar!}
+                      alt={family.users[userId].name}
+                    />
+                    {weekActivity.map((isActive, index) => {
+                      const activePreviousWeek = Boolean(
+                        previousWeek.todos[todo.id] &&
+                          previousWeek.todos[todo.id][userId][index]
+                      );
+
+                      return (
+                        <button
+                          key={index}
+                          type="button"
+                          disabled={user.id !== userId}
+                          onClick={() => {
+                            send({
+                              type: "TOGGLE_WEEKDAY",
+                              active: !isActive,
+                              todoId: todo.id,
+                              userId,
+                              weekdayIndex: index,
+                            });
+                          }}
+                          className={`${
+                            isActive
+                              ? "text-white bg-red-500"
+                              : activePreviousWeek
+                              ? "text-gray-700 bg-gray-200"
+                              : "text-gray-700 bg-white"
+                          } ${
+                            user.id === userId ? "" : "opacity-50"
+                          } order-1 w-10 h-8 justify-center inline-flex items-center px-2 py-1 border border-gray-300 shadow-sm text-xs font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500`}
+                        >
+                          {weekdays[index].substr(0, 2)}
+                        </button>
+                      );
+                    })}
+                  </div>
+                );
+              })}
             </li>
           );
         })}

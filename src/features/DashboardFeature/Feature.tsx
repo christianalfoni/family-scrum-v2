@@ -14,7 +14,7 @@ import {
   GroceryCategoryDTO,
   GroceryDTO,
   StorageEvent,
-  TaskDTO,
+  TodoDTO,
   WeekDTO,
 } from "../../environment/storage";
 import { useSession } from "../SessionFeature";
@@ -22,6 +22,7 @@ import { getCurrentWeekId } from "../../utils";
 import { useDevtools } from "react-states/devtools";
 import { AuthenticationEvent, UserDTO } from "../../environment/authentication";
 import levenshtein from "fast-levenshtein";
+import { closestIndexTo } from "date-fns";
 
 export type GroceryCategory = GroceryCategoryDTO;
 
@@ -33,7 +34,7 @@ export type Grocery = GroceryDTO;
 
 export type Groceries = Grocery[];
 
-export type Task = TaskDTO;
+export type Todo = TodoDTO;
 
 export type CalendarEvent = CalendarEventDTO;
 
@@ -52,10 +53,13 @@ export type ViewContext =
     }
   | {
       state: "PLAN_NEXT_WEEK";
+    }
+  | {
+      state: "ADD_TODO";
     };
 
-export type Tasks = {
-  [taskId: string]: Task;
+export type Todos = {
+  [todoId: string]: Todo;
 };
 
 export type CalendarEvents = {
@@ -64,8 +68,8 @@ export type CalendarEvents = {
 
 export type Week = WeekDTO;
 
-export type WeekdayTasks = {
-  [taskId: string]: string[];
+export type WeekdayTodos = {
+  [todoId: string]: string[];
 };
 
 type FamilyDataContext =
@@ -76,7 +80,7 @@ type FamilyDataContext =
       state: "LOADED";
       family: Family;
       groceries: Groceries;
-      tasks: Tasks;
+      todos: Todos;
       events: CalendarEvents;
     };
 
@@ -108,7 +112,7 @@ type Context =
       state: "LOADED";
       family: Family;
       groceries: Groceries;
-      tasks: Tasks;
+      todos: Todos;
       events: CalendarEvents;
       previousWeek: Week;
       currentWeek: Week;
@@ -176,7 +180,7 @@ const reducer = createReducer<Context, Event>({
   },
   LOADING: {
     "STORAGE:FETCH_FAMILY_DATA_SUCCESS": (
-      { groceries, tasks, family, events },
+      { groceries, todos, family, events },
       context
     ) =>
       match(context.weeksData, {
@@ -185,7 +189,7 @@ const reducer = createReducer<Context, Event>({
           familyData: {
             state: "LOADED",
             groceries,
-            tasks,
+            todos,
             family,
             events,
           },
@@ -200,7 +204,7 @@ const reducer = createReducer<Context, Event>({
           nextWeek,
           previousWeek,
           groceries,
-          tasks,
+          todos,
           family,
           events,
         }),
@@ -219,7 +223,7 @@ const reducer = createReducer<Context, Event>({
             nextWeek,
           },
         }),
-        LOADED: ({ events, family, tasks, groceries }): Context => ({
+        LOADED: ({ events, family, todos, groceries }): Context => ({
           state: "LOADED",
           view: {
             state: "WEEKDAYS",
@@ -229,7 +233,7 @@ const reducer = createReducer<Context, Event>({
           nextWeek,
           previousWeek,
           groceries,
-          tasks,
+          todos,
           family,
           events,
         }),
@@ -265,42 +269,62 @@ const reducer = createReducer<Context, Event>({
         ),
       };
     },
-    "STORAGE:CURRENT_WEEK_TASK_ACTIVITY_UPDATE": (
-      { taskId, userId, activity },
+    "STORAGE:CURRENT_WEEK_TODO_ACTIVITY_UPDATE": (
+      { todoId, userId, activity },
       context
     ) => {
       return {
         ...context,
         currentWeek: {
           ...context.currentWeek,
-          tasks: {
-            ...context.currentWeek.tasks,
-            [taskId]: {
-              ...context.currentWeek.tasks[taskId],
+          todos: {
+            ...context.currentWeek.todos,
+            [todoId]: {
+              ...context.currentWeek.todos[todoId],
               [userId]: activity,
             },
           },
         },
       };
     },
-    "STORAGE:NEXT_WEEK_TASK_ACTIVITY_UPDATE": (
-      { taskId, userId, activity },
+    "STORAGE:NEXT_WEEK_TODO_ACTIVITY_UPDATE": (
+      { todoId, userId, activity },
       context
     ) => {
       return {
         ...context,
         nextWeek: {
           ...context.nextWeek,
-          tasks: {
-            ...context.nextWeek.tasks,
-            [taskId]: {
-              ...context.nextWeek.tasks[taskId],
+          todos: {
+            ...context.nextWeek.todos,
+            [todoId]: {
+              ...context.nextWeek.todos[todoId],
               [userId]: activity,
             },
           },
         },
       };
     },
+    "STORAGE:TODOS_UPDATE": ({ todos }, context) => ({
+      ...context,
+      view:
+        context.view.state === "ADD_TODO"
+          ? {
+              state: "WEEKDAYS",
+            }
+          : context.view,
+      todos,
+    }),
+    "STORAGE:EVENTS_UPDATE": ({ events }, context) => ({
+      ...context,
+      view:
+        context.view.state === "ADD_TODO"
+          ? {
+              state: "WEEKDAYS",
+            }
+          : context.view,
+      events,
+    }),
     VIEW_SELECTED: ({ view }, context) => ({
       ...context,
       view,
@@ -346,31 +370,31 @@ export const selectors = {
 
     return groceries;
   },
-  tasksByWeekday: (week: Week) => {
-    const tasksByWeekday: [
-      WeekdayTasks,
-      WeekdayTasks,
-      WeekdayTasks,
-      WeekdayTasks,
-      WeekdayTasks,
-      WeekdayTasks,
-      WeekdayTasks
+  todosByWeekday: (week: Week) => {
+    const todosByWeekday: [
+      WeekdayTodos,
+      WeekdayTodos,
+      WeekdayTodos,
+      WeekdayTodos,
+      WeekdayTodos,
+      WeekdayTodos,
+      WeekdayTodos
     ] = [{}, {}, {}, {}, {}, {}, {}];
 
-    for (let taskId in week.tasks) {
-      for (let userId in week.tasks[taskId]) {
-        week.tasks[taskId][userId].forEach((isActive, index) => {
+    for (let todoId in week.todos) {
+      for (let userId in week.todos[todoId]) {
+        week.todos[todoId][userId].forEach((isActive, index) => {
           if (isActive) {
-            if (!tasksByWeekday[index][taskId]) {
-              tasksByWeekday[index][taskId] = [];
+            if (!todosByWeekday[index][todoId]) {
+              todosByWeekday[index][todoId] = [];
             }
-            tasksByWeekday[index][taskId].push(userId);
+            todosByWeekday[index][todoId].push(userId);
           }
         });
       }
     }
 
-    return tasksByWeekday;
+    return todosByWeekday;
   },
 };
 

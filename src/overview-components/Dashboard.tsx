@@ -51,6 +51,7 @@ export const Dashboard = () => {
               SHOPPING_LIST: () => null,
               PLAN_CURRENT_WEEK: () => null,
               PLAN_NEXT_WEEK: () => null,
+              ADD_TASK: () => null,
 
               WEEKDAYS: () => (
                 <WeekdaysFeature>

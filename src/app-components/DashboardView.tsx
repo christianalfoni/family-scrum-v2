@@ -1,4 +1,10 @@
-import { CalendarIcon, ShoppingCartIcon } from "@heroicons/react/outline";
+import {
+  CalendarIcon,
+  ClipboardCheckIcon,
+  DocumentAddIcon,
+  PlusIcon,
+  ShoppingCartIcon,
+} from "@heroicons/react/outline";
 import React, { useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import SwiperCore, { Controller } from "swiper";
@@ -125,6 +131,13 @@ export const DashboardContentSkeleton = () => {
             </div>
           ))}
         </div>
+        <button
+          type="button"
+          disabled
+          className="z-10 fixed right-3 bottom-12 h-12 w-12 rounded-full inline-flex items-center justify-center px-3 py-2 border border-gray-300 shadow-lg text-sm font-medium  text-gray-500 bg-gray-50 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+        >
+          <PlusIcon className="w-8 h-8" />
+        </button>
       </div>
     </>
   );
@@ -132,14 +145,14 @@ export const DashboardContentSkeleton = () => {
 
 export const DashboardView = () => {
   const [dashboard, send] = useDasbhoard("LOADED");
-  const { groceries, family, currentWeek, tasks } = dashboard;
+  const { groceries, family, currentWeek, todos } = dashboard;
   const shopCount = groceries.reduce(
     (aggr, grocery) => aggr + grocery.shopCount,
     0
   );
   const currentDayIndex = getCurrentDayIndex();
   const [slideIndex, setSlideIndex] = useState(currentDayIndex);
-  const tasksByWeekday = dashboardSelectors.tasksByWeekday(currentWeek);
+  const todosByWeekday = dashboardSelectors.todosByWeekday(currentWeek);
   const [controlledSwiper, setControlledSwiper] =
     useState<SwiperCore | null>(null);
 
@@ -213,7 +226,7 @@ export const DashboardView = () => {
           onSwiper={setControlledSwiper}
           initialSlide={slideIndex}
         >
-          {tasksByWeekday.map((weekdayTasks, index) => (
+          {todosByWeekday.map((weekdayTasks, index) => (
             <SwiperSlide key={index}>
               <WeekdaySlideContent title={weekdays[index]}>
                 {
@@ -235,7 +248,7 @@ export const DashboardView = () => {
                             ))}
                           </div>
                           <p className="ml-4 text-sm font-medium text-gray-900">
-                            {tasks[taskId].description}
+                            {todos[taskId].description}
                           </p>
                         </div>
                       </li>
@@ -265,6 +278,22 @@ export const DashboardView = () => {
             </div>
           ))}
         </div>
+        <button
+          type="button"
+          className="z-50 fixed right-3 bottom-12 h-12 w-12 rounded-full inline-flex items-center justify-center px-3 py-2 border border-gray-300 shadow-lg text-sm font-medium  text-gray-500 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+        >
+          <PlusIcon
+            className="w-8 h-8"
+            onClick={() => {
+              send({
+                type: "VIEW_SELECTED",
+                view: {
+                  state: "ADD_TODO",
+                },
+              });
+            }}
+          />
+        </button>
       </div>
     </>
   );

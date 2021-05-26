@@ -4,10 +4,10 @@ import {
   GroceryCategoryDTO,
   Storage,
   WeekDTO,
-  TaskDTO,
+  TodoDTO,
   FamilyDTO,
   CalendarEventDTO,
-  WeekTaskActivity,
+  WeekTodoActivity,
 } from ".";
 import {
   getCurrentWeekId,
@@ -43,11 +43,11 @@ export const createStorage = (): Storage => {
     },
   ];
 
-  const events: {
+  let events: {
     [eventId: string]: CalendarEventDTO;
   } = {
-    event_1: {
-      id: "event_1",
+    event_0: {
+      id: "event_0",
       created: Date.now(),
       description: "Go on a trip",
       date: 1624128658456,
@@ -55,16 +55,16 @@ export const createStorage = (): Storage => {
     },
   };
 
-  const tasks: {
-    [taskId: string]: TaskDTO;
+  let todos: {
+    [todoId: string]: TodoDTO;
   } = {
-    task_1: {
-      id: "task_1",
+    todo_0: {
+      id: "todo_0",
       created: Date.now(),
       description: "Do something cool",
     },
-    task_2: {
-      id: "task_2",
+    todo_1: {
+      id: "todo_1",
       created: Date.now(),
       description: "Do something else",
     },
@@ -79,12 +79,12 @@ export const createStorage = (): Storage => {
   } = {
     [previousWeekId]: {
       id: previousWeekId,
-      tasks: {
-        task_1: {
+      todos: {
+        todo_0: {
           user_1: [true, false, false, false, false, false, false],
           user_2: [false, false, false, true, false, false, false],
         },
-        task_2: {
+        todo_1: {
           user_1: [false, false, false, false, true, false, false],
           user_2: [false, true, true, false, false, false, false],
         },
@@ -92,12 +92,11 @@ export const createStorage = (): Storage => {
     },
     [currentWeekId]: {
       id: currentWeekId,
-      tasks: {
-        task_1: {
-          user_1: [false, false, false, false, true, false, false],
-          user_2: [false, true, false, false, false, false, false],
+      todos: {
+        todo_0: {
+          user_2: [false, false, false, false, true, false, false],
         },
-        task_2: {
+        todo_1: {
           user_1: [false, false, false, false, false, true, false],
           user_2: [false, true, false, false, false, true, false],
         },
@@ -105,12 +104,12 @@ export const createStorage = (): Storage => {
     },
     [nextWeekId]: {
       id: nextWeekId,
-      tasks: {
-        task_1: {
+      todos: {
+        todo_0: {
           user_1: [false, false, false, false, false, false, false],
           user_2: [false, false, false, false, false, false, false],
         },
-        task_2: {
+        todo_1: {
           user_1: [false, false, false, false, false, false, false],
           user_2: [false, false, false, false, false, false, false],
         },
@@ -144,6 +143,45 @@ export const createStorage = (): Storage => {
         grocery: newGrocery,
       });
     },
+    async addEvent(_, userId, description, date) {
+      await randomWait();
+      const id = `event_${Object.keys(events).length}`;
+      const event: CalendarEventDTO = {
+        id,
+        created: Date.now(),
+        date,
+        description,
+        userIds: [userId],
+      };
+      events = {
+        ...events,
+        [id]: event,
+      };
+
+      this.events.emit({
+        type: "STORAGE:EVENTS_UPDATE",
+        events,
+      });
+    },
+    async addTodo(_, description) {
+      await randomWait();
+      const id = `todo_${Object.keys(todos).length}`;
+      const todo: TodoDTO = {
+        id,
+        description,
+        created: Date.now(),
+      };
+
+      todos = {
+        ...todos,
+        [id]: todo,
+      };
+
+      this.events.emit({
+        type: "STORAGE:TODOS_UPDATE",
+        todos,
+      });
+    },
     async deleteGrocery(_, id) {
       await randomWait();
       groceries = groceries.filter((grocery) => grocery.id !== id);
@@ -153,28 +191,31 @@ export const createStorage = (): Storage => {
         id,
       });
     },
-    async fetchFamily(_, id) {
-      await randomWait();
-      this.events.emit({
-        type: "STORAGE:FETCH_FAMILY_SUCCESS",
-        family,
-      });
-    },
     async fetchFamilyData() {
       await randomWait();
       this.events.emit({
         type: "STORAGE:FETCH_FAMILY_DATA_SUCCESS",
         groceries,
-        tasks,
+        todos,
         family,
         events,
       });
     },
-    async archiveTask(_, id) {
+    async archiveTodo(_, id) {
       await randomWait();
+      todos = {
+        ...todos,
+      };
+
+      delete todos[id];
+
+      for (let week in weeks) {
+        delete weeks[week].todos[id];
+      }
+
       this.events.emit({
-        type: "STORAGE:ARCHIVE_TASK_SUCCESS",
-        id,
+        type: "STORAGE:TODOS_UPDATE",
+        todos,
       });
     },
     async increaseGroceryShopCount(_, id) {
@@ -219,25 +260,29 @@ export const createStorage = (): Storage => {
       familyId,
       weekId,
       userId,
-      taskId,
+      todoId,
       weekdayIndex,
       active,
     }) {
       await randomWait();
 
+      const weekTodoActivity: WeekTodoActivity = weeks[weekId].todos[todoId]?.[
+        userId
+      ] ?? [false, false, false, false, false, false, false];
+
       weeks = {
         ...weeks,
         [weekId]: {
           ...weeks[weekId],
-          tasks: {
-            ...weeks[weekId].tasks,
-            [taskId]: {
-              ...weeks[weekId].tasks[taskId],
+          todos: {
+            ...weeks[weekId].todos,
+            [todoId]: {
+              ...weeks[weekId].todos[todoId],
               [userId]: [
-                ...weeks[weekId].tasks[taskId][userId].slice(0, weekdayIndex),
+                ...weekTodoActivity.slice(0, weekdayIndex),
                 active,
-                ...weeks[weekId].tasks[taskId][userId].slice(weekdayIndex + 1),
-              ] as WeekTaskActivity,
+                ...weekTodoActivity.slice(weekdayIndex + 1),
+              ] as WeekTodoActivity,
             },
           },
         },
@@ -246,12 +291,12 @@ export const createStorage = (): Storage => {
       this.events.emit({
         type:
           weekId === currentWeekId
-            ? "STORAGE:CURRENT_WEEK_TASK_ACTIVITY_UPDATE"
-            : "STORAGE:NEXT_WEEK_TASK_ACTIVITY_UPDATE",
+            ? "STORAGE:CURRENT_WEEK_TODO_ACTIVITY_UPDATE"
+            : "STORAGE:NEXT_WEEK_TODO_ACTIVITY_UPDATE",
         weekId,
-        taskId,
+        todoId,
         userId,
-        activity: weeks[weekId].tasks[taskId][userId],
+        activity: weeks[weekId].todos[todoId][userId],
       });
     },
   };

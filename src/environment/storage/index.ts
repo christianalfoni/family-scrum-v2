@@ -26,7 +26,7 @@ export type GroceryDTO = {
   shopCount: number;
 };
 
-export type TaskDTO = {
+export type TodoDTO = {
   id: string;
   created: number;
   description: string;
@@ -41,8 +41,8 @@ export type CalendarEventDTO = {
 };
 
 // Each user has an array representing each day of the week,
-// which holds a boolean if the task is active or not
-export type WeekTaskActivity = [
+// which holds a boolean if the todo is active or not
+export type WeekTodoActivity = [
   boolean,
   boolean,
   boolean,
@@ -55,9 +55,9 @@ export type WeekTaskActivity = [
 export type WeekDTO = {
   // Week id is the date of each Monday (YYYYMMDD)
   id: string;
-  tasks: {
-    [taskId: string]: {
-      [userId: string]: WeekTaskActivity;
+  todos: {
+    [todoId: string]: {
+      [userId: string]: WeekTodoActivity;
     };
   };
 };
@@ -67,8 +67,8 @@ export type StorageEvent =
       type: "STORAGE:FETCH_FAMILY_DATA_SUCCESS";
       family: FamilyDTO;
       groceries: GroceryDTO[];
-      tasks: {
-        [taskId: string]: TaskDTO;
+      todos: {
+        [todoId: string]: TodoDTO;
       };
       events: {
         [eventId: string]: CalendarEventDTO;
@@ -85,46 +85,40 @@ export type StorageEvent =
       nextWeek: WeekDTO;
     }
   | {
+      type: "STORAGE:EVENTS_UPDATE";
+      events: {
+        [eventId: string]: CalendarEventDTO;
+      };
+    }
+  | {
+      type: "STORAGE:ADD_EVENT_ERROR";
+      error: string;
+    }
+  | {
+      type: "STORAGE:TODOS_UPDATE";
+      todos: {
+        [todoId: string]: TodoDTO;
+      };
+    }
+  | {
+      type: "STORAGE:ADD_TODO_ERROR";
+      error: string;
+    }
+  | {
       type: "STORAGE:FETCH_WEEKS_ERROR";
       error: string;
     }
   | {
-      type: "STORAGE:CURRENT_WEEK_TASK_ACTIVITY_UPDATE";
-      taskId: string;
+      type: "STORAGE:CURRENT_WEEK_TODO_ACTIVITY_UPDATE";
+      todoId: string;
       userId: string;
-      activity: WeekTaskActivity;
+      activity: WeekTodoActivity;
     }
   | {
-      type: "STORAGE:NEXT_WEEK_TASK_ACTIVITY_UPDATE";
-      taskId: string;
+      type: "STORAGE:NEXT_WEEK_TODO_ACTIVITY_UPDATE";
+      todoId: string;
       userId: string;
-      activity: WeekTaskActivity;
-    }
-  | {
-      type: "STORAGE:FETCH_GROCERIES_SUCCESS";
-      groceries: GroceryDTO[];
-    }
-  | {
-      type: "STORAGE:FETCH_GROCERIES_ERROR";
-      error: string;
-    }
-  | {
-      type: "STORAGE:FETCH_TASKS_SUCCESS";
-      tasks: {
-        [taskId: string]: TaskDTO;
-      };
-    }
-  | {
-      type: "STORAGE:FETCH_TASKS_ERROR";
-      error: string;
-    }
-  | {
-      type: "STORAGE:FETCH_WEEK_SUCCESS";
-      week: WeekDTO;
-    }
-  | {
-      type: "STORAGE:FETCH_WEEK_ERROR";
-      error: string;
+      activity: WeekTodoActivity;
     }
   | {
       type: "STORAGE:ADD_GROCERY_SUCCESS";
@@ -160,18 +154,14 @@ export type StorageEvent =
       error: string;
     }
   | {
-      type: "STORAGE:ARCHIVE_TASK_SUCCESS";
-      id: string;
-    }
-  | {
-      type: "STORAGE:ARCHIVE_TASK_ERROR";
+      type: "STORAGE:ARCHIVE_TODO_ERROR";
       id: string;
       error: string;
     }
   | {
-      type: "STORAGE:SET_WEEK_TASK_ACTIVITY_ERROR";
+      type: "STORAGE:SET_WEEK_TODO_ACTIVITY_ERROR";
       weekId: string;
-      taskId: string;
+      todoId: string;
       userId: string;
       error: string;
     };
@@ -180,14 +170,12 @@ export interface Storage {
   events: Events<StorageEvent>;
   /**
    *
-   * @param familyId
    * @fires STORAGE:FETCH_FAMILY_DATA_SUCCESS
    * @fires STORAGE:FETCH_FAMILY_DATA_ERROR
    */
   fetchFamilyData(familyId: string): void;
   /**
    *
-   * @param familyId
    * @fires STORAGE:WEEKS_UPDATE
    * @fires STORAGE:CURRENT_WEEK_TASK_ACTIVITY_UPDATE
    * @fires STORAGE:NEXT_WEEK_TASK_ACTIVITY_UPDATE
@@ -199,11 +187,27 @@ export interface Storage {
     category: GroceryCategoryDTO,
     name: string
   ): void;
+  /**
+   *
+   * @fires STORAGE:TODOS_UPDATE
+   * @fires STORAGE:ADD_TODO_ERROR
+   */
+  addTodo(familyId: string, description: string): void;
+  /**
+   *
+   * @fires STORAGE:EVENTS_UPDATE
+   * @fires STORAGE:ADD_EVENT_ERROR
+   */
+  addEvent(
+    familyId: string,
+    userId: string,
+    description: string,
+    date: number
+  ): void;
   deleteGrocery(familyId: string, id: string): void;
-  fetchFamily(familyId: string, id: string): void;
   increaseGroceryShopCount(familyId: string, id: string): void;
   resetGroceryShopCount(familyId: string, id: string): void;
-  archiveTask(familyId: string, id: string): void;
+  archiveTodo(familyId: string, id: string): void;
   /**
    *
    * @param familyId
@@ -214,7 +218,7 @@ export interface Storage {
   setWeekTaskActivity(options: {
     familyId: string;
     weekId: string;
-    taskId: string;
+    todoId: string;
     userId: string;
     weekdayIndex: number;
     active: boolean;

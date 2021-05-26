@@ -75,7 +75,7 @@ export const WeekdaysView = ({
   family: Family;
   events: CalendarEvents;
 }) => {
-  const tasksByWeekday = dashboardSelectors.tasksByWeekday(week);
+  const tasksByWeekday = dashboardSelectors.todosByWeekday(week);
 
   return (
     <>

@@ -131,7 +131,7 @@ export const PageContainer = ({ children }: Props) => {
           <meta name="apple-mobile-web-app-capable" content="yes" />
           <meta
             name="viewport"
-            content="initial-scale=1.0, width=device-width"
+            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
           />
         </Head>
         {process.env.NODE_ENV === "production" ? (

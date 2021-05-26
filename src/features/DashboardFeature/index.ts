@@ -7,8 +7,8 @@ export {
 export type {
   Groceries,
   Grocery,
-  Task,
-  Tasks,
+  Todo as Task,
+  Todos as Tasks,
   Week,
   User,
   UIEvent as DashboardUIEvent,
