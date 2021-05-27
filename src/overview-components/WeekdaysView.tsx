@@ -1,7 +1,11 @@
 import { format } from "date-fns";
 import React from "react";
-import { Tasks, Week, dashboardSelectors } from "../features/DashboardFeature";
-import { CalendarEvents, Family } from "../features/DashboardFeature/Feature";
+import { Week, dashboardSelectors } from "../features/DashboardFeature";
+import {
+  CalendarEvents,
+  Family,
+  Todos,
+} from "../features/DashboardFeature/Feature";
 import { getCurrentDayIndex, weekdays } from "../utils";
 
 const Weekday = React.memo(
@@ -65,21 +69,21 @@ export const WeekdaysSkeleton = () => (
 );
 
 export const WeekdaysView = ({
-  tasks,
+  todos,
   week,
   family,
   events,
 }: {
-  tasks: Tasks;
+  todos: Todos;
   week: Week;
   family: Family;
   events: CalendarEvents;
 }) => {
-  const tasksByWeekday = dashboardSelectors.todosByWeekday(week);
+  const todosByWeekday = dashboardSelectors.todosByWeekday(week);
 
   return (
     <>
-      {tasksByWeekday.map((weekdayTasks, index) => (
+      {todosByWeekday.map((weekdayTodos, index) => (
         <Weekday
           key={index}
           weekday={weekdays[index]}
@@ -96,14 +100,14 @@ export const WeekdaysView = ({
           }
         >
           <ul className="mt-2 ">
-            {Object.keys(weekdayTasks).map((taskId) => (
+            {Object.keys(weekdayTodos).map((todoId) => (
               <li
-                key={taskId}
+                key={todoId}
                 className="py-3 flex justify-between items-center"
               >
                 <div className="flex items-center space-x-2">
                   <div className="flex flex-shrink-0 -space-x-1">
-                    {weekdayTasks[taskId].map((userId) => (
+                    {weekdayTodos[todoId].map((userId) => (
                       <img
                         key={userId}
                         className="max-w-none h-6 w-6 rounded-full ring-2 ring-white"
@@ -113,7 +117,7 @@ export const WeekdaysView = ({
                     ))}
                   </div>
                   <p className="ml-4 text-sm font-medium text-gray-900">
-                    {tasks[taskId].description}
+                    {todos[todoId].description}
                   </p>
                 </div>
               </li>

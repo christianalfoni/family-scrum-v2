@@ -10,7 +10,7 @@ import {
   MainContentLayout,
   MainContentLayoutSkeleton,
 } from "./MainContentLayout";
-import { WeekdaysView, WeekdaysSkeleton } from "./Weekdays";
+import { WeekdaysView, WeekdaysSkeleton } from "./WeekdaysView";
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => (
   <div className="bg-gray-50">
@@ -39,7 +39,7 @@ export const Dashboard = () => {
   return match(dashboard, {
     AWAITING_AUTHENTICATION: () => <DashboardSkeleton />,
     ERROR: () => <DashboardSkeleton />,
-    LOADED: ({ groceries, tasks, currentWeek, family, events, view }) => {
+    LOADED: ({ groceries, todos, currentWeek, family, events, view }) => {
       return (
         <DashboardLayout>
           <GroceryListFeature familyId={family.id}>
@@ -51,12 +51,12 @@ export const Dashboard = () => {
               SHOPPING_LIST: () => null,
               PLAN_CURRENT_WEEK: () => null,
               PLAN_NEXT_WEEK: () => null,
-              ADD_TASK: () => null,
+              ADD_TODO: () => null,
 
               WEEKDAYS: () => (
                 <WeekdaysFeature>
                   <WeekdaysView
-                    tasks={tasks}
+                    todos={todos}
                     week={currentWeek}
                     family={family}
                     events={events}
