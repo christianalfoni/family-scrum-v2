@@ -143,10 +143,11 @@ const GroceriesToolbar = () => {
 
 export const GroceriesView = ({ groceries }: { groceries: Groceries }) => {
   const [groceriesFeature, send] = useGroceries();
-
   const sortedAndFilteredGroceries = match(groceriesFeature, {
-    FILTERED: ({ category }) =>
-      dashboardSelectors.filterGroceriesByCategory(groceries, category),
+    FILTERED: ({ input, category }) =>
+      input
+        ? dashboardSelectors.filterGroceriesByInput(groceries, input)
+        : dashboardSelectors.filterGroceriesByCategory(groceries, category),
     UNFILTERED: ({ input }) =>
       dashboardSelectors.filterGroceriesByInput(
         dashboardSelectors.groceriesByCategory(groceries),
