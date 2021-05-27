@@ -27,7 +27,7 @@ export const GroceryListSkeleton = () => (
   </GroceryListLayout>
 );
 
-export const GroceryList = React.memo(
+export const ShoppingList = React.memo(
   ({ groceries }: { groceries: Groceries }) => {
     const groceriesByCategory = dashboardSelectors
       .groceriesByCategory(groceries)

@@ -25,6 +25,14 @@ type TransientContext =
   | {
       state: "ARCHIVING_TODO";
       todoId: string;
+    }
+  | {
+      state: "ARCHIVING_EVENT";
+      eventId: string;
+    }
+  | {
+      state: "TOGGLING_EVENT";
+      eventId: string;
     };
 
 type UIEvent =
@@ -38,6 +46,14 @@ type UIEvent =
   | {
       type: "ARCHIVE_TODO";
       todoId: string;
+    }
+  | {
+      type: "ARCHIVE_EVENT";
+      eventId: string;
+    }
+  | {
+      type: "TOGGLE_EVENT";
+      eventId: string;
     };
 
 type Event = UIEvent | StorageEvent;
@@ -60,11 +76,21 @@ const reducer = createReducer<Context, Event, TransientContext>(
         state: "ARCHIVING_TODO",
         todoId,
       }),
+      ARCHIVE_EVENT: ({ eventId }) => ({
+        state: "ARCHIVING_EVENT",
+        eventId,
+      }),
+      TOGGLE_EVENT: ({ eventId }) => ({
+        state: "TOGGLING_EVENT",
+        eventId,
+      }),
     },
   },
   {
     TOGGLING_WEEKDAY: (_, prevContext) => prevContext,
     ARCHIVING_TODO: (_, prevContext) => prevContext,
+    ARCHIVING_EVENT: (_, prevContext) => prevContext,
+    TOGGLING_EVENT: (_, prevContext) => prevContext,
   }
 );
 
@@ -110,6 +136,14 @@ export const Feature = ({
 
   useEnterEffect(context, "ARCHIVING_TODO", ({ todoId }) => {
     storage.archiveTodo(user.familyId, todoId);
+  });
+
+  useEnterEffect(context, "ARCHIVING_EVENT", ({ eventId }) => {
+    storage.archiveEvent(user.familyId, eventId);
+  });
+
+  useEnterEffect(context, "TOGGLING_EVENT", ({ eventId }) => {
+    storage.toggleEventParticipation(user.familyId, eventId, user.id);
   });
 
   return (

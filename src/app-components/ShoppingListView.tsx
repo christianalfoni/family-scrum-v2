@@ -1,7 +1,7 @@
 import { dashboardSelectors, Groceries } from "../features/DashboardFeature";
 import { ChevronLeftIcon } from "@heroicons/react/outline";
 import { groceryCategoryToBackgroundColor } from "../utils";
-import { useGroceryList } from "../features/GroceryListFeature";
+import { useShoppingList } from "../features/ShoppingListFeature";
 
 export const ShoppingListView = ({
   groceries,
@@ -10,7 +10,7 @@ export const ShoppingListView = ({
   groceries: Groceries;
   onBackClick: () => void;
 }) => {
-  const [, send] = useGroceryList();
+  const [, send] = useShoppingList();
   const groceriesByCategory = dashboardSelectors
     .groceriesByCategory(groceries)
     .filter((grocery) => Boolean(grocery.shopCount));

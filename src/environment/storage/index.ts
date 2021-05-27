@@ -177,8 +177,8 @@ export interface Storage {
   /**
    *
    * @fires STORAGE:WEEKS_UPDATE
-   * @fires STORAGE:CURRENT_WEEK_TASK_ACTIVITY_UPDATE
-   * @fires STORAGE:NEXT_WEEK_TASK_ACTIVITY_UPDATE
+   * @fires STORAGE:CURRENT_WEEK_TODO_ACTIVITY_UPDATE
+   * @fires STORAGE:NEXT_WEEK_TODO_ACTIVITY_UPDATE
    * @fires STORAGE:FETCH_WEEKS_ERROR
    */
   fetchWeeks(familyId: string): void;
@@ -210,9 +210,20 @@ export interface Storage {
   archiveTodo(familyId: string, id: string): void;
   /**
    *
-   * @param familyId
-   * @param weekId
-   * @param userId
+   * @fires STORAGE:EVENTS_UPDATE
+   */
+  archiveEvent(familyId: string, id: string): void;
+  /**
+   *
+   * @fires STORAGE:EVENTS_UPDATE
+   */
+  toggleEventParticipation(
+    familyId: string,
+    eventId: string,
+    userId: string
+  ): void;
+  /**
+   *
    * @fires STORAGE:SET_WEEK_TASK_ACTIVITY_ERROR
    */
   setWeekTaskActivity(options: {

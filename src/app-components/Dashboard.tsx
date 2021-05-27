@@ -1,6 +1,6 @@
 import { match } from "react-states";
 import { useDasbhoard } from "../features/DashboardFeature";
-import { GroceryListFeature } from "../features/GroceryListFeature";
+import { ShoppingListFeature } from "../features/ShoppingListFeature";
 import { GroceriesView } from "./GroceriesView";
 import { DashboardView, DashboardContentSkeleton } from "./DashboardView";
 import { ShoppingListView } from "./ShoppingListView";
@@ -28,11 +28,12 @@ export const Dashboard = () => {
           currentWeek,
           nextWeek,
           previousWeek,
+          events,
           user,
         }) => {
           return match(view, {
             SHOPPING_LIST: () => (
-              <GroceryListFeature familyId={family.id}>
+              <ShoppingListFeature familyId={family.id}>
                 <ShoppingListView
                   groceries={groceries}
                   onBackClick={() =>
@@ -44,7 +45,7 @@ export const Dashboard = () => {
                     })
                   }
                 />
-              </GroceryListFeature>
+              </ShoppingListFeature>
             ),
             WEEKDAYS: () => <DashboardView />,
             GROCERIES: () => (
@@ -67,6 +68,7 @@ export const Dashboard = () => {
                 <PlanWeekView
                   user={user}
                   title="Current"
+                  events={events}
                   todos={todos}
                   family={family}
                   previousWeek={previousWeek}
@@ -87,6 +89,7 @@ export const Dashboard = () => {
                 <PlanWeekView
                   user={user}
                   title="Next"
+                  events={events}
                   todos={todos}
                   family={family}
                   previousWeek={currentWeek}

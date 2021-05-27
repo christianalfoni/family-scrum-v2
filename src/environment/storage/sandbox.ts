@@ -218,6 +218,39 @@ export const createStorage = (): Storage => {
         todos,
       });
     },
+    async archiveEvent(_, id) {
+      await randomWait();
+      events = {
+        ...events,
+      };
+
+      delete events[id];
+
+      this.events.emit({
+        type: "STORAGE:EVENTS_UPDATE",
+        events,
+      });
+    },
+    async toggleEventParticipation(_, eventId, userId) {
+      await randomWait();
+
+      events = {
+        ...events,
+        [eventId]: {
+          ...events[eventId],
+          userIds: events[eventId].userIds.includes(userId)
+            ? events[eventId].userIds.filter(
+                (existingUserId) => existingUserId !== userId
+              )
+            : events[eventId].userIds.concat(userId),
+        },
+      };
+
+      this.events.emit({
+        type: "STORAGE:EVENTS_UPDATE",
+        events,
+      });
+    },
     async increaseGroceryShopCount(_, id) {
       await randomWait();
 

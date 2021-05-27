@@ -11,6 +11,7 @@ import SwiperCore, { Controller } from "swiper";
 import { dashboardSelectors, useDasbhoard } from "../features/DashboardFeature";
 
 import { getCurrentDayIndex, weekdays } from "../utils";
+import { format } from "date-fns";
 
 SwiperCore.use([Controller]);
 
@@ -130,6 +131,11 @@ export const DashboardContentSkeleton = () => {
               {weekdays[index].substr(0, 2)}
             </div>
           ))}
+          <div
+            className={`text-gray-500 flex items-center mx-2 w-6 h-6 text-center text-xs`}
+          >
+            <CalendarIcon className="w-4 h-4" />
+          </div>
         </div>
         <button
           type="button"
@@ -145,7 +151,7 @@ export const DashboardContentSkeleton = () => {
 
 export const DashboardView = () => {
   const [dashboard, send] = useDasbhoard("LOADED");
-  const { groceries, family, currentWeek, todos } = dashboard;
+  const { groceries, family, currentWeek, todos, events } = dashboard;
   const shopCount = groceries.reduce(
     (aggr, grocery) => aggr + grocery.shopCount,
     0
@@ -258,6 +264,43 @@ export const DashboardView = () => {
               </WeekdaySlideContent>
             </SwiperSlide>
           ))}
+          <SwiperSlide>
+            <div className="px-6">
+              <h1 className="text-xl">Events</h1>
+              <ul>
+                {Object.keys(events).map((eventId) => {
+                  const event = events[eventId];
+
+                  return (
+                    <li
+                      key={eventId}
+                      className="py-3 flex justify-between items-center"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <span className="text-xs leading-5 font-medium">
+                          {format(event.date, "dd.MM.yyyy")}
+                        </span>
+                        <div className="flex flex-shrink-0 -space-x-1">
+                          {event.userIds.map((userId) => (
+                            <img
+                              key={userId}
+                              className="max-w-none h-6 w-6 rounded-full ring-2 ring-white"
+                              src={family.users[userId].avatar!}
+                              alt={family.users[userId].name}
+                            />
+                          ))}
+                        </div>
+
+                        <p className="ml-4 text-sm font-medium text-gray-900">
+                          {event.description}
+                        </p>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          </SwiperSlide>
         </Swiper>
         <div className="absolute bottom-4 left-0 right-0 flex justify-center">
           {weekdays.map((weekday, index) => (
@@ -277,10 +320,22 @@ export const DashboardView = () => {
               {weekdays[index].substr(0, 2)}
             </div>
           ))}
+          <div
+            onClick={() => {
+              if (controlledSwiper) {
+                controlledSwiper.slideTo(7);
+              }
+            }}
+            className={`${
+              7 === slideIndex ? "text-gray-700" : "text-gray-500"
+            } flex items-center mx-2 w-6 h-6 text-center text-xs`}
+          >
+            <CalendarIcon className="w-4 h-4" />
+          </div>
         </div>
         <button
           type="button"
-          className="z-50 fixed right-3 bottom-12 h-12 w-12 rounded-full inline-flex items-center justify-center px-3 py-2 border border-gray-300 shadow-lg text-sm font-medium  text-gray-500 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+          className="z-50 fixed right-6 bottom-12 h-14 w-14 rounded-full inline-flex items-center justify-center px-3 py-2 border border-gray-300 shadow-lg text-sm font-medium  text-gray-500 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
         >
           <PlusIcon
             className="w-8 h-8"

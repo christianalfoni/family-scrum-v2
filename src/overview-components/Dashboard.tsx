@@ -2,10 +2,10 @@ import React from "react";
 import { match } from "react-states";
 import { useDasbhoard } from "../features/DashboardFeature";
 import { GroceriesFeature } from "../features/GroceriesFeature";
-import { GroceryListFeature } from "../features/GroceryListFeature";
+import { ShoppingListFeature } from "../features/ShoppingListFeature";
 import { WeekdaysFeature } from "../features/WeekdaysFeature";
 import { GroceriesView } from "./GroceriesView";
-import { GroceryList, GroceryListSkeleton } from "./GroceryList";
+import { ShoppingList, GroceryListSkeleton } from "./ShoppingList";
 import {
   MainContentLayout,
   MainContentLayoutSkeleton,
@@ -42,9 +42,9 @@ export const Dashboard = () => {
     LOADED: ({ groceries, todos, currentWeek, family, events, view }) => {
       return (
         <DashboardLayout>
-          <GroceryListFeature familyId={family.id}>
-            <GroceryList groceries={groceries} />
-          </GroceryListFeature>
+          <ShoppingListFeature familyId={family.id}>
+            <ShoppingList groceries={groceries} />
+          </ShoppingListFeature>
           <MainContentLayout>
             {match(view, {
               // Not available in this version of the app
