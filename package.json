@@ -1,6 +1,7 @@
 {
   "scripts": {
-    "dev": "next dev",
+    "dev:sandbox": "APP_ENVIRONMENT=sandbox next dev",
+    "dev:browser": "APP_ENVIRONMENT=browser next dev",
     "build": "next build",
     "start": "next start"
   },

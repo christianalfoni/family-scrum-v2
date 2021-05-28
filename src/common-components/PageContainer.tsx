@@ -1,4 +1,5 @@
 import { match } from "react-states";
+import dynamic from "next/dynamic";
 import { DevtoolsProvider } from "react-states/devtools";
 import Head from "next/head";
 
@@ -6,10 +7,11 @@ import Head from "next/head";
 import { Fragment } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { LockClosedIcon } from "@heroicons/react/outline";
-import { EnvironmentProvider } from "../environment";
-import { createAuthentication } from "../environment/authentication/sandbox";
-import { createStorage } from "../environment/storage/sandbox";
 import { useSession, SessionFeature } from "../features/SessionFeature";
+
+const DynamicEnvironment = dynamic(() =>
+  process.browser ? import("./SandboxEnvironment") : import("./NextEnvironment")
+);
 
 const SignInModal = ({
   open,
@@ -120,12 +122,7 @@ const Auth = () => {
 
 export const PageContainer = ({ children }: Props) => {
   return (
-    <EnvironmentProvider
-      environment={{
-        authentication: createAuthentication(),
-        storage: createStorage(),
-      }}
-    >
+    <DynamicEnvironment>
       <div>
         <Head>
           <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -148,6 +145,6 @@ export const PageContainer = ({ children }: Props) => {
           </DevtoolsProvider>
         )}
       </div>
-    </EnvironmentProvider>
+    </DynamicEnvironment>
   );
 };

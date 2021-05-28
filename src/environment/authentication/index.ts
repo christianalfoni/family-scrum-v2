@@ -20,6 +20,13 @@ export type AuthenticationEvent =
     };
 
 export interface Authentication {
+  /**
+   * @fires AUTHENTICATION:AUTHENTICATED
+   * @fires AUTHENTICATION:UNAUTHENTICATED
+   */
   events: Events<AuthenticationEvent>;
+  /**
+   * @fires AUTHENTICATION:SIGN_IN_ERROR
+   */
   signIn(): void;
 }
