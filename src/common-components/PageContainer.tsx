@@ -10,7 +10,11 @@ import { LockClosedIcon } from "@heroicons/react/outline";
 import { useSession, SessionFeature } from "../features/SessionFeature";
 
 const DynamicEnvironment = dynamic(() =>
-  process.browser ? import("./SandboxEnvironment") : import("./NextEnvironment")
+  process.browser
+    ? process.env.SANDBOX
+      ? import("./SandboxEnvironment")
+      : import("./BrowserEnvironment")
+    : import("./NextEnvironment")
 );
 
 const SignInModal = ({
