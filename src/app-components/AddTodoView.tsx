@@ -1,11 +1,14 @@
 import * as React from "react";
 import { ChevronLeftIcon, XIcon } from "@heroicons/react/outline";
+import { useTranslations } from "next-intl";
 import { useAddTodo } from "../features/AddTodoFeature";
 import { match } from "react-states";
 import { format } from "date-fns";
 
 export const AddTodoView = ({ onBackClick }: { onBackClick: () => void }) => {
   const [addTodo, send] = useAddTodo();
+  const t = useTranslations("AddTodoView");
+
   return (
     <>
       <div className="bg-white lg:min-w-0 lg:flex-1">
@@ -17,7 +20,7 @@ export const AddTodoView = ({ onBackClick }: { onBackClick: () => void }) => {
             >
               <ChevronLeftIcon className="h-6 w-6" aria-hidden="true" />
             </button>
-            <h1 className="flex-2 text-lg font-medium">Add Todo</h1>
+            <h1 className="flex-2 text-lg font-medium">{t("addTodo")}</h1>
             <span className="flex-1" />
           </div>
         </div>
@@ -71,7 +74,7 @@ export const AddTodoView = ({ onBackClick }: { onBackClick: () => void }) => {
                 }}
                 className="text-gray-500 mx-auto inline-flex items-center justify-center px-4 py-2 text-lg font-medium "
               >
-                Set Date
+                {t("setDate")}
               </button>
             ),
           })}
@@ -96,7 +99,7 @@ export const AddTodoView = ({ onBackClick }: { onBackClick: () => void }) => {
           }}
           className="disabled:opacity-50 mx-auto inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
         >
-          Add Todo
+          {t("save")}
         </button>
       </div>
     </>

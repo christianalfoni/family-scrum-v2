@@ -1,5 +1,6 @@
 import { format } from "date-fns";
 import React from "react";
+import { useTranslations, useIntl } from "next-intl";
 import { Week, dashboardSelectors } from "../features/DashboardFeature";
 import {
   CalendarEvents,
@@ -53,20 +54,33 @@ const WeekdaySkeleton = React.memo(
   )
 );
 
-export const WeekdaysSkeleton = () => (
-  <>
-    <WeekdaySkeleton weekday="Monday" className="rounded-tl-lg" />
-    <WeekdaySkeleton weekday="Tuesday" />
-    <WeekdaySkeleton weekday="Wednesday" className="rounded-tr-lg" />
-    <WeekdaySkeleton weekday="Thursday" />
-    <WeekdaySkeleton weekday="Friday" />
-    <WeekdaySkeleton weekday="Saturday" />
-    <WeekdaySkeleton weekday="Sunday" className="rounded-bl-lg" />
-    <div className="col-span-2 rounded-br-lg sm:rounded-tr-none relative group bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-cyan-500">
-      <h4 className="text-gray-400">Events</h4>
-    </div>
-  </>
-);
+export const WeekdaysViewSkeleton = () => {
+  const t = useTranslations("WeekdaysView");
+
+  return (
+    <>
+      <WeekdaySkeleton
+        weekday={t("monday") as string}
+        className="rounded-tl-lg"
+      />
+      <WeekdaySkeleton weekday={t("tuesday") as string} />
+      <WeekdaySkeleton
+        weekday={t("wednesday") as string}
+        className="rounded-tr-lg"
+      />
+      <WeekdaySkeleton weekday={t("thursday") as string} />
+      <WeekdaySkeleton weekday={t("friday") as string} />
+      <WeekdaySkeleton weekday={t("saturday") as string} />
+      <WeekdaySkeleton
+        weekday={t("sunday") as string}
+        className="rounded-bl-lg"
+      />
+      <div className="col-span-2 rounded-br-lg sm:rounded-tr-none relative group bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-cyan-500">
+        <h4 className="text-gray-400">{t("events")}</h4>
+      </div>
+    </>
+  );
+};
 
 export const WeekdaysView = ({
   todos,
@@ -80,13 +94,14 @@ export const WeekdaysView = ({
   events: CalendarEvents;
 }) => {
   const todosByWeekday = dashboardSelectors.todosByWeekday(week);
+  const t = useTranslations("WeekdaysView");
 
   return (
     <>
       {todosByWeekday.map((weekdayTodos, index) => (
         <Weekday
           key={index}
-          weekday={weekdays[index]}
+          weekday={t(weekdays[index]) as string}
           className={
             [
               "rounded-tl-lg",
@@ -127,7 +142,7 @@ export const WeekdaysView = ({
       ))}
 
       <div className="col-span-2 rounded-br-lg sm:rounded-tr-none relative group bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-cyan-500">
-        <h4 className="text-gray-600">Events</h4>
+        <h4 className="text-gray-600">{t("events")}</h4>
         <ul>
           {Object.keys(events).map((eventId) => {
             const event = events[eventId];

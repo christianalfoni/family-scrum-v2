@@ -1,4 +1,5 @@
 import { match } from "react-states";
+import { useTranslations } from "next-intl";
 import { useDasbhoard } from "../features/DashboardFeature";
 import { ShoppingListFeature } from "../features/ShoppingListFeature";
 import { GroceriesView } from "./GroceriesView";
@@ -12,6 +13,7 @@ import { AddTodoView } from "./AddTodoView";
 
 export const Dashboard = () => {
   const [dashboard, send] = useDasbhoard();
+  const t = useTranslations("Dashboard");
 
   return (
     <div className="h-screen overflow-hidden bg-gray-100 flex flex-col">
@@ -67,7 +69,7 @@ export const Dashboard = () => {
               <PlanWeekFeature user={user} weekId={currentWeek.id}>
                 <PlanWeekView
                   user={user}
-                  title="Current"
+                  title={t("thisWeek") as string}
                   events={events}
                   todos={todos}
                   family={family}
@@ -88,7 +90,7 @@ export const Dashboard = () => {
               <PlanWeekFeature user={user} weekId={nextWeek.id}>
                 <PlanWeekView
                   user={user}
-                  title="Next"
+                  title={t("nextWeek") as string}
                   events={events}
                   todos={todos}
                   family={family}

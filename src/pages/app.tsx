@@ -2,6 +2,7 @@ import React from "react";
 import { PageContainer } from "../common-components/PageContainer";
 import { DashboardFeature } from "../features/DashboardFeature";
 import { Dashboard } from "../app-components/Dashboard";
+import { GetStaticPropsContext } from "next";
 
 function AppPage() {
   return (
@@ -11,6 +12,14 @@ function AppPage() {
       </DashboardFeature>
     </PageContainer>
   );
+}
+
+export function getStaticProps({ locale }: GetStaticPropsContext) {
+  return {
+    props: {
+      messages: require(`../../messages/app/${locale}.json`),
+    },
+  };
 }
 
 export default AppPage;

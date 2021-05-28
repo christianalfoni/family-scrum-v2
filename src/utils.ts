@@ -72,13 +72,13 @@ export const getInitials = (name: string) => {
 };
 
 export const weekdays = [
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-  "Sunday",
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+  "sunday",
 ];
 
 // To support negative numbers

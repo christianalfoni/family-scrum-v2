@@ -1,0 +1,32 @@
+{
+  "GroceriesToolbar": {
+    "FRUIT_VEGETABLES": "Fruit and Vegetables",
+    "MEAT_DAIRY": "Fish, Meat and Dairy",
+    "FROZEN": "Frozen",
+    "DRY_GOOD": "Dry Goods",
+    "OTHER": "Other",
+    "filterNewGrocery": "Filter/New Grocery",
+    "add": "Add"
+  },
+  "MainContentLayout": {
+    "weekdays": "Weekdays",
+    "groceries": "Groceries"
+  },
+  "GroceriesView": {
+    "resetShopCount": "Reset shop count",
+    "delete": "Delete"
+  },
+  "ShoppingList": {
+    "shoppingList": "Shopping list"
+  },
+  "WeekdaysView": {
+    "events": "Events",
+    "monday": "Monday",
+    "tuesday": "Tuesday",
+    "wednesday": "Wednesday",
+    "thursday": "Thursday",
+    "friday": "Friday",
+    "saturday": "Saturday",
+    "sunday": "Sunday"
+  }
+}

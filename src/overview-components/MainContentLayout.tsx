@@ -1,4 +1,5 @@
 import { CalendarIcon, ShoppingCartIcon } from "@heroicons/react/outline";
+import { useTranslations } from "next-intl";
 import {
   useDasbhoard,
   DashboardViewContext,
@@ -38,13 +39,13 @@ const getMenuItems = (
   onClick: (view: DashboardViewContext) => void
 ) => [
   {
-    title: "Weekdays",
+    title: "weekdays",
     active: currentView?.state === "WEEKDAYS",
     Icon: CalendarIcon,
     onClick: () => onClick({ state: "WEEKDAYS" }),
   },
   {
-    title: "Groceries",
+    title: "groceries",
     active: currentView?.state === "GROCERIES",
     Icon: ShoppingCartIcon,
     onClick: () => onClick({ state: "GROCERIES" }),
@@ -55,36 +56,41 @@ export const MainContentLayoutSkeleton = ({
   children,
 }: {
   children: React.ReactNode;
-}) => (
-  <div className="grid grid-cols-1 gap-4 lg:col-span-6 h-full">
-    <section className="h-full flex flex-col">
-      <div className="hidden lg:block lg:col-span-3">
-        <nav className="flex space-x-4 p-3 pt-0">
-          {getMenuItems(undefined, () => {}).map((menuItem, index) => (
-            <MenuItem
-              key={index}
-              Icon={menuItem.Icon}
-              onClick={() => {
-                menuItem.onClick();
-              }}
-            >
-              {menuItem.title}
-            </MenuItem>
-          ))}
-        </nav>
-      </div>
-      <div className="flex-grow rounded-lg bg-gray-200 overflow-hidden shadow divide-y divide-gray-200 sm:divide-y-0 sm:grid sm:grid-cols-3 sm:gap-px">
-        {children}
-      </div>
-    </section>
-  </div>
-);
+}) => {
+  const t = useTranslations("MainContentLayout");
+
+  return (
+    <div className="grid grid-cols-1 gap-4 lg:col-span-6 h-full">
+      <section className="h-full flex flex-col">
+        <div className="hidden lg:block lg:col-span-3">
+          <nav className="flex space-x-4 p-3 pt-0">
+            {getMenuItems(undefined, () => {}).map((menuItem, index) => (
+              <MenuItem
+                key={index}
+                Icon={menuItem.Icon}
+                onClick={() => {
+                  menuItem.onClick();
+                }}
+              >
+                {t(menuItem.title)}
+              </MenuItem>
+            ))}
+          </nav>
+        </div>
+        <div className="flex-grow rounded-lg bg-gray-200 overflow-hidden shadow divide-y divide-gray-200 sm:divide-y-0 sm:grid sm:grid-cols-3 sm:gap-px">
+          {children}
+        </div>
+      </section>
+    </div>
+  );
+};
 export const MainContentLayout = ({
   children,
 }: {
   children: React.ReactNode;
 }) => {
   const [dashboard, send] = useDasbhoard("LOADED");
+  const t = useTranslations("MainContentLayout");
 
   return (
     <div className="grid grid-cols-1 gap-4 lg:col-span-6 h-full">
@@ -105,7 +111,7 @@ export const MainContentLayout = ({
                   menuItem.onClick();
                 }}
               >
-                {menuItem.title}
+                {t(menuItem.title)}
               </MenuItem>
             ))}
           </nav>

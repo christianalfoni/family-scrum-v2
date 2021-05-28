@@ -1,5 +1,6 @@
 import { ShoppingCartIcon } from "@heroicons/react/outline";
 import React from "react";
+import { useTranslations } from "next-intl";
 import { Groceries, dashboardSelectors } from "../features/DashboardFeature";
 import { groceryCategoryToBackgroundColor } from "../utils";
 
@@ -13,25 +14,30 @@ const GroceryListLayout = ({ children }: { children: React.ReactNode }) => (
   </div>
 );
 
-export const GroceryListSkeleton = () => (
-  <GroceryListLayout>
-    <div className="flex items-center">
-      <span className="text-gray-600 inline-flex pt-3 pb-3 ring-4 ring-white">
-        <ShoppingCartIcon className="h-6 w-6" aria-hidden="true" />
-      </span>
-      <h4 className="text-gray-600 ml-2 text-lg">Shopping list</h4>
-    </div>
-    <div className="flow-root mt-6 flex-grow">
-      <ul className="-my-5 divide-y divide-gray-200"></ul>
-    </div>
-  </GroceryListLayout>
-);
+export const GroceryListSkeleton = () => {
+  const t = useTranslations("ShoppingList");
+
+  return (
+    <GroceryListLayout>
+      <div className="flex items-center">
+        <span className="text-gray-600 inline-flex pt-3 pb-3 ring-4 ring-white">
+          <ShoppingCartIcon className="h-6 w-6" aria-hidden="true" />
+        </span>
+        <h4 className="text-gray-600 ml-2 text-lg">{t("shoppingList")}</h4>
+      </div>
+      <div className="flow-root mt-6 flex-grow">
+        <ul className="-my-5 divide-y divide-gray-200"></ul>
+      </div>
+    </GroceryListLayout>
+  );
+};
 
 export const ShoppingList = React.memo(
   ({ groceries }: { groceries: Groceries }) => {
     const groceriesByCategory = dashboardSelectors
       .groceriesByCategory(groceries)
       .filter((grocery) => Boolean(grocery.shopCount));
+    const t = useTranslations("ShoppingList");
 
     return (
       <GroceryListLayout>
@@ -39,7 +45,7 @@ export const ShoppingList = React.memo(
           <span className="text-gray-600 inline-flex pt-3 pb-3 ring-4 ring-white">
             <ShoppingCartIcon className="h-6 w-6" aria-hidden="true" />
           </span>
-          <h4 className="text-gray-600 ml-2 text-lg">Shopping list</h4>
+          <h4 className="text-gray-600 ml-2 text-lg">{t("shoppingList")}</h4>
         </div>
         <div className="flow-root mt-6 flex-grow">
           <ul className="-my-5">

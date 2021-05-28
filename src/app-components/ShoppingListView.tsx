@@ -2,6 +2,7 @@ import { dashboardSelectors, Groceries } from "../features/DashboardFeature";
 import { ChevronLeftIcon } from "@heroicons/react/outline";
 import { groceryCategoryToBackgroundColor } from "../utils";
 import { useShoppingList } from "../features/ShoppingListFeature";
+import { useTranslations } from "next-intl";
 
 export const ShoppingListView = ({
   groceries,
@@ -11,6 +12,7 @@ export const ShoppingListView = ({
   onBackClick: () => void;
 }) => {
   const [, send] = useShoppingList();
+  const t = useTranslations("ShoppingListView");
   const groceriesByCategory = dashboardSelectors
     .groceriesByCategory(groceries)
     .filter((grocery) => Boolean(grocery.shopCount));
@@ -25,7 +27,7 @@ export const ShoppingListView = ({
           >
             <ChevronLeftIcon className="h-6 w-6" aria-hidden="true" />
           </button>
-          <h1 className="flex-2 text-lg font-medium">Shopping List</h1>
+          <h1 className="flex-2 text-lg font-medium">{t("shoppingList")}</h1>
           <span className="flex-1" />
         </div>
       </div>

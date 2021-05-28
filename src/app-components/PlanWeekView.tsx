@@ -1,5 +1,6 @@
 import * as React from "react";
 import { usePlanWeek } from "../features/PlanWeekFeature";
+import { useTranslations, useIntl } from "next-intl";
 import { Menu, Transition } from "@headlessui/react";
 import {
   CalendarIcon,
@@ -15,7 +16,6 @@ import {
 } from "../features/DashboardFeature/Feature";
 import { weekdays } from "../utils";
 import { WeekTodoActivity } from "../environment/storage";
-import { format } from "date-fns";
 
 export const PlanWeekView = ({
   user,
@@ -37,6 +37,8 @@ export const PlanWeekView = ({
   onBackClick: () => void;
 }) => {
   const [planWeek, send] = usePlanWeek();
+  const t = useTranslations("PlanWeekView");
+  const intl = useIntl();
   const todosList = Object.values(todos);
   const eventsList = Object.values(events);
   const userIds = Object.keys(family.users).sort((a) => {
@@ -57,7 +59,7 @@ export const PlanWeekView = ({
           >
             <ChevronLeftIcon className="h-6 w-6" aria-hidden="true" />
           </button>
-          <h1 className="flex-2 text-lg font-medium">Plan {title} Week</h1>
+          <h1 className="flex-2 text-lg font-medium">{title}</h1>
           <span className="flex-1" />
         </div>
       </div>
@@ -111,7 +113,7 @@ export const PlanWeekView = ({
                                   }
                                     block px-4 py-2 text-sm`}
                                 >
-                                  Archive
+                                  {t("archive")}
                                 </a>
                               )}
                             </Menu.Item>
@@ -140,6 +142,7 @@ export const PlanWeekView = ({
                     {weekActivity.map((isActive, index) => {
                       const activePreviousWeek = Boolean(
                         previousWeek.todos[todo.id] &&
+                          previousWeek.todos[todo.id][userId] &&
                           previousWeek.todos[todo.id][userId][index]
                       );
 
@@ -194,7 +197,10 @@ export const PlanWeekView = ({
                   <span className="flex items-center">
                     <CalendarIcon className="text-red-600 w-4 h-4" />
                     <h4 className="text-gray-500 text-sm ml-1 mr-2">
-                      {format(calendarEvent.date, "dd.MM.yyyy")}
+                      {intl.formatDateTime(calendarEvent.date, {
+                        day: "numeric",
+                        month: "long",
+                      })}
                     </h4>
                     <div className="flex flex-shrink-0 -space-x-1">
                       {calendarEvent.userIds.map((userId) => (
@@ -251,7 +257,7 @@ export const PlanWeekView = ({
                                   }
                                     block px-4 py-2 text-sm`}
                                 >
-                                  Archive
+                                  {t("archive")}
                                 </a>
                               )}
                             </Menu.Item>

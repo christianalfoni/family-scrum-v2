@@ -1,0 +1,32 @@
+{
+  "GroceriesToolbar": {
+    "FRUIT_VEGETABLES": "Frukt og Grønt",
+    "MEAT_DAIRY": "Fisk, Kjøtt og Meieri",
+    "FROZEN": "Frossent",
+    "DRY_GOOD": "Tørrvarer",
+    "OTHER": "Annet",
+    "filterNewGrocery": "Filtrer/Ny Matvare",
+    "add": "Legg til"
+  },
+  "MainContentLayout": {
+    "weekdays": "Ukedager",
+    "groceries": "Matvarer"
+  },
+  "GroceriesView": {
+    "resetShopCount": "Tilbakestill antall",
+    "delete": "Slett"
+  },
+  "ShoppingList": {
+    "shoppingList": "Handleliste"
+  },
+  "WeekdaysView": {
+    "events": "Hendelser",
+    "monday": "Mandag",
+    "tuesday": "Tirsdag",
+    "wednesday": "Onsdag",
+    "thursday": "Torsdag",
+    "friday": "Fredag",
+    "saturday": "Lørdag",
+    "sunday": "Søndag"
+  }
+}

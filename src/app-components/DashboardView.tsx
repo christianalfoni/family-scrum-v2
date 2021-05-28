@@ -1,10 +1,9 @@
 import {
   CalendarIcon,
-  ClipboardCheckIcon,
-  DocumentAddIcon,
   PlusIcon,
   ShoppingCartIcon,
 } from "@heroicons/react/outline";
+import { useTranslations, useIntl } from "next-intl";
 import React, { useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import SwiperCore, { Controller } from "swiper";
@@ -69,6 +68,7 @@ const WeekdaySlideContent = ({
 
 export const DashboardContentSkeleton = () => {
   const currentDayIndex = getCurrentDayIndex();
+  const t = useTranslations("DashboardView");
 
   return (
     <>
@@ -79,7 +79,7 @@ export const DashboardContentSkeleton = () => {
           onClick={() => {}}
           color="bg-red-500"
         >
-          Go shopping
+          {t("goShopping")} (0)
         </MenuCard>
         <MenuCard
           disabled
@@ -87,7 +87,7 @@ export const DashboardContentSkeleton = () => {
           onClick={() => {}}
           color="bg-yellow-500"
         >
-          Groceries
+          {t("groceries")}
         </MenuCard>
         <MenuCard
           disabled
@@ -95,7 +95,7 @@ export const DashboardContentSkeleton = () => {
           onClick={() => {}}
           color="bg-green-500"
         >
-          Plan current week
+          {t("planCurrentWeek")}
         </MenuCard>
         <MenuCard
           disabled
@@ -103,7 +103,7 @@ export const DashboardContentSkeleton = () => {
           onClick={() => {}}
           color="bg-blue-500"
         >
-          Plan next week
+          {t("planNextWeek")}
         </MenuCard>
       </ul>
       <div className="h-2/4">
@@ -151,6 +151,8 @@ export const DashboardContentSkeleton = () => {
 
 export const DashboardView = () => {
   const [dashboard, send] = useDasbhoard("LOADED");
+  const t = useTranslations("DashboardView");
+  const intl = useIntl();
   const { groceries, family, currentWeek, todos, events } = dashboard;
   const shopCount = groceries.reduce(
     (aggr, grocery) => aggr + grocery.shopCount,
@@ -178,7 +180,7 @@ export const DashboardView = () => {
           }}
           color="bg-red-500"
         >
-          Go shopping ({shopCount})
+          {t("goShopping")} ({shopCount})
         </MenuCard>
         <MenuCard
           Icon={ShoppingCartIcon}
@@ -192,7 +194,7 @@ export const DashboardView = () => {
           }}
           color="bg-yellow-500"
         >
-          Groceries
+          {t("groceries")}
         </MenuCard>
         <MenuCard
           Icon={CalendarIcon}
@@ -206,7 +208,7 @@ export const DashboardView = () => {
           }}
           color="bg-green-500"
         >
-          Plan current week
+          {t("planCurrentWeek")}
         </MenuCard>
         <MenuCard
           Icon={CalendarIcon}
@@ -220,7 +222,7 @@ export const DashboardView = () => {
           }}
           color="bg-blue-500"
         >
-          Plan next week
+          {t("planNextWeek")}
         </MenuCard>
       </ul>
       <div className="h-2/4">
@@ -234,7 +236,7 @@ export const DashboardView = () => {
         >
           {todosByWeekday.map((weekdayTasks, index) => (
             <SwiperSlide key={index}>
-              <WeekdaySlideContent title={weekdays[index]}>
+              <WeekdaySlideContent title={t(weekdays[index]) as string}>
                 {
                   <ul className="mt-2 ">
                     {Object.keys(weekdayTasks).map((taskId) => (
@@ -266,7 +268,7 @@ export const DashboardView = () => {
           ))}
           <SwiperSlide>
             <div className="px-6">
-              <h1 className="text-xl">Events</h1>
+              <h1 className="text-xl">{t("events")}</h1>
               <ul>
                 {Object.keys(events).map((eventId) => {
                   const event = events[eventId];
@@ -278,7 +280,10 @@ export const DashboardView = () => {
                     >
                       <div className="flex items-center space-x-2">
                         <span className="text-xs leading-5 font-medium">
-                          {format(event.date, "dd.MM.yyyy")}
+                          {intl.formatDateTime(event.date, {
+                            day: "numeric",
+                            month: "long",
+                          })}
                         </span>
                         <div className="flex flex-shrink-0 -space-x-1">
                           {event.userIds.map((userId) => (

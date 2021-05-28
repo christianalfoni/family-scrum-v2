@@ -1,4 +1,5 @@
 import { Menu, Transition } from "@headlessui/react";
+import { useTranslations } from "next-intl";
 import { DotsVerticalIcon, PlusIcon } from "@heroicons/react/outline";
 import React from "react";
 import { match } from "react-states";
@@ -9,6 +10,7 @@ import { groceryCategoryToBackgroundColor } from "../utils";
 
 const GroceriesToolbar = () => {
   const [groceries, send] = useGroceries();
+  const t = useTranslations("GroceriesToolbar");
   const activeCategory = match(groceries, {
     FILTERED: ({ category }) => category,
     UNFILTERED: () => undefined,
@@ -31,7 +33,7 @@ const GroceriesToolbar = () => {
                 : "bg-white text-gray-500 hover:bg-gray-50"
             } relative inline-flex items-center px-4 py-2 rounded-l-md border border-gray-300 text-sm font-medium  focus:z-10 focus:outline-none focus:ring-1 focus:ring-red-600 focus:border-red-600`}
           >
-            <span>Fish, Meat and Dairy</span>
+            <span>{t(GroceryCategory.MeatDairy)}</span>
           </button>
           <button
             type="button"
@@ -47,7 +49,7 @@ const GroceriesToolbar = () => {
                 : "bg-white text-gray-500 hover:bg-gray-50"
             } relative inline-flex items-center px-4 py-2  border border-gray-300 text-sm font-medium  focus:z-10 focus:outline-none focus:ring-1 focus:ring-green-600 focus:border-green-600`}
           >
-            <span>Fruit and Vegetables</span>
+            <span>{t(GroceryCategory.FruitVegetables)}</span>
           </button>
           <button
             type="button"
@@ -63,7 +65,7 @@ const GroceriesToolbar = () => {
                 : "bg-white text-gray-500 hover:bg-gray-50"
             } relative inline-flex items-center px-4 py-2  border border-gray-300 text-sm font-medium  focus:z-10 focus:outline-none focus:ring-1 focus:ring-yellow-600 focus:border-yellow-600`}
           >
-            <span>Dry Goods</span>
+            <span>{t(GroceryCategory.DryGoods)}</span>
           </button>
           <button
             type="button"
@@ -79,7 +81,7 @@ const GroceriesToolbar = () => {
                 : "bg-white text-gray-500 hover:bg-gray-50"
             } relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium  focus:z-10 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600`}
           >
-            <span>Frozen</span>
+            <span>{t(GroceryCategory.Frozen)}</span>
           </button>
           <button
             type="button"
@@ -95,7 +97,7 @@ const GroceriesToolbar = () => {
                 : "bg-white text-gray-500 hover:bg-gray-50"
             } relative inline-flex items-center px-4 py-2 rounded-r-md border border-gray-300 text-sm font-medium  focus:z-10 focus:outline-none focus:ring-1 focus:ring-gray-600 focus:border-gray-600`}
           >
-            <span>Other</span>
+            <span>{t(GroceryCategory.Other)}</span>
           </button>
         </span>
       </span>
@@ -111,8 +113,7 @@ const GroceriesToolbar = () => {
               })
             }
             className="block disabled:opacity-50 w-full shadow-sm focus:ring-light-blue-500 focus:border-light-blue-500 sm:text-sm border-gray-300 rounded-md"
-            placeholder="Find/New grocery"
-            aria-describedby="add_team_members_helper"
+            placeholder={t("filterNewGrocery") as string}
           />
         </div>
         <span className="ml-3">
@@ -133,7 +134,7 @@ const GroceriesToolbar = () => {
               className="-ml-2 mr-1 h-5 text-gray-400"
               aria-hidden="true"
             />
-            <span>Add</span>
+            <span>{t("add")}</span>
           </button>
         </span>
       </div>
@@ -143,6 +144,7 @@ const GroceriesToolbar = () => {
 
 export const GroceriesView = ({ groceries }: { groceries: Groceries }) => {
   const [groceriesFeature, send] = useGroceries();
+  const t = useTranslations("GroceriesView");
   const sortedAndFilteredGroceries = match(groceriesFeature, {
     FILTERED: ({ input, category }) =>
       input
@@ -193,7 +195,6 @@ export const GroceriesView = ({ groceries }: { groceries: Groceries }) => {
                 {({ open }) => (
                   <>
                     <Menu.Button className="w-8 h-8 bg-white inline-flex items-center justify-center text-gray-400 rounded-full hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
-                      <span className="sr-only">Open options</span>
                       <DotsVerticalIcon
                         className="w-5 h-5"
                         aria-hidden="true"
@@ -230,7 +231,7 @@ export const GroceriesView = ({ groceries }: { groceries: Groceries }) => {
                                 }
                                   block px-4 py-2 text-sm`}
                               >
-                                Reset shop count
+                                {t("resetShopCount")}
                               </a>
                             )}
                           </Menu.Item>
@@ -247,7 +248,7 @@ export const GroceriesView = ({ groceries }: { groceries: Groceries }) => {
                                 }
                                   block px-4 py-2 text-sm`}
                               >
-                                Delete
+                                {t("delete")}
                               </a>
                             )}
                           </Menu.Item>

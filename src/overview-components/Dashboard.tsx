@@ -10,7 +10,7 @@ import {
   MainContentLayout,
   MainContentLayoutSkeleton,
 } from "./MainContentLayout";
-import { WeekdaysView, WeekdaysSkeleton } from "./WeekdaysView";
+import { WeekdaysView, WeekdaysViewSkeleton } from "./WeekdaysView";
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => (
   <div className="bg-gray-50">
@@ -28,7 +28,7 @@ export const DashboardSkeleton = () => (
   <DashboardLayout>
     <GroceryListSkeleton />
     <MainContentLayoutSkeleton>
-      <WeekdaysSkeleton />
+      <WeekdaysViewSkeleton />
     </MainContentLayoutSkeleton>
   </DashboardLayout>
 );

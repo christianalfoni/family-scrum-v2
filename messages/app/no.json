@@ -1,0 +1,38 @@
+{
+  "AddTodoView": {
+    "addTodo": "Nytt Gjøremål",
+    "setDate": "Sett Dato",
+    "save": "Lagre"
+  },
+  "Dashboard": {
+    "thisWeek": "Planlegg denne uka",
+    "nextWeek": "Planlegg neste uke"
+  },
+  "DashboardView": {
+    "goShopping": "Handleliste",
+    "groceries": "Matvarer",
+    "planCurrentWeek": "Planlegg denne uka",
+    "planNextWeek": "Planlegg neste uke",
+    "events": "Hendelser",
+    "monday": "Mandag",
+    "tuesday": "Tirsdag",
+    "wednesday": "Onsdag",
+    "thursday": "Torsdag",
+    "friday": "Fredag",
+    "saturday": "Lørdag",
+    "sunday": "Søndag"
+  },
+  "GroceriesView": {
+    "groceries": "Matvarer",
+    "filterNewGrocery": "Filtrer/Ny Matvare",
+    "add": "Legg til",
+    "resetShopCount": "Tilbakestill antall",
+    "delete": "Slett"
+  },
+  "PlanWeekView": {
+    "archive": "Arkiver"
+  },
+  "ShoppingListView": {
+    "shoppingList": "Handleliste"
+  }
+}

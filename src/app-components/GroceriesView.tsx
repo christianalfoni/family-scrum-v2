@@ -1,5 +1,6 @@
 import * as React from "react";
 import { Menu, Transition } from "@headlessui/react";
+import { useTranslations } from "next-intl";
 import { dashboardSelectors, Groceries } from "../features/DashboardFeature";
 import {
   ChevronLeftIcon,
@@ -44,6 +45,7 @@ export const GroceriesView = ({
   onBackClick: () => void;
 }) => {
   const [groceriesFeature, send] = useGroceries();
+  const t = useTranslations("GroceriesView");
   const activeCategory = match(groceriesFeature, {
     FILTERED: ({ category }) => category,
     UNFILTERED: () => undefined,
@@ -70,7 +72,7 @@ export const GroceriesView = ({
           >
             <ChevronLeftIcon className="h-6 w-6" aria-hidden="true" />
           </button>
-          <h1 className="flex-2 text-lg font-medium">Groceries</h1>
+          <h1 className="flex-2 text-lg font-medium">{t("groceries")}</h1>
           <span className="flex-1" />
         </div>
       </div>
@@ -124,7 +126,7 @@ export const GroceriesView = ({
                 });
               }}
               className="block w-full bg-white border border-gray-300 rounded-md py-2 pl-10 pr-3 text-sm placeholder-gray-500 focus:outline-none focus:text-gray-900 focus:placeholder-gray-400 focus:ring-1 focus:ring-rose-500 focus:border-rose-500 sm:text-sm"
-              placeholder="Filter/New Grocery"
+              placeholder={t("filterNewGrocery") as string}
               type="search"
             />
           </div>
@@ -147,7 +149,7 @@ export const GroceriesView = ({
               className="-ml-2 mr-1 h-5 text-gray-400"
               aria-hidden="true"
             />
-            <span>Add</span>
+            <span>{t("add")}</span>
           </button>
         </span>
       </div>
@@ -223,7 +225,7 @@ export const GroceriesView = ({
                                   }
                                     block px-4 py-2 text-sm`}
                                 >
-                                  Reset shop count
+                                  {t("resetShopCount")}
                                 </a>
                               )}
                             </Menu.Item>
@@ -240,7 +242,7 @@ export const GroceriesView = ({
                                   }
                                     block px-4 py-2 text-sm`}
                                 >
-                                  Delete
+                                  {t("delete")}
                                 </a>
                               )}
                             </Menu.Item>
