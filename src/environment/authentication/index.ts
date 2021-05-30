@@ -1,9 +1,12 @@
 import { Events } from "react-states";
 
+export type FamilyUserDTO = {
+  id: string;
+  familyId: string;
+};
+
 export type UserDTO = {
   id: string;
-  name: string;
-  familyId: string;
 };
 
 export type AuthenticationEvent =
@@ -12,7 +15,15 @@ export type AuthenticationEvent =
       user: UserDTO;
     }
   | {
+      type: "AUTHENTICATION:AUTHENTICATED_WITH_FAMILY";
+      user: FamilyUserDTO;
+    }
+  | {
       type: "AUTHENTICATION:UNAUTHENTICATED";
+    }
+  | {
+      type: "AUTHENTICATION:ERROR";
+      error: string;
     }
   | {
       type: "AUTHENTICATION:SIGN_IN_ERROR";
@@ -22,7 +33,9 @@ export type AuthenticationEvent =
 export interface Authentication {
   /**
    * @fires AUTHENTICATION:AUTHENTICATED
+   * @fires AUTHENTICATION:AUTHENTICATED_WITH_FAMILY
    * @fires AUTHENTICATION:UNAUTHENTICATED
+   * @fires AUTHENTICATION:ERROR
    */
   events: Events<AuthenticationEvent>;
   /**

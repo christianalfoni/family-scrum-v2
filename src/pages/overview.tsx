@@ -17,7 +17,10 @@ function OverviewPage() {
 export function getStaticProps({ locale }: GetStaticPropsContext) {
   return {
     props: {
-      messages: require(`../../messages/overview/${locale}.json`),
+      messages: {
+        ...require(`../../messages/auth/${locale}.json`),
+        ...require(`../../messages/overview/${locale}.json`),
+      },
     },
   };
 }

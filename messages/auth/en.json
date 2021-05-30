@@ -1,0 +1,9 @@
+{
+  "SignInModal": {
+    "signInRequired": "Sign in required",
+    "accessExplanation": "To access your family data you have to sign in with Google",
+    "loginWithGoogle": "Sign in with Google",
+    "somethingWrong": "Something went wrong",
+    "noFamily": "No family assigned"
+  }
+}

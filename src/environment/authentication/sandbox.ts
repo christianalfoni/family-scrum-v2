@@ -1,12 +1,11 @@
 import { events } from "react-states";
-import { Authentication, AuthenticationEvent } from ".";
+import { Authentication, AuthenticationEvent, FamilyUserDTO } from ".";
 import { randomWait } from "../utils";
 
 export const createAuthentication = (): Authentication => {
   const authenticationEvents = events<AuthenticationEvent>();
-  const user = {
+  const user: FamilyUserDTO = {
     id: "user_1",
-    name: "Bob Saget",
     familyId: "456",
   };
 
@@ -21,7 +20,7 @@ export const createAuthentication = (): Authentication => {
     async signIn() {
       await randomWait();
       authenticationEvents.emit({
-        type: "AUTHENTICATION:AUTHENTICATED",
+        type: "AUTHENTICATION:AUTHENTICATED_WITH_FAMILY",
         user,
       });
     },

@@ -8,9 +8,12 @@ import {
 } from "react-states";
 import { useDevtools } from "react-states/devtools";
 import { useEnvironment } from "../../environment";
-import { AuthenticationEvent, UserDTO } from "../../environment/authentication";
+import { AuthenticationEvent } from "../../environment/authentication";
 
-export type User = UserDTO;
+export type User = {
+  id: string;
+  familyId: string;
+};
 
 export type Context =
   | {
@@ -18,6 +21,15 @@ export type Context =
     }
   | {
       state: "SIGNING_IN";
+    }
+  | {
+      state: "NO_FAMILY";
+    }
+  | {
+      state: "CREATING_FAMILY";
+    }
+  | {
+      state: "JOINING_FAMILY";
     }
   | {
       state: "SIGNED_IN";
@@ -43,14 +55,24 @@ export const useFeature = createHook(context);
 
 const reducer = createReducer<Context, Event>({
   VERIFYING_AUTHENTICATION: {
-    "AUTHENTICATION:AUTHENTICATED": ({ user }): Context => ({
+    "AUTHENTICATION:AUTHENTICATED": ({ user }) => ({
+      state: "NO_FAMILY",
+    }),
+    "AUTHENTICATION:AUTHENTICATED_WITH_FAMILY": ({ user }) => ({
       state: "SIGNED_IN",
       user,
     }),
     "AUTHENTICATION:UNAUTHENTICATED": () => ({ state: "SIGNED_OUT" }),
+    "AUTHENTICATION:ERROR": ({ error }) => ({
+      state: "ERROR",
+      error,
+    }),
   },
   SIGNING_IN: {
-    "AUTHENTICATION:AUTHENTICATED": ({ user }): Context => ({
+    "AUTHENTICATION:AUTHENTICATED": ({ user }) => ({
+      state: "NO_FAMILY",
+    }),
+    "AUTHENTICATION:AUTHENTICATED_WITH_FAMILY": ({ user }) => ({
       state: "SIGNED_IN",
       user,
     }),
@@ -65,6 +87,9 @@ const reducer = createReducer<Context, Event>({
   SIGNED_OUT: {
     SIGN_IN: () => ({ state: "SIGNING_IN" }),
   },
+  CREATING_FAMILY: {},
+  JOINING_FAMILY: {},
+  NO_FAMILY: {},
   ERROR: {},
 });
 

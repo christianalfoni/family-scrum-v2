@@ -17,22 +17,22 @@ import {
   TodoDTO,
   WeekDTO,
 } from "../../environment/storage";
-import { useSession } from "../SessionFeature";
-import { getCurrentWeekId } from "../../utils";
+import { useSession, User } from "../SessionFeature";
 import { useDevtools } from "react-states/devtools";
-import { AuthenticationEvent, UserDTO } from "../../environment/authentication";
+import { AuthenticationEvent } from "../../environment/authentication";
 import levenshtein from "fast-levenshtein";
-import { closestIndexTo } from "date-fns";
 
 export type GroceryCategory = GroceryCategoryDTO;
 
 export type Family = FamilyDTO;
 
-export type User = UserDTO;
+export type { User } from "../SessionFeature";
 
 export type Grocery = GroceryDTO;
 
-export type Groceries = Grocery[];
+export type Groceries = {
+  [groceryId: string]: Grocery;
+};
 
 export type Todo = TodoDTO;
 
@@ -152,7 +152,7 @@ export const useFeature = createHook(featureContext);
 
 const reducer = createReducer<Context, Event>({
   AWAITING_AUTHENTICATION: {
-    "AUTHENTICATION:AUTHENTICATED": ({ user }) => ({
+    "AUTHENTICATION:AUTHENTICATED_WITH_FAMILY": ({ user }) => ({
       state: "LOADING",
       familyData: {
         state: "LOADING",
@@ -167,7 +167,7 @@ const reducer = createReducer<Context, Event>({
     }),
   },
   REQUIRING_AUTHENTICATION: {
-    "AUTHENTICATION:AUTHENTICATED": ({ user }) => ({
+    "AUTHENTICATION:AUTHENTICATED_WITH_FAMILY": ({ user }) => ({
       state: "LOADING",
       familyData: {
         state: "LOADING",
@@ -248,63 +248,19 @@ const reducer = createReducer<Context, Event>({
     }),
   },
   LOADED: {
-    "STORAGE:ADD_GROCERY_SUCCESS": ({ grocery }, context) => {
-      return {
-        ...context,
-        groceries: [grocery].concat(context.groceries),
-      };
-    },
-    "STORAGE:SET_GROCERY_SHOP_COUNT_SUCCESS": ({ grocery }, context) => {
-      return {
-        ...context,
-        groceries: context.groceries.reduce<Grocery[]>(
-          (aggr, existingGrocery) => {
-            if (existingGrocery.id === grocery.id) {
-              return aggr.concat(grocery);
-            }
-
-            return aggr.concat(existingGrocery);
-          },
-          []
-        ),
-      };
-    },
-    "STORAGE:CURRENT_WEEK_TODO_ACTIVITY_UPDATE": (
-      { todoId, userId, activity },
+    "STORAGE:GROCERIES_UPDATE": ({ groceries }, context) => ({
+      ...context,
+      groceries,
+    }),
+    "STORAGE:WEEKS_UPDATE": (
+      { currentWeek, nextWeek, previousWeek },
       context
-    ) => {
-      return {
-        ...context,
-        currentWeek: {
-          ...context.currentWeek,
-          todos: {
-            ...context.currentWeek.todos,
-            [todoId]: {
-              ...context.currentWeek.todos[todoId],
-              [userId]: activity,
-            },
-          },
-        },
-      };
-    },
-    "STORAGE:NEXT_WEEK_TODO_ACTIVITY_UPDATE": (
-      { todoId, userId, activity },
-      context
-    ) => {
-      return {
-        ...context,
-        nextWeek: {
-          ...context.nextWeek,
-          todos: {
-            ...context.nextWeek.todos,
-            [todoId]: {
-              ...context.nextWeek.todos[todoId],
-              [userId]: activity,
-            },
-          },
-        },
-      };
-    },
+    ) => ({
+      ...context,
+      currentWeek,
+      nextWeek,
+      previousWeek,
+    }),
     "STORAGE:TODOS_UPDATE": ({ todos }, context) => ({
       ...context,
       view:
@@ -340,7 +296,7 @@ export type Props = {
 
 export const selectors = {
   groceriesByCategory: (groceries: Groceries) => {
-    return groceries.sort((a, b) => {
+    return Object.values(groceries).sort((a, b) => {
       if (a.category > b.category) {
         return 1;
       } else if (a.category < b.category) {
@@ -353,12 +309,13 @@ export const selectors = {
   filterGroceriesByCategory: (
     groceries: Groceries,
     category: GroceryCategory
-  ): Groceries => groceries.filter((grocery) => grocery.category === category),
+  ) =>
+    Object.values(groceries).filter((grocery) => grocery.category === category),
   filterGroceriesByInput: (groceries: Groceries, input: string) => {
     if (input) {
       const lowerCaseInput = input.toLocaleLowerCase();
 
-      return groceries.filter((grocery) => {
+      return Object.values(groceries).filter((grocery) => {
         const lowerCaseGroceryName = grocery.name.toLowerCase();
 
         return (
@@ -414,6 +371,15 @@ export const Feature = ({ children, initialContext }: Props) => {
         state: "AWAITING_AUTHENTICATION",
       }),
       ERROR: () => ({
+        state: "AWAITING_AUTHENTICATION",
+      }),
+      NO_FAMILY: () => ({
+        state: "AWAITING_AUTHENTICATION",
+      }),
+      JOINING_FAMILY: () => ({
+        state: "AWAITING_AUTHENTICATION",
+      }),
+      CREATING_FAMILY: () => ({
         state: "AWAITING_AUTHENTICATION",
       }),
       SIGNED_IN: ({ user }) => ({

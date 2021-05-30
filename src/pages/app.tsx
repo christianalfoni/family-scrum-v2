@@ -17,7 +17,10 @@ function AppPage() {
 export function getStaticProps({ locale }: GetStaticPropsContext) {
   return {
     props: {
-      messages: require(`../../messages/app/${locale}.json`),
+      messages: {
+        ...require(`../../messages/auth/${locale}.json`),
+        ...require(`../../messages/app/${locale}.json`),
+      },
     },
   };
 }

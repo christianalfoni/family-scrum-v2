@@ -1,0 +1,9 @@
+{
+  "SignInModal": {
+    "signInRequired": "Du må logge inn",
+    "accessExplanation": "For å få tilgang til familien må du logge inn",
+    "loginWithGoogle": "Logg inn med Google",
+    "somethingWrong": "Noe gikk galt",
+    "noFamily": "Ingen familie"
+  }
+}

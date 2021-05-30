@@ -5,7 +5,7 @@ export type FamilyDTO = {
   users: {
     [id: string]: {
       name: string;
-      avatar: string | null;
+      avatar: string;
     };
   };
 };
@@ -21,6 +21,7 @@ export enum GroceryCategoryDTO {
 export type GroceryDTO = {
   id: string;
   created: number;
+  modified: number;
   name: string;
   category: GroceryCategoryDTO;
   shopCount: number;
@@ -29,12 +30,14 @@ export type GroceryDTO = {
 export type TodoDTO = {
   id: string;
   created: number;
+  modified: number;
   description: string;
 };
 
 export type CalendarEventDTO = {
   id: string;
   created: number;
+  modified: number;
   description: string;
   date: number;
   userIds: string[];
@@ -66,7 +69,9 @@ export type StorageEvent =
   | {
       type: "STORAGE:FETCH_FAMILY_DATA_SUCCESS";
       family: FamilyDTO;
-      groceries: GroceryDTO[];
+      groceries: {
+        [groceryId: string]: GroceryDTO;
+      };
       todos: {
         [todoId: string]: TodoDTO;
       };
@@ -85,6 +90,10 @@ export type StorageEvent =
       nextWeek: WeekDTO;
     }
   | {
+      type: "STORAGE:FETCH_WEEKS_ERROR";
+      error: string;
+    }
+  | {
       type: "STORAGE:EVENTS_UPDATE";
       events: {
         [eventId: string]: CalendarEventDTO;
@@ -93,6 +102,9 @@ export type StorageEvent =
   | {
       type: "STORAGE:ADD_EVENT_ERROR";
       error: string;
+      description: string;
+      date: number;
+      userId: string;
     }
   | {
       type: "STORAGE:TODOS_UPDATE";
@@ -103,34 +115,19 @@ export type StorageEvent =
   | {
       type: "STORAGE:ADD_TODO_ERROR";
       error: string;
+      description: string;
     }
   | {
-      type: "STORAGE:FETCH_WEEKS_ERROR";
-      error: string;
-    }
-  | {
-      type: "STORAGE:CURRENT_WEEK_TODO_ACTIVITY_UPDATE";
-      todoId: string;
-      userId: string;
-      activity: WeekTodoActivity;
-    }
-  | {
-      type: "STORAGE:NEXT_WEEK_TODO_ACTIVITY_UPDATE";
-      todoId: string;
-      userId: string;
-      activity: WeekTodoActivity;
-    }
-  | {
-      type: "STORAGE:ADD_GROCERY_SUCCESS";
-      grocery: GroceryDTO;
+      type: "STORAGE:GROCERIES_UPDATE";
+      groceries: {
+        [groceryId: string]: GroceryDTO;
+      };
     }
   | {
       type: "STORAGE:ADD_GROCERY_ERROR";
       error: string;
-    }
-  | {
-      type: "STORAGE:DELETE_GROCERY_SUCCESS";
-      id: string;
+      name: string;
+      category: GroceryCategoryDTO;
     }
   | {
       type: "STORAGE:DELETE_GROCERY_ERROR";
@@ -138,24 +135,29 @@ export type StorageEvent =
       error: string;
     }
   | {
-      type: "STORAGE:FETCH_FAMILY_SUCCESS";
-      family: FamilyDTO;
-    }
-  | {
-      type: "STORAGE:FETCH_FAMILY_ERROR";
+      type: "STORAGE:INCREASE_GROCERY_SHOP_COUNT_ERROR";
+      id: string;
       error: string;
     }
   | {
-      type: "STORAGE:SET_GROCERY_SHOP_COUNT_SUCCESS";
-      grocery: GroceryDTO;
-    }
-  | {
-      type: "STORAGE:SET_GROCERY_SHOP_COUNT_ERROR";
+      type: "STORAGE:RESET_GROCERY_SHOP_COUNT_ERROR";
+      id: string;
       error: string;
     }
   | {
       type: "STORAGE:ARCHIVE_TODO_ERROR";
       id: string;
+      error: string;
+    }
+  | {
+      type: "STORAGE:ARCHIVE_EVENT_ERROR";
+      id: string;
+      error: string;
+    }
+  | {
+      type: "STORAGE:TOGGLE_EVENT_PARTICIPATION_ERROR";
+      eventId: string;
+      userId: string;
       error: string;
     }
   | {
@@ -177,11 +179,14 @@ export interface Storage {
   /**
    *
    * @fires STORAGE:WEEKS_UPDATE
-   * @fires STORAGE:CURRENT_WEEK_TODO_ACTIVITY_UPDATE
-   * @fires STORAGE:NEXT_WEEK_TODO_ACTIVITY_UPDATE
    * @fires STORAGE:FETCH_WEEKS_ERROR
    */
   fetchWeeks(familyId: string): void;
+  /**
+   *
+   * @fires STORAGE:GROCERIES_UPDATE
+   * @fires STORAGE:ADD_GROCERY_ERROR
+   */
   addGrocery(
     familyId: string,
     category: GroceryCategoryDTO,
@@ -204,18 +209,40 @@ export interface Storage {
     description: string,
     date: number
   ): void;
+  /**
+   *
+   * @fires STORAGE:GROCERIES_UPDATE
+   * @fires STORAGE:DELETE_GROCERY_ERROR
+   */
   deleteGrocery(familyId: string, id: string): void;
+  /**
+   *
+   * @fires STORAGE:GROCERIES_UPDATE
+   * @fires STORAGE:INCREASE_GROCERY_SHOP_COUNT_ERROR
+   */
   increaseGroceryShopCount(familyId: string, id: string): void;
+  /**
+   *
+   * @fires STORAGE:GROCERIES_UPDATE
+   * @fires STORAGE:RESET_GROCERY_SHOP_COUNT_ERROR
+   */
   resetGroceryShopCount(familyId: string, id: string): void;
+  /**
+   *
+   * @fires STORAGE:TODOS_UPDATE
+   * @fires STORAGE:ARCHIVE_TODO_ERROR
+   */
   archiveTodo(familyId: string, id: string): void;
   /**
    *
    * @fires STORAGE:EVENTS_UPDATE
+   * @fires STORAGE:ARCHIVE_EVENT_ERROR
    */
   archiveEvent(familyId: string, id: string): void;
   /**
    *
    * @fires STORAGE:EVENTS_UPDATE
+   * @fires STORAGE:TOGGLE_EVENT_PARTICIPATION_ERROR
    */
   toggleEventParticipation(
     familyId: string,

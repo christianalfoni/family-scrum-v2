@@ -154,7 +154,7 @@ export const DashboardView = () => {
   const t = useTranslations("DashboardView");
   const intl = useIntl();
   const { groceries, family, currentWeek, todos, events } = dashboard;
-  const shopCount = groceries.reduce(
+  const shopCount = Object.values(groceries).reduce(
     (aggr, grocery) => aggr + grocery.shopCount,
     0
   );

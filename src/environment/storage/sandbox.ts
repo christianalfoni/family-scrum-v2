@@ -33,15 +33,18 @@ export const createStorage = (): Storage => {
     },
   };
 
-  let groceries: GroceryDTO[] = [
-    {
+  let groceries: {
+    [groceryId: string]: GroceryDTO;
+  } = {
+    grocery_0: {
       id: "grocery_0",
       created: Date.now(),
+      modified: Date.now(),
       category: GroceryCategoryDTO.DryGoods,
       name: "Gryn",
       shopCount: 1,
     },
-  ];
+  };
 
   let events: {
     [eventId: string]: CalendarEventDTO;
@@ -49,6 +52,7 @@ export const createStorage = (): Storage => {
     event_0: {
       id: "event_0",
       created: Date.now(),
+      modified: Date.now(),
       description: "Go on a trip",
       date: 1624128658456,
       userIds: ["user_1", "user_2"],
@@ -61,11 +65,13 @@ export const createStorage = (): Storage => {
     todo_0: {
       id: "todo_0",
       created: Date.now(),
+      modified: Date.now(),
       description: "Do something cool",
     },
     todo_1: {
       id: "todo_1",
       created: Date.now(),
+      modified: Date.now(),
       description: "Do something else",
     },
   };
@@ -127,32 +133,37 @@ export const createStorage = (): Storage => {
         previousWeek: weeks[previousWeekId],
       });
     },
-    async addGrocery(_, category, name) {
-      await randomWait();
+    addGrocery(_, category, name) {
       const newGrocery: GroceryDTO = {
         id: `grocery_${groceries.length}`,
         created: Date.now(),
+        modified: Date.now(),
         category,
         name,
         shopCount: 0,
       };
-      groceries = groceries.concat(newGrocery);
+
+      groceries = {
+        ...groceries,
+        [newGrocery.id]: newGrocery,
+      };
 
       this.events.emit({
-        type: "STORAGE:ADD_GROCERY_SUCCESS",
-        grocery: newGrocery,
+        type: "STORAGE:GROCERIES_UPDATE",
+        groceries,
       });
     },
-    async addEvent(_, userId, description, date) {
-      await randomWait();
+    addEvent(_, userId, description, date) {
       const id = `event_${Object.keys(events).length}`;
       const event: CalendarEventDTO = {
         id,
         created: Date.now(),
+        modified: Date.now(),
         date,
         description,
         userIds: [userId],
       };
+
       events = {
         ...events,
         [id]: event,
@@ -163,13 +174,13 @@ export const createStorage = (): Storage => {
         events,
       });
     },
-    async addTodo(_, description) {
-      await randomWait();
+    addTodo(_, description) {
       const id = `todo_${Object.keys(todos).length}`;
       const todo: TodoDTO = {
         id,
         description,
         created: Date.now(),
+        modified: Date.now(),
       };
 
       todos = {
@@ -182,13 +193,16 @@ export const createStorage = (): Storage => {
         todos,
       });
     },
-    async deleteGrocery(_, id) {
-      await randomWait();
-      groceries = groceries.filter((grocery) => grocery.id !== id);
+    deleteGrocery(_, id) {
+      delete groceries[id];
+
+      groceries = {
+        ...groceries,
+      };
 
       this.events.emit({
-        type: "STORAGE:DELETE_GROCERY_SUCCESS",
-        id,
+        type: "STORAGE:GROCERIES_UPDATE",
+        groceries,
       });
     },
     async fetchFamilyData() {
@@ -201,17 +215,12 @@ export const createStorage = (): Storage => {
         events,
       });
     },
-    async archiveTodo(_, id) {
-      await randomWait();
+    archiveTodo(_, id) {
       todos = {
         ...todos,
       };
 
       delete todos[id];
-
-      for (let week in weeks) {
-        delete weeks[week].todos[id];
-      }
 
       this.events.emit({
         type: "STORAGE:TODOS_UPDATE",
@@ -219,7 +228,6 @@ export const createStorage = (): Storage => {
       });
     },
     async archiveEvent(_, id) {
-      await randomWait();
       events = {
         ...events,
       };
@@ -231,9 +239,7 @@ export const createStorage = (): Storage => {
         events,
       });
     },
-    async toggleEventParticipation(_, eventId, userId) {
-      await randomWait();
-
+    toggleEventParticipation(_, eventId, userId) {
       events = {
         ...events,
         [eventId]: {
@@ -251,45 +257,35 @@ export const createStorage = (): Storage => {
         events,
       });
     },
-    async increaseGroceryShopCount(_, id) {
-      await randomWait();
-
-      groceries = groceries.map((grocery) =>
-        grocery.id === id
-          ? {
-              ...grocery,
-              shopCount: grocery.shopCount + 1,
-            }
-          : grocery
-      );
-
-      const grocery = groceries.find((grocery) => grocery.id === id)!;
+    increaseGroceryShopCount(_, id) {
+      groceries = {
+        ...groceries,
+        [id]: {
+          ...groceries[id],
+          shopCount: groceries[id].shopCount + 1,
+        },
+      };
 
       this.events.emit({
-        type: "STORAGE:SET_GROCERY_SHOP_COUNT_SUCCESS",
-        grocery,
+        type: "STORAGE:GROCERIES_UPDATE",
+        groceries,
       });
     },
-    async resetGroceryShopCount(_, id) {
-      await randomWait();
-
-      groceries = groceries.map((grocery) =>
-        grocery.id === id
-          ? {
-              ...grocery,
-              shopCount: 0,
-            }
-          : grocery
-      );
-
-      const grocery = groceries.find((grocery) => grocery.id === id)!;
+    resetGroceryShopCount(_, id) {
+      groceries = {
+        ...groceries,
+        [id]: {
+          ...groceries[id],
+          shopCount: 0,
+        },
+      };
 
       this.events.emit({
-        type: "STORAGE:SET_GROCERY_SHOP_COUNT_SUCCESS",
-        grocery,
+        type: "STORAGE:GROCERIES_UPDATE",
+        groceries,
       });
     },
-    async setWeekTaskActivity({
+    setWeekTaskActivity({
       familyId,
       weekId,
       userId,
@@ -297,8 +293,6 @@ export const createStorage = (): Storage => {
       weekdayIndex,
       active,
     }) {
-      await randomWait();
-
       const weekTodoActivity: WeekTodoActivity = weeks[weekId].todos[todoId]?.[
         userId
       ] ?? [false, false, false, false, false, false, false];
@@ -322,14 +316,10 @@ export const createStorage = (): Storage => {
       };
 
       this.events.emit({
-        type:
-          weekId === currentWeekId
-            ? "STORAGE:CURRENT_WEEK_TODO_ACTIVITY_UPDATE"
-            : "STORAGE:NEXT_WEEK_TODO_ACTIVITY_UPDATE",
-        weekId,
-        todoId,
-        userId,
-        activity: weeks[weekId].todos[todoId][userId],
+        type: "STORAGE:WEEKS_UPDATE",
+        currentWeek: weeks[currentWeekId],
+        nextWeek: weeks[nextWeekId],
+        previousWeek: weeks[previousWeekId],
       });
     },
   };
