@@ -1,4 +1,4 @@
-import firebase from "firebase";
+import firebase from "firebase/app";
 import { events } from "react-states";
 import { Authentication, AuthenticationEvent } from ".";
 
@@ -22,18 +22,18 @@ export const createAuthentication = (app: firebase.app.App): Authentication => {
           authenticationEvents.emit(
             userData
               ? {
-                  type: "AUTHENTICATION:AUTHENTICATED_WITH_FAMILY",
-                  user: {
-                    id: user.uid,
-                    familyId: userData.familyId,
-                  },
-                }
+                type: "AUTHENTICATION:AUTHENTICATED_WITH_FAMILY",
+                user: {
+                  id: user.uid,
+                  familyId: userData.familyId,
+                },
+              }
               : {
-                  type: "AUTHENTICATION:AUTHENTICATED",
-                  user: {
-                    id: user.uid,
-                  },
-                }
+                type: "AUTHENTICATION:AUTHENTICATED",
+                user: {
+                  id: user.uid,
+                },
+              }
           );
         })
         .catch((error) => {

@@ -1,5 +1,5 @@
-import firebase from "firebase";
-import { events as storagEvents } from "react-states";
+import firebase from "firebase/app";
+import { events } from "react-states";
 import {
   CalendarEventDTO,
   FamilyDTO,
@@ -14,6 +14,8 @@ import {
   getNextWeekId,
   getPreviousWeekId,
 } from "../../utils";
+import debounce from 'lodash.debounce'
+import { StorageEvent } from './'
 
 const FAMILY_DATA_COLLECTION = "familyData";
 const GROCERIES_COLLECTION = "groceries";
@@ -23,23 +25,55 @@ const WEEKS_COLLECTION = "weeks";
 const WEEKS_TODOS_COLLECTION = "todos";
 
 export const createStorage = (app: firebase.app.App): Storage => {
+  const storageEvents = events<StorageEvent>()
+
   let groceries: {
     [groceryId: string]: GroceryDTO;
   } = {};
   let todos: {
     [todoId: string]: TodoDTO;
   } = {};
-  let events: {
+  let calendarEvents: {
     [eventId: string]: CalendarEventDTO;
   };
   let weeks: {
     [id: string]: WeekDTO;
   } = {};
 
+  const debouncedShopCount = debounce((groceryDocRef: firebase.firestore.DocumentReference<firebase.firestore.DocumentData>, shopCount: number) => {
+    app
+      .firestore()
+      .runTransaction((transaction) =>
+        transaction.get(groceryDocRef).then((groceryDoc) => {
+          const data = groceryDoc.data();
+
+          if (!data) {
+            return storageEvents.emit({
+              type: "STORAGE:INCREASE_GROCERY_SHOP_COUNT_ERROR",
+              id: groceryDocRef.id,
+              error: "Document does not exist",
+            });
+          }
+
+          transaction.update(groceryDocRef, {
+            modified: firebase.firestore.FieldValue.serverTimestamp(),
+            shopCount,
+          });
+        })
+      )
+      .catch((error) => {
+        storageEvents.emit({
+          type: "STORAGE:INCREASE_GROCERY_SHOP_COUNT_ERROR",
+          id: groceryDocRef.id,
+          error: error.messsage,
+        });
+      })
+  }, 1000)
+
   function onSnapshot<T extends { [id: string]: { id: string } }>(
     query: firebase.firestore.Query<firebase.firestore.DocumentData>,
     getCurrentData: () => T,
-    cb: (updatedData: T) => void
+    cb: (updatedData: T, docId: string) => void
   ) {
     query.onSnapshot((snapshot) => {
       snapshot.docChanges().forEach((change) => {
@@ -54,20 +88,20 @@ export const createStorage = (app: firebase.app.App): Storage => {
                 ...docData,
                 id,
                 created: docData.created.toMillis(),
-                modified: docData.created.toMillis(),
+                modified: docData.modified.toMillis(),
               },
-            });
+            }, id);
             break;
           }
           case "modified": {
             cb({
               ...getCurrentData(),
               [id]: {
+                ...docData,
                 id,
-                created: docData.created.toMillis(),
-                modified: docData.created.toMillis(),
+                modified: docData.modified.toMillis(),
               },
-            });
+            }, id);
             break;
           }
           case "removed": {
@@ -75,7 +109,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
               ...getCurrentData(),
             };
             delete updatedData[id];
-            cb(updatedData);
+            cb(updatedData, id);
             break;
           }
         }
@@ -84,7 +118,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
   }
 
   return {
-    events: storagEvents(),
+    events: storageEvents,
     fetchFamilyData(familyId) {
       const familyDocRef = app
         .firestore()
@@ -108,12 +142,12 @@ export const createStorage = (app: firebase.app.App): Storage => {
           });
         }
 
-        const now = firebase.firestore.Timestamp.fromDate(new Date());
+
 
         onSnapshot(
-          groceriesCollection.where("modified", ">", now),
+          groceriesCollection.where("modified", ">", firebase.firestore.Timestamp.now()),
           () => groceries,
-          (updatedGroceries) => {
+          (updatedGroceries, groceryId) => {
             this.events.emit({
               type: "STORAGE:GROCERIES_UPDATE",
               groceries: updatedGroceries,
@@ -122,7 +156,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
         );
 
         onSnapshot(
-          todosCollection.where("modified", ">", now),
+          todosCollection.where("modified", ">", firebase.firestore.Timestamp.now()),
           () => todos,
           (updatedTodos) => {
             this.events.emit({
@@ -133,8 +167,8 @@ export const createStorage = (app: firebase.app.App): Storage => {
         );
 
         onSnapshot(
-          eventsCollection.where("modified", ">", now),
-          () => events,
+          eventsCollection.where("modified", ">", firebase.firestore.Timestamp.now()),
+          () => calendarEvents,
           (updatedEvents) => {
             this.events.emit({
               type: "STORAGE:EVENTS_UPDATE",
@@ -147,18 +181,36 @@ export const createStorage = (app: firebase.app.App): Storage => {
           ...familyDataDoc.data(),
           id: familyDataDoc.id,
         } as FamilyDTO;
-        const groceriesList = groceriesDocs.docs.map((groceryDoc) => ({
-          id: groceryDoc.id,
-          ...groceryDoc.data(),
-        })) as GroceryDTO[];
-        const todosList = todosDocs.docs.map((todoDoc) => ({
-          id: todoDoc.id,
-          ...todoDoc.data(),
-        })) as TodoDTO[];
-        const eventsList = eventsDocs.docs.map((eventDoc) => ({
-          id: eventDoc.id,
-          ...eventDoc.data(),
-        })) as CalendarEventDTO[];
+        const groceriesList = groceriesDocs.docs.map((groceryDoc) => {
+          const data = groceryDoc.data()
+
+          return {
+            id: groceryDoc.id,
+            ...data,
+            created: data.created.toMillis(),
+            modified: data.modified.toMillis()
+          }
+        }) as GroceryDTO[];
+        const todosList = todosDocs.docs.map((todoDoc) => {
+          const data = todoDoc.data()
+
+          return {
+            id: todoDoc.id,
+            ...data,
+            created: data.created.toMillis(),
+            modified: data.created.toMillis()
+          }
+        }) as TodoDTO[];
+        const eventsList = eventsDocs.docs.map((eventDoc) => {
+          const data = eventDoc.data()
+
+          return {
+            id: eventDoc.id,
+            ...data,
+            created: data.created.toMillis(),
+            modified: data.modified.toMillis()
+          }
+        }) as CalendarEventDTO[];
 
         groceries = groceriesList.reduce<{
           [id: string]: GroceryDTO;
@@ -172,7 +224,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
           aggr[todo.id] = todo;
           return aggr;
         }, {});
-        events = eventsList.reduce<{
+        calendarEvents = eventsList.reduce<{
           [id: string]: CalendarEventDTO;
         }>((aggr, event) => {
           aggr[event.id] = event;
@@ -184,7 +236,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
           family,
           groceries,
           todos,
-          events,
+          events: calendarEvents,
         });
       });
     },
@@ -196,14 +248,32 @@ export const createStorage = (app: firebase.app.App): Storage => {
         .doc(familyId)
         .collection(GROCERIES_COLLECTION);
 
-      groceriesCollection
-        .add({
-          created: firebase.firestore.FieldValue.serverTimestamp(),
-          modified: firebase.firestore.FieldValue.serverTimestamp(),
-          shopCount: 0,
+      const doc = groceriesCollection.doc()
+
+      groceries = {
+        ...groceries,
+        [doc.id]: {
+          id: doc.id,
           category,
           name,
-        })
+          created: Date.now(),
+          modified: Date.now(),
+          shopCount: 0
+        }
+      }
+
+      this.events.emit({
+        type: 'STORAGE:GROCERIES_UPDATE',
+        groceries
+      })
+
+      doc.set({
+        created: firebase.firestore.FieldValue.serverTimestamp(),
+        modified: firebase.firestore.FieldValue.serverTimestamp(),
+        shopCount: 0,
+        category,
+        name,
+      })
         .catch((error) => {
           this.events.emit({
             type: "STORAGE:ADD_GROCERY_ERROR",
@@ -220,8 +290,25 @@ export const createStorage = (app: firebase.app.App): Storage => {
         .doc(familyId)
         .collection(TODOS_COLLECTION);
 
-      todosCollection
-        .add({
+      const doc = todosCollection.doc()
+
+      todos = {
+        ...todos,
+        [doc.id]: {
+          id: doc.id,
+          created: Date.now(),
+          modified: Date.now(),
+          description
+        }
+      }
+
+      this.events.emit({
+        type: 'STORAGE:TODOS_UPDATE',
+        todos
+      })
+
+      doc
+        .set({
           created: firebase.firestore.FieldValue.serverTimestamp(),
           modified: firebase.firestore.FieldValue.serverTimestamp(),
           description,
@@ -241,8 +328,27 @@ export const createStorage = (app: firebase.app.App): Storage => {
         .doc(familyId)
         .collection(EVENTS_COLLECTION);
 
-      eventsCollection
-        .add({
+      const doc = eventsCollection.doc()
+
+      calendarEvents = {
+        ...calendarEvents,
+        [doc.id]: {
+          id: doc.id,
+          created: Date.now(),
+          modified: Date.now(),
+          date,
+          description,
+          userIds: [userId]
+        }
+      }
+
+      this.events.emit({
+        type: 'STORAGE:EVENTS_UPDATE',
+        events: calendarEvents
+      })
+
+      doc
+        .set({
           created: firebase.firestore.FieldValue.serverTimestamp(),
           modified: firebase.firestore.FieldValue.serverTimestamp(),
           date,
@@ -266,6 +372,19 @@ export const createStorage = (app: firebase.app.App): Storage => {
         .doc(familyId)
         .collection(EVENTS_COLLECTION)
         .doc(eventId);
+
+      calendarEvents = {
+        ...calendarEvents,
+        [eventId]: {
+          ...calendarEvents[eventId],
+          userIds: calendarEvents[eventId].userIds.includes(userId) ? calendarEvents[eventId].userIds.filter((id) => id !== userId) : calendarEvents[eventId].userIds.concat(userId)
+        }
+      }
+
+      this.events.emit({
+        type: 'STORAGE:EVENTS_UPDATE',
+        events: calendarEvents
+      })
 
       app
         .firestore()
@@ -307,6 +426,17 @@ export const createStorage = (app: firebase.app.App): Storage => {
         .collection(EVENTS_COLLECTION)
         .doc(id);
 
+      calendarEvents = {
+        ...calendarEvents,
+      }
+
+      delete calendarEvents[id]
+
+      this.events.emit({
+        type: 'STORAGE:EVENTS_UPDATE',
+        events: calendarEvents
+      })
+
       eventDocRef.delete().catch((error) => {
         this.events.emit({
           type: "STORAGE:ARCHIVE_EVENT_ERROR",
@@ -322,6 +452,17 @@ export const createStorage = (app: firebase.app.App): Storage => {
         .doc(familyId)
         .collection(TODOS_COLLECTION)
         .doc(id);
+
+      todos = {
+        ...todos,
+      }
+
+      delete todos[id]
+
+      this.events.emit({
+        type: 'STORAGE:TODOS_UPDATE',
+        todos
+      })
 
       todoDocRef.delete().catch((error) => {
         this.events.emit({
@@ -339,6 +480,17 @@ export const createStorage = (app: firebase.app.App): Storage => {
         .collection(GROCERIES_COLLECTION)
         .doc(id);
 
+      groceries = {
+        ...groceries,
+      }
+
+      delete groceries[id]
+
+      this.events.emit({
+        type: 'STORAGE:GROCERIES_UPDATE',
+        groceries
+      })
+
       groceryDocRef.delete().catch((error) => {
         this.events.emit({
           type: "STORAGE:DELETE_GROCERY_ERROR",
@@ -355,33 +507,20 @@ export const createStorage = (app: firebase.app.App): Storage => {
         .collection(GROCERIES_COLLECTION)
         .doc(id);
 
-      app
-        .firestore()
-        .runTransaction((transaction) =>
-          transaction.get(groceryDocRef).then((groceryDoc) => {
-            const data = groceryDoc.data();
+      groceries = {
+        ...groceries,
+        [id]: {
+          ...groceries[id],
+          shopCount: groceries[id].shopCount + 1
+        }
+      }
 
-            if (!data) {
-              return this.events.emit({
-                type: "STORAGE:INCREASE_GROCERY_SHOP_COUNT_ERROR",
-                id,
-                error: "Document does not exist",
-              });
-            }
+      this.events.emit({
+        type: 'STORAGE:GROCERIES_UPDATE',
+        groceries
+      })
 
-            transaction.update(groceryDocRef, {
-              modified: firebase.firestore.FieldValue.serverTimestamp(),
-              shopCount: data.shopCount + 1,
-            });
-          })
-        )
-        .catch((error) => {
-          this.events.emit({
-            type: "STORAGE:INCREASE_GROCERY_SHOP_COUNT_ERROR",
-            id,
-            error: error.messsage,
-          });
-        });
+      debouncedShopCount(groceryDocRef, groceries[id].shopCount)
     },
     resetGroceryShopCount(familyId, id) {
       const groceryDocRef = app
@@ -391,14 +530,24 @@ export const createStorage = (app: firebase.app.App): Storage => {
         .collection(GROCERIES_COLLECTION)
         .doc(id);
 
+      groceries = {
+        ...groceries,
+        [id]: {
+          ...groceries[id],
+          shopCount: 0
+        }
+      }
+
+      this.events.emit({
+        type: 'STORAGE:GROCERIES_UPDATE',
+        groceries
+      })
+
       groceryDocRef
-        .set(
+        .update(
           {
             modified: firebase.firestore.FieldValue.serverTimestamp(),
             shopCount: 0,
-          },
-          {
-            merge: true,
           }
         )
         .catch((error) => {
@@ -409,7 +558,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
           });
         });
     },
-    fetchWeeks(familyId) {
+    fetchWeeks(familyId, userId) {
       const weekIds = [
         getPreviousWeekId(),
         getCurrentWeekId(),
@@ -431,7 +580,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
           .where(
             "modified",
             ">",
-            firebase.firestore.Timestamp.fromDate(new Date())
+            firebase.firestore.Timestamp.now()
           )
           .onSnapshot((snapshot) => {
             snapshot.docChanges().forEach((change) => {
@@ -446,7 +595,10 @@ export const createStorage = (app: firebase.app.App): Storage => {
                       ...weeks[weekId],
                       todos: {
                         ...weeks[weekId].todos,
-                        [id]: data.activityByUserId,
+                        [id]: {
+                          ...data.activityByUserId,
+                          [userId]: weeks[weekId].todos[id][userId]
+                        },
                       },
                     },
                   };
@@ -459,7 +611,10 @@ export const createStorage = (app: firebase.app.App): Storage => {
                       ...weeks[weekId],
                       todos: {
                         ...weeks[weekId].todos,
-                        [id]: data.activityByUserId,
+                        [id]: {
+                          ...data.activityByUserId,
+                          [userId]: weeks[weekId].todos[id][userId]
+                        },
                       },
                     },
                   };
@@ -531,6 +686,31 @@ export const createStorage = (app: firebase.app.App): Storage => {
         .doc(weekId)
         .collection(WEEKS_TODOS_COLLECTION)
         .doc(todoId);
+
+      weeks = {
+        ...weeks,
+        [weekId]: {
+          ...weeks[weekId],
+          todos: {
+            ...weeks[weekId].todos,
+            [todoId]: {
+              ...weeks[weekId].todos[todoId],
+              [userId]: [
+                ...weeks[weekId].todos[todoId][userId].slice(0, weekdayIndex),
+                active,
+                ...weeks[weekId].todos[todoId][userId].slice(weekdayIndex + 1),
+              ] as WeekTodoActivity
+            }
+          }
+        }
+      }
+
+      this.events.emit({
+        type: "STORAGE:WEEKS_UPDATE",
+        previousWeek: weeks[getPreviousWeekId()],
+        currentWeek: weeks[getCurrentWeekId()],
+        nextWeek: weeks[getNextWeekId()],
+      });
 
       app.firestore().runTransaction((transaction) =>
         transaction.get(todoDocRef).then((todoDoc) => {
