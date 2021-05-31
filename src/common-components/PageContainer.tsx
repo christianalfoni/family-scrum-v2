@@ -102,6 +102,8 @@ const SignInModal = ({
                     </Dialog.Title>
                     <div className="mt-2">
                       <p className="text-sm text-gray-500"></p>
+                      {/* This is considered a bug workaround: https://github.com/tailwindlabs/headlessui/issues/265 */}
+                      <button className="opacity-0" />
                     </div>
                   </div>
                 ),
@@ -139,6 +141,7 @@ const SignInModal = ({
                     </div>
                   </>
                 ),
+                // Cm
                 CREATING_FAMILY: () => null,
                 JOINING_FAMILY: () => null,
                 SIGNED_IN: () => null,
