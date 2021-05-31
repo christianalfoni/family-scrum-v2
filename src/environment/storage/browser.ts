@@ -92,7 +92,6 @@ export const createStorage = (app: firebase.app.App): Storage => {
         .doc(familyId);
 
       const groceriesCollection = familyDocRef.collection(GROCERIES_COLLECTION);
-
       const todosCollection = familyDocRef.collection(TODOS_COLLECTION);
       const eventsCollection = familyDocRef.collection(EVENTS_COLLECTION);
 
@@ -161,19 +160,19 @@ export const createStorage = (app: firebase.app.App): Storage => {
           ...eventDoc.data(),
         })) as CalendarEventDTO[];
 
-        const groceriesMap = groceriesList.reduce<{
+        groceries = groceriesList.reduce<{
           [id: string]: GroceryDTO;
         }>((aggr, grocery) => {
           aggr[grocery.id] = grocery;
           return aggr;
         }, {});
-        const todosMap = todosList.reduce<{
+        todos = todosList.reduce<{
           [id: string]: TodoDTO;
         }>((aggr, todo) => {
           aggr[todo.id] = todo;
           return aggr;
         }, {});
-        const eventsMap = eventsList.reduce<{
+        events = eventsList.reduce<{
           [id: string]: CalendarEventDTO;
         }>((aggr, event) => {
           aggr[event.id] = event;
@@ -183,9 +182,9 @@ export const createStorage = (app: firebase.app.App): Storage => {
         this.events.emit({
           type: "STORAGE:FETCH_FAMILY_DATA_SUCCESS",
           family,
-          groceries: groceriesMap,
-          todos: todosMap,
-          events: eventsMap,
+          groceries,
+          todos,
+          events,
         });
       });
     },

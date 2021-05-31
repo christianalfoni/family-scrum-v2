@@ -118,7 +118,9 @@ export const DashboardContentSkeleton = () => {
         >
           {weekdays.map((weekday, index) => (
             <SwiperSlide key={weekday}>
-              <WeekdaySlideContent title={weekday}>{null}</WeekdaySlideContent>
+              <WeekdaySlideContent title={t(weekdays[index]) as string}>
+                {null}
+              </WeekdaySlideContent>
             </SwiperSlide>
           ))}
         </Swiper>
@@ -128,7 +130,7 @@ export const DashboardContentSkeleton = () => {
               key={weekday}
               className="text-gray-500 flex items-center mx-2 w-6 h-6 text-center text-xs"
             >
-              {weekdays[index].substr(0, 2)}
+              {(t(weekdays[index]) as string).substr(0, 2)}
             </div>
           ))}
           <div
@@ -234,33 +236,35 @@ export const DashboardView = () => {
           onSwiper={setControlledSwiper}
           initialSlide={slideIndex}
         >
-          {todosByWeekday.map((weekdayTasks, index) => (
+          {todosByWeekday.map((weekdayTodos, index) => (
             <SwiperSlide key={index}>
               <WeekdaySlideContent title={t(weekdays[index]) as string}>
                 {
                   <ul className="mt-2 ">
-                    {Object.keys(weekdayTasks).map((taskId) => (
-                      <li
-                        key={taskId}
-                        className="py-3 flex justify-between items-center"
-                      >
-                        <div className="flex items-center space-x-2">
-                          <div className="flex flex-shrink-0 -space-x-1">
-                            {weekdayTasks[taskId].map((userId) => (
-                              <img
-                                key={userId}
-                                className="max-w-none h-6 w-6 rounded-full ring-2 ring-white"
-                                src={family.users[userId].avatar!}
-                                alt={family.users[userId].name}
-                              />
-                            ))}
+                    {Object.keys(weekdayTodos)
+                      .filter((todoId) => todoId in todos)
+                      .map((todoId) => (
+                        <li
+                          key={todoId}
+                          className="py-3 flex justify-between items-center"
+                        >
+                          <div className="flex items-center space-x-2">
+                            <div className="flex flex-shrink-0 -space-x-1">
+                              {weekdayTodos[todoId].map((userId) => (
+                                <img
+                                  key={userId}
+                                  className="max-w-none h-6 w-6 rounded-full ring-2 ring-white"
+                                  src={family.users[userId].avatar!}
+                                  alt={family.users[userId].name}
+                                />
+                              ))}
+                            </div>
+                            <p className="ml-4 text-sm font-medium text-gray-900">
+                              {todos[todoId].description}
+                            </p>
                           </div>
-                          <p className="ml-4 text-sm font-medium text-gray-900">
-                            {todos[taskId].description}
-                          </p>
-                        </div>
-                      </li>
-                    ))}
+                        </li>
+                      ))}
                   </ul>
                 }
               </WeekdaySlideContent>
@@ -322,7 +326,7 @@ export const DashboardView = () => {
                 index === slideIndex ? "font-bold" : ""
               } flex items-center mx-2 w-6 h-6 text-center text-xs`}
             >
-              {weekdays[index].substr(0, 2)}
+              {(t(weekdays[index]) as string).substr(0, 2)}
             </div>
           ))}
           <div
