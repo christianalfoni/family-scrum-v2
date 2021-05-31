@@ -201,6 +201,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
         .add({
           created: firebase.firestore.FieldValue.serverTimestamp(),
           modified: firebase.firestore.FieldValue.serverTimestamp(),
+          shopCount: 0,
           category,
           name,
         })

@@ -148,7 +148,10 @@ export const GroceriesView = ({ groceries }: { groceries: Groceries }) => {
   const sortedAndFilteredGroceries = match(groceriesFeature, {
     FILTERED: ({ input, category }) =>
       input
-        ? dashboardSelectors.filterGroceriesByInput(groceries, input)
+        ? dashboardSelectors.filterGroceriesByInput(
+            Object.values(groceries),
+            input
+          )
         : dashboardSelectors.filterGroceriesByCategory(groceries, category),
     UNFILTERED: ({ input }) =>
       dashboardSelectors.filterGroceriesByInput(

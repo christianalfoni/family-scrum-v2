@@ -309,13 +309,13 @@ export const selectors = {
   filterGroceriesByCategory: (
     groceries: Groceries,
     category: GroceryCategory
-  ) =>
+  ): Grocery[] =>
     Object.values(groceries).filter((grocery) => grocery.category === category),
-  filterGroceriesByInput: (groceries: Groceries, input: string) => {
+  filterGroceriesByInput: (groceries: Grocery[], input: string) => {
     if (input) {
       const lowerCaseInput = input.toLocaleLowerCase();
 
-      return Object.values(groceries).filter((grocery) => {
+      return groceries.filter((grocery) => {
         const lowerCaseGroceryName = grocery.name.toLowerCase();
 
         return (

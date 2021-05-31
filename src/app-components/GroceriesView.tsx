@@ -53,7 +53,10 @@ export const GroceriesView = ({
   const sortedAndFilteredGroceries = match(groceriesFeature, {
     FILTERED: ({ category, input }) =>
       input
-        ? dashboardSelectors.filterGroceriesByInput(groceries, input)
+        ? dashboardSelectors.filterGroceriesByInput(
+            Object.values(groceries),
+            input
+          )
         : dashboardSelectors.filterGroceriesByCategory(groceries, category),
     UNFILTERED: ({ input }) =>
       dashboardSelectors.filterGroceriesByInput(
@@ -143,7 +146,7 @@ export const GroceriesView = ({
                 type: "ADD_GROCERY",
               });
             }}
-            className="disabled:opacity-50 bg-white inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-light-blue-500"
+            className="disabled:opacity-50 bg-white whitespace-nowrap inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-light-blue-500"
           >
             <PlusIcon
               className="-ml-2 mr-1 h-5 text-gray-400"
