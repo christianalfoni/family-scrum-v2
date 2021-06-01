@@ -17,19 +17,19 @@ import { match } from "react-states";
 const groceryFilterButtons = [
   {
     Icon: ShoppingCartIcon,
-    category: GroceryCategory.MeatDairy,
-  },
-  {
-    Icon: ShoppingCartIcon,
     category: GroceryCategory.FruitVegetables,
   },
   {
     Icon: ShoppingCartIcon,
-    category: GroceryCategory.DryGoods,
+    category: GroceryCategory.MeatDairy,
   },
   {
     Icon: ShoppingCartIcon,
     category: GroceryCategory.Frozen,
+  },
+  {
+    Icon: ShoppingCartIcon,
+    category: GroceryCategory.DryGoods,
   },
   {
     Icon: ShoppingCartIcon,
@@ -98,7 +98,7 @@ export const GroceriesView = ({
               className={`${activeCategory === groceryFilterButton.category
                 ? `bg-${color}-500 text-white`
                 : "bg-white text-gray-500 hover:bg-gray-50"
-                } relative inline-flex rounded-lg items-center p-4  text-xs font-medium  focus:z-10 focus:outline-none focus:ring-1 focus:ring-${color}-600 focus:border-${color}-600`}
+                } relative inline-flex rounded-lg items-center p-4 border border-${color}-600 text-xs font-medium  focus:z-10 focus:outline-none focus:ring-1 focus:ring-${color}-600 focus:border-${color}-600`}
             >
               <groceryFilterButton.Icon
                 className="w-6 h-6"
@@ -108,6 +108,10 @@ export const GroceriesView = ({
           );
         })}
       </span>
+      <h4 className="text-center text-lg text-gray-500">{match(groceriesFeature, {
+        UNFILTERED: () => t('noCategorySelected'),
+        FILTERED: ({ category }) => t(category)
+      })}</h4>
       <div className="flex items-center px-6 py-4 border-b border-gray-200">
         <div className="w-full">
           <div className="relative">

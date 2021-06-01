@@ -27,7 +27,13 @@
     "filterNewGrocery": "Filter/New Grocery",
     "add": "Add",
     "resetShopCount": "Reset shop count",
-    "delete": "Delete"
+    "delete": "Delete",
+    "noCategorySelected": "No category selected",
+    "FRUIT_VEGETABLES": "Fruit and Vegetables",
+    "MEAT_DAIRY": "Fish, Meat and Dairy",
+    "FROZEN": "Frozen",
+    "DRY_GOOD": "Dry Goods",
+    "OTHER": "Other"
   },
   "PlanWeekView": {
     "archive": "Archive"

@@ -294,23 +294,31 @@ export type Props = {
   initialContext?: Context;
 };
 
+const categoryOrder = [
+  GroceryCategoryDTO.FruitVegetables,
+  GroceryCategoryDTO.MeatDairy,
+  GroceryCategoryDTO.Frozen,
+  GroceryCategoryDTO.DryGoods,
+  GroceryCategoryDTO.Other
+]
+
 export const selectors = {
   groceriesByCategory: (groceries: Groceries) => {
     return Object.values(groceries).sort((a, b) => {
-      if (a.category > b.category) {
+      if (categoryOrder.indexOf(a.category) > categoryOrder.indexOf(b.category)) {
         return 1;
-      } else if (a.category < b.category) {
+      } else if (categoryOrder.indexOf(a.category) < categoryOrder.indexOf(b.category)) {
         return -1;
       }
 
-      return 0;
+      return a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1;
     });
   },
   filterGroceriesByCategory: (
     groceries: Groceries,
     category: GroceryCategory
   ): Grocery[] =>
-    Object.values(groceries).filter((grocery) => grocery.category === category),
+    Object.values(groceries).sort((a, b) => a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1).filter((grocery) => grocery.category === category),
   filterGroceriesByInput: (groceries: Grocery[], input: string) => {
     if (input) {
       const lowerCaseInput = input.toLocaleLowerCase();
@@ -325,7 +333,7 @@ export const selectors = {
       });
     }
 
-    return groceries;
+    return groceries
   },
   todosByWeekday: (week: Week) => {
     const todosByWeekday: [
