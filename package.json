@@ -11,6 +11,7 @@
     "@tailwindcss/forms": "^0.3.2",
     "@tailwindcss/line-clamp": "^0.2.0",
     "@types/fast-levenshtein": "^0.0.1",
+    "canvas-confetti": "^1.4.0",
     "date-fns": "^2.21.1",
     "fast-levenshtein": "^3.0.0",
     "firebase": "^8.6.3",
@@ -27,6 +28,7 @@
     "swiper": "^6.6.2"
   },
   "devDependencies": {
+    "@types/canvas-confetti": "^1.4.0",
     "@types/lodash.debounce": "^4.0.6",
     "@types/react": "^17.0.3",
     "autoprefixer": "^10.2.5",

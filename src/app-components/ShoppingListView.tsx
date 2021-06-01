@@ -1,5 +1,6 @@
 import { dashboardSelectors, Groceries } from "../features/DashboardFeature";
-import { ChevronLeftIcon, LightBulbIcon, LightningBoltIcon } from "@heroicons/react/outline";
+import confetti from 'canvas-confetti'
+import { ChevronLeftIcon, LightBulbIcon } from "@heroicons/react/outline";
 import { LightBulbIcon as SolidLightBulbIcon } from "@heroicons/react/solid";
 import { groceryCategoryToBackgroundColor } from "../utils";
 import { useShoppingList } from "../features/ShoppingListFeature";
@@ -29,6 +30,16 @@ export const ShoppingListView = ({
   useEffect(() => {
     preventScreenSleep.disable()
   }, [])
+
+  useEffect(() => {
+    if (!groceriesByCategory.length) {
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
+    }
+  }, [groceriesByCategory.length])
 
   return (
     <div className="bg-white flex flex-col h-screen">
