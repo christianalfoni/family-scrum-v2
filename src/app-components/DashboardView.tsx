@@ -32,9 +32,8 @@ const MenuCard = ({
     onClick={onClick}
   >
     <div
-      className={`${
-        disabled ? "bg-gray-400" : color
-      } flex-shrink-0 flex items-center justify-center w-16 text-white text-sm font-medium rounded-l-md`}
+      className={`${disabled ? "bg-gray-400" : color
+        } flex-shrink-0 flex items-center justify-center w-16 text-white text-sm font-medium rounded-l-md`}
     >
       <Icon
         className={`${disabled ? "text-gray-200" : "text-white"} h-6 w-6`}
@@ -43,9 +42,8 @@ const MenuCard = ({
     </div>
     <div className="flex-1 flex items-center justify-between border-t border-r border-b border-gray-200 bg-white rounded-r-md truncate">
       <div
-        className={`${
-          disabled ? "text-gray-400" : "text-gray-900"
-        } flex-1 px-4 py-4 text-md truncate font-medium hover:text-gray-600`}
+        className={`${disabled ? "text-gray-400" : "text-gray-900"
+          } flex-1 px-4 py-4 text-md truncate font-medium hover:text-gray-600`}
       >
         {children}
       </div>
@@ -76,7 +74,7 @@ export const DashboardContentSkeleton = () => {
         <MenuCard
           disabled
           Icon={ShoppingCartIcon}
-          onClick={() => {}}
+          onClick={() => { }}
           color="bg-red-500"
         >
           {t("goShopping")} (0)
@@ -84,7 +82,7 @@ export const DashboardContentSkeleton = () => {
         <MenuCard
           disabled
           Icon={ShoppingCartIcon}
-          onClick={() => {}}
+          onClick={() => { }}
           color="bg-yellow-500"
         >
           {t("groceries")}
@@ -92,7 +90,7 @@ export const DashboardContentSkeleton = () => {
         <MenuCard
           disabled
           Icon={CalendarIcon}
-          onClick={() => {}}
+          onClick={() => { }}
           color="bg-green-500"
         >
           {t("planCurrentWeek")}
@@ -100,7 +98,7 @@ export const DashboardContentSkeleton = () => {
         <MenuCard
           disabled
           Icon={CalendarIcon}
-          onClick={() => {}}
+          onClick={() => { }}
           color="bg-blue-500"
         >
           {t("planNextWeek")}
@@ -142,7 +140,7 @@ export const DashboardContentSkeleton = () => {
         <button
           type="button"
           disabled
-          className="z-10 fixed right-3 bottom-12 h-12 w-12 rounded-full inline-flex items-center justify-center px-3 py-2 border border-gray-300 shadow-lg text-sm font-medium  text-gray-500 bg-gray-50 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+          className="z-10 fixed right-3 bottom-14 h-12 w-12 rounded-full inline-flex items-center justify-center px-3 py-2 border border-gray-300 shadow-lg text-sm font-medium  text-gray-500 bg-gray-50 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
         >
           <PlusIcon className="w-8 h-8" />
         </button>
@@ -163,6 +161,7 @@ export const DashboardView = () => {
   const currentDayIndex = getCurrentDayIndex();
   const [slideIndex, setSlideIndex] = useState(currentDayIndex);
   const todosByWeekday = dashboardSelectors.todosByWeekday(currentWeek);
+  const sortedEvents = dashboardSelectors.sortedEvents(events)
   const [controlledSwiper, setControlledSwiper] =
     useState<SwiperCore | null>(null);
 
@@ -274,39 +273,36 @@ export const DashboardView = () => {
             <div className="px-6">
               <h1 className="text-xl">{t("events")}</h1>
               <ul>
-                {Object.keys(events).map((eventId) => {
-                  const event = events[eventId];
-
-                  return (
-                    <li
-                      key={eventId}
-                      className="py-3 flex justify-between items-center"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <span className="text-xs leading-5 font-medium">
-                          {intl.formatDateTime(event.date, {
-                            day: "numeric",
-                            month: "long",
-                          })}
-                        </span>
-                        <div className="flex flex-shrink-0 -space-x-1">
-                          {event.userIds.map((userId) => (
-                            <img
-                              key={userId}
-                              className="max-w-none h-6 w-6 rounded-full ring-2 ring-white"
-                              src={family.users[userId].avatar!}
-                              alt={family.users[userId].name}
-                            />
-                          ))}
-                        </div>
-
-                        <p className="ml-4 text-sm font-medium text-gray-900">
-                          {event.description}
-                        </p>
+                {sortedEvents.map((event) => (
+                  <li
+                    key={event.id}
+                    className="py-3 flex justify-between items-center"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <span className="text-xs leading-5 font-medium text-gray-500">
+                        {intl.formatDateTime(event.date, {
+                          day: "numeric",
+                          month: "long",
+                        })}
+                      </span>
+                      <div className="flex flex-shrink-0 -space-x-1">
+                        {event.userIds.map((userId) => (
+                          <img
+                            key={userId}
+                            className="max-w-none h-6 w-6 rounded-full ring-2 ring-white"
+                            src={family.users[userId].avatar!}
+                            alt={family.users[userId].name}
+                          />
+                        ))}
                       </div>
-                    </li>
-                  );
-                })}
+
+                      <p className="ml-4 text-sm font-medium text-gray-900">
+                        {event.description}
+                      </p>
+                    </div>
+                  </li>
+                )
+                )}
               </ul>
             </div>
           </SwiperSlide>
@@ -320,11 +316,9 @@ export const DashboardView = () => {
                   controlledSwiper.slideTo(index);
                 }
               }}
-              className={`${
-                index === currentDayIndex ? "text-red-500" : "text-gray-500"
-              } ${
-                index === slideIndex ? "font-bold" : ""
-              } flex items-center mx-2 w-6 h-6 text-center text-xs`}
+              className={`${index === currentDayIndex ? "text-red-500" : "text-gray-500"
+                } ${index === slideIndex ? "font-bold" : ""
+                } flex items-center mx-2 w-6 h-6 text-center text-xs`}
             >
               {(t(weekdays[index]) as string).substr(0, 2)}
             </div>
@@ -335,16 +329,15 @@ export const DashboardView = () => {
                 controlledSwiper.slideTo(7);
               }
             }}
-            className={`${
-              7 === slideIndex ? "text-gray-700" : "text-gray-500"
-            } flex items-center mx-2 w-6 h-6 text-center text-xs`}
+            className={`${7 === slideIndex ? "text-gray-700" : "text-gray-500"
+              } flex items-center mx-2 w-6 h-6 text-center text-xs`}
           >
             <CalendarIcon className="w-4 h-4" />
           </div>
         </div>
         <button
           type="button"
-          className="z-50 fixed right-6 bottom-12 h-14 w-14 rounded-full inline-flex items-center justify-center px-3 py-2 border border-gray-300 shadow-lg text-sm font-medium  text-gray-500 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+          className="z-50 fixed right-6 bottom-14 h-14 w-14 rounded-full inline-flex items-center justify-center px-3 py-2 border border-gray-300 shadow-lg text-sm font-medium  text-gray-500 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
         >
           <PlusIcon
             className="w-8 h-8"

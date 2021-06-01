@@ -24,11 +24,10 @@ const Weekday = React.memo(
     >
       <div className="flex items-center">
         <div
-          className={`${
-            weekdays[getCurrentDayIndex()] === weekday
-              ? "bg-red-500"
-              : "bg-gray-200"
-          } flex-shrink-0 w-2.5 h-2.5 rounded-full`}
+          className={`${weekdays[getCurrentDayIndex()] === weekday
+            ? "bg-red-500"
+            : "bg-gray-200"
+            } flex-shrink-0 w-2.5 h-2.5 rounded-full`}
           aria-hidden="true"
         />
         <h4 className="text-gray-600 ml-2 text-lg">{weekday}</h4>
@@ -95,6 +94,7 @@ export const WeekdaysView = ({
 }) => {
   const todosByWeekday = dashboardSelectors.todosByWeekday(week);
   const t = useTranslations("WeekdaysView");
+  const sortedEvents = dashboardSelectors.sortedEvents(events)
 
   return (
     <>
@@ -144,36 +144,33 @@ export const WeekdaysView = ({
       <div className="col-span-2 rounded-br-lg sm:rounded-tr-none relative group bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-cyan-500">
         <h4 className="text-gray-600">{t("events")}</h4>
         <ul>
-          {Object.keys(events).map((eventId) => {
-            const event = events[eventId];
-
-            return (
-              <li
-                key={eventId}
-                className="py-3 flex justify-between items-center"
-              >
-                <div className="flex items-center space-x-2">
-                  <span className="text-xs leading-5 font-medium">
-                    {format(event.date, "dd.MM.yyyy")}
-                  </span>
-                  <div className="flex flex-shrink-0 -space-x-1">
-                    {event.userIds.map((userId) => (
-                      <img
-                        key={userId}
-                        className="max-w-none h-6 w-6 rounded-full ring-2 ring-white"
-                        src={family.users[userId].avatar!}
-                        alt={family.users[userId].name}
-                      />
-                    ))}
-                  </div>
-
-                  <p className="ml-4 text-sm font-medium text-gray-900">
-                    {event.description}
-                  </p>
+          {sortedEvents.map((event) => (
+            <li
+              key={event.id}
+              className="py-3 flex justify-between items-center"
+            >
+              <div className="flex items-center space-x-2">
+                <span className="text-xs leading-5 font-medium text-gray-500">
+                  {format(event.date, "dd.MM.yyyy")}
+                </span>
+                <div className="flex flex-shrink-0 -space-x-1">
+                  {event.userIds.map((userId) => (
+                    <img
+                      key={userId}
+                      className="max-w-none h-6 w-6 rounded-full ring-2 ring-white"
+                      src={family.users[userId].avatar!}
+                      alt={family.users[userId].name}
+                    />
+                  ))}
                 </div>
-              </li>
-            );
-          })}
+
+                <p className="ml-4 text-sm font-medium text-gray-900">
+                  {event.description}
+                </p>
+              </div>
+            </li>
+          )
+          )}
         </ul>
       </div>
     </>

@@ -54,9 +54,9 @@ export const GroceriesView = ({
     FILTERED: ({ category, input }) =>
       input
         ? dashboardSelectors.filterGroceriesByInput(
-            Object.values(groceries),
-            input
-          )
+          Object.values(groceries),
+          input
+        )
         : dashboardSelectors.filterGroceriesByCategory(groceries, category),
     UNFILTERED: ({ input }) =>
       dashboardSelectors.filterGroceriesByInput(
@@ -66,8 +66,8 @@ export const GroceriesView = ({
   });
 
   return (
-    <div className="bg-white lg:min-w-0 lg:flex-1">
-      <div className="pl-4 pr-6 pt-4 pb-4 border-b border-t border-gray-200 ">
+    <div className="bg-white h-screen flex flex-col h-screen">
+      <div className="pl-4 pr-6 pt-4 pb-4 border-b border-t border-gray-200">
         <div className="flex items-center">
           <button
             onClick={onBackClick}
@@ -95,11 +95,10 @@ export const GroceriesView = ({
                   category: groceryFilterButton.category,
                 })
               }
-              className={`${
-                activeCategory === groceryFilterButton.category
-                  ? `bg-${color}-500 text-white`
-                  : "bg-white text-gray-500 hover:bg-gray-50"
-              } relative inline-flex rounded-lg items-center p-4  text-xs font-medium  focus:z-10 focus:outline-none focus:ring-1 focus:ring-${color}-600 focus:border-${color}-600`}
+              className={`${activeCategory === groceryFilterButton.category
+                ? `bg-${color}-500 text-white`
+                : "bg-white text-gray-500 hover:bg-gray-50"
+                } relative inline-flex rounded-lg items-center p-4  text-xs font-medium  focus:z-10 focus:outline-none focus:ring-1 focus:ring-${color}-600 focus:border-${color}-600`}
             >
               <groceryFilterButton.Icon
                 className="w-6 h-6"
@@ -156,7 +155,7 @@ export const GroceriesView = ({
           </button>
         </span>
       </div>
-      <ul className="relative z-0 divide-y divide-gray-200 border-b border-gray-200">
+      <ul className="relative z-0 divide-y divide-gray-200 border-b border-gray-200 overflow-y-auto">
         {sortedAndFilteredGroceries.map((grocery) => {
           const color = groceryCategoryToBackgroundColor(grocery.category);
           return (
@@ -221,11 +220,10 @@ export const GroceriesView = ({
                                       id: grocery.id,
                                     });
                                   }}
-                                  className={`${
-                                    active
-                                      ? "bg-gray-100 text-gray-900"
-                                      : "text-gray-700"
-                                  }
+                                  className={`${active
+                                    ? "bg-gray-100 text-gray-900"
+                                    : "text-gray-700"
+                                    }
                                     block px-4 py-2 text-sm`}
                                 >
                                   {t("resetShopCount")}
@@ -238,11 +236,10 @@ export const GroceriesView = ({
                               {({ active }) => (
                                 <a
                                   href="#"
-                                  className={`${
-                                    active
-                                      ? "bg-gray-100 text-gray-900"
-                                      : "text-gray-700"
-                                  }
+                                  className={`${active
+                                    ? "bg-gray-100 text-gray-900"
+                                    : "text-gray-700"
+                                    }
                                     block px-4 py-2 text-sm`}
                                 >
                                   {t("delete")}

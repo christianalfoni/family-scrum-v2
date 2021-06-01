@@ -50,7 +50,7 @@ export const PlanWeekView = ({
   });
 
   return (
-    <div className="bg-white lg:min-w-0 lg:flex-1">
+    <div className="bg-white flex flex-col h-screen">
       <div className="pl-4 pr-6 pt-4 pb-4 border-b border-t border-gray-200 sm:pl-6 lg:pl-8 xl:pl-6 xl:pt-6 xl:border-t-0">
         <div className="flex items-center">
           <button
@@ -63,7 +63,7 @@ export const PlanWeekView = ({
           <span className="flex-1" />
         </div>
       </div>
-      <ul className="relative z-0 divide-y divide-gray-200 border-b border-gray-200">
+      <ul className="relative z-0 divide-y divide-gray-200 border-b border-gray-200 overflow-y-scroll">
         {todosList.map((todo) => {
           return (
             <li key={todo.id} className="relative pl-4 pr-6 py-5 ">
@@ -106,11 +106,10 @@ export const PlanWeekView = ({
                                       todoId: todo.id,
                                     });
                                   }}
-                                  className={`${
-                                    active
-                                      ? "bg-gray-100 text-gray-900"
-                                      : "text-gray-700"
-                                  }
+                                  className={`${active
+                                    ? "bg-gray-100 text-gray-900"
+                                    : "text-gray-700"
+                                    }
                                     block px-4 py-2 text-sm`}
                                 >
                                   {t("archive")}
@@ -142,8 +141,8 @@ export const PlanWeekView = ({
                     {weekActivity.map((isActive, index) => {
                       const activePreviousWeek = Boolean(
                         previousWeek.todos[todo.id] &&
-                          previousWeek.todos[todo.id][userId] &&
-                          previousWeek.todos[todo.id][userId][index]
+                        previousWeek.todos[todo.id][userId] &&
+                        previousWeek.todos[todo.id][userId][index]
                       );
 
                       return (
@@ -160,15 +159,13 @@ export const PlanWeekView = ({
                               weekdayIndex: index,
                             });
                           }}
-                          className={`${
-                            isActive
-                              ? "text-white bg-red-500"
-                              : activePreviousWeek
+                          className={`${isActive
+                            ? "text-white bg-red-500"
+                            : activePreviousWeek
                               ? "text-gray-700 bg-gray-200"
                               : "text-gray-700 bg-white"
-                          } ${
-                            user.id === userId ? "" : "opacity-50"
-                          } order-1 w-10 h-8 justify-center inline-flex items-center px-2 py-1 border border-gray-300 shadow-sm text-xs font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500`}
+                            } ${user.id === userId ? "" : "opacity-50"
+                            } order-1 w-10 h-8 justify-center inline-flex items-center px-2 py-1 border border-gray-300 shadow-sm text-xs font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500`}
                         >
                           {weekdays[index].substr(0, 2)}
                         </button>
@@ -250,11 +247,10 @@ export const PlanWeekView = ({
                                       eventId: calendarEvent.id,
                                     });
                                   }}
-                                  className={`${
-                                    active
-                                      ? "bg-gray-100 text-gray-900"
-                                      : "text-gray-700"
-                                  }
+                                  className={`${active
+                                    ? "bg-gray-100 text-gray-900"
+                                    : "text-gray-700"
+                                    }
                                     block px-4 py-2 text-sm`}
                                 >
                                   {t("archive")}
