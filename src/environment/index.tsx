@@ -1,10 +1,12 @@
 import { createContext, useContext } from "react";
 import { Authentication } from "./authentication";
+import { PreventScreenSleep } from "./preventScreenSleep";
 import { Storage } from "./storage";
 
 export interface Environment {
   authentication: Authentication;
   storage: Storage;
+  preventScreenSleep: PreventScreenSleep
 }
 
 const context = createContext({} as Environment);

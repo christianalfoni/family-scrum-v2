@@ -8,9 +8,8 @@ import React, { useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import SwiperCore, { Controller } from "swiper";
 import { dashboardSelectors, useDasbhoard } from "../features/DashboardFeature";
-
 import { getCurrentDayIndex, weekdays } from "../utils";
-import { format } from "date-fns";
+import { useEnvironment } from "../environment";
 
 SwiperCore.use([Controller]);
 
@@ -150,6 +149,7 @@ export const DashboardContentSkeleton = () => {
 };
 
 export const DashboardView = () => {
+  const { preventScreenSleep } = useEnvironment()
   const [dashboard, send] = useDasbhoard("LOADED");
   const t = useTranslations("DashboardView");
   const intl = useIntl();
@@ -172,6 +172,7 @@ export const DashboardView = () => {
           disabled={!shopCount}
           Icon={ShoppingCartIcon}
           onClick={() => {
+            preventScreenSleep.enable()
             send({
               type: "VIEW_SELECTED",
               view: {

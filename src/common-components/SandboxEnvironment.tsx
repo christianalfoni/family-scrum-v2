@@ -2,6 +2,7 @@ import dynamic from "next/dynamic";
 import React from "react";
 import { EnvironmentProvider } from "../environment";
 import { createAuthentication } from "../environment/authentication/sandbox";
+import { createPreventScreenSleep } from "../environment/preventScreenSleep/sandbox";
 import { createStorage } from "../environment/storage/sandbox";
 
 export default function SandboxEnvironment({
@@ -14,6 +15,7 @@ export default function SandboxEnvironment({
       environment={{
         authentication: createAuthentication(),
         storage: createStorage(),
+        preventScreenSleep: createPreventScreenSleep()
       }}
     >
       {children}

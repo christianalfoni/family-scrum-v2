@@ -7,6 +7,7 @@ import "firebase/analytics";
 import { EnvironmentProvider } from "../environment";
 import { createAuthentication } from "../environment/authentication/browser";
 import { createStorage } from "../environment/storage/browser";
+import { createPreventScreenSleep } from "../environment/preventScreenSleep/browser";
 
 const app = firebase.initializeApp({
   apiKey: "AIzaSyAxghfnwp44VyGkJazhRvjUwbKSSAHm0oo",
@@ -32,6 +33,7 @@ export default function BrowserEnvironment({
       environment={{
         authentication: createAuthentication(app),
         storage: createStorage(app),
+        preventScreenSleep: createPreventScreenSleep()
       }}
     >
       {children}

@@ -4,6 +4,11 @@ import { groceryCategoryToBackgroundColor } from "../utils";
 import { useShoppingList } from "../features/ShoppingListFeature";
 import { useTranslations } from "next-intl";
 
+import { useEffect } from "react";
+import { useEnvironment } from "../environment";
+
+
+
 export const ShoppingListView = ({
   groceries,
   onBackClick,
@@ -11,11 +16,17 @@ export const ShoppingListView = ({
   groceries: Groceries;
   onBackClick: () => void;
 }) => {
+  const { preventScreenSleep } = useEnvironment()
   const [, send] = useShoppingList();
   const t = useTranslations("ShoppingListView");
   const groceriesByCategory = dashboardSelectors
     .groceriesByCategory(groceries)
     .filter((grocery) => Boolean(grocery.shopCount));
+
+
+  useEffect(() => {
+    preventScreenSleep.disable()
+  }, [])
 
   return (
     <div className="bg-white flex flex-col h-screen">
