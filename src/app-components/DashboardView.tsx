@@ -154,7 +154,7 @@ export const DashboardView = () => {
   const intl = useIntl();
   const { groceries, family, currentWeek, todos, events } = dashboard;
   const shopCount = Object.values(groceries).reduce(
-    (aggr, grocery) => aggr + grocery.shopCount,
+    (aggr, grocery) => aggr + (grocery.shopCount > 0 ? 1 : 0),
     0
   );
   const currentDayIndex = getCurrentDayIndex();

@@ -369,6 +369,15 @@ export const selectors = {
     }
 
     return 0
+  }),
+  sortedTodos: (todos: Todos) => Object.values(todos).sort((a, b) => {
+    if (a.created < b.created) {
+      return 1
+    } else if (a.created > b.created) {
+      return -1
+    }
+
+    return 0
   })
 };
 

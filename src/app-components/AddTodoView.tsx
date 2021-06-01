@@ -8,7 +8,7 @@ import { format } from "date-fns";
 export const AddTodoView = ({ onBackClick }: { onBackClick: () => void }) => {
   const [addTodo, send] = useAddTodo();
   const t = useTranslations("AddTodoView");
-
+  
   return (
     <>
       <div className="bg-white lg:min-w-0 lg:flex-1">

@@ -16,6 +16,7 @@ import {
 } from "../features/DashboardFeature/Feature";
 import { weekdays } from "../utils";
 import { WeekTodoActivity } from "../environment/storage";
+import { dashboardSelectors } from "../features/DashboardFeature";
 
 export const PlanWeekView = ({
   user,
@@ -36,10 +37,10 @@ export const PlanWeekView = ({
   todos: Todos;
   onBackClick: () => void;
 }) => {
-  const [planWeek, send] = usePlanWeek();
+  const [, send] = usePlanWeek();
   const t = useTranslations("PlanWeekView");
   const intl = useIntl();
-  const todosList = Object.values(todos);
+  const sortedTodos = dashboardSelectors.sortedTodos(todos);
   const eventsList = Object.values(events);
   const userIds = Object.keys(family.users).sort((a) => {
     if (a === user.id) {
@@ -64,7 +65,7 @@ export const PlanWeekView = ({
         </div>
       </div>
       <ul className="relative z-0 divide-y divide-gray-200 border-b border-gray-200 overflow-y-scroll">
-        {todosList.map((todo) => {
+        {sortedTodos.map((todo) => {
           return (
             <li key={todo.id} className="relative pl-4 pr-6 py-5 ">
               <div className="flex items-center">

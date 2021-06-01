@@ -97,7 +97,7 @@ export const GroceriesView = ({
               }
               className={`${activeCategory === groceryFilterButton.category
                 ? `bg-${color}-500 text-white`
-                : "bg-white text-gray-500 hover:bg-gray-50"
+                : "bg-white text-gray-500"
                 } relative inline-flex rounded-lg items-center p-4 border border-${color}-600 text-xs font-medium  focus:z-10 focus:outline-none focus:ring-1 focus:ring-${color}-600 focus:border-${color}-600`}
             >
               <groceryFilterButton.Icon
