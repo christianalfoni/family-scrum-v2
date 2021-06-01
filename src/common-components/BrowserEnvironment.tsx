@@ -1,7 +1,9 @@
 import React from "react";
+import firebase from "firebase/app";
 import "firebase/firestore";
 import "firebase/auth";
-import firebase from "firebase/app";
+import "firebase/analytics";
+
 import { EnvironmentProvider } from "../environment";
 import { createAuthentication } from "../environment/authentication/browser";
 import { createStorage } from "../environment/storage/browser";
