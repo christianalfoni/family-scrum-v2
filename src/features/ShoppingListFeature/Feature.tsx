@@ -10,7 +10,9 @@ import { useEnvironment } from "../../environment";
 
 type Context = {
   state: "LIST";
-};
+} | {
+  state: 'NOSLEEP'
+}
 
 type TransientContext = {
   state: "SHOPPING_GROCERY";
@@ -20,7 +22,9 @@ type TransientContext = {
 type UIEvent = {
   type: "SHOP_GROCERY";
   id: string;
-};
+} | {
+  type: 'TOGGLE_NO_SLEEP',
+}
 
 type Event = UIEvent;
 
@@ -30,12 +34,15 @@ const reducer = createReducer<Context, Event, TransientContext>(
   {
     LIST: {
       SHOP_GROCERY: ({ id }) => ({ state: "SHOPPING_GROCERY", id }),
+      TOGGLE_NO_SLEEP: () => ({ state: 'NOSLEEP'})
     },
+    NOSLEEP: {
+      SHOP_GROCERY: ({ id }) => ({ state: "SHOPPING_GROCERY", id }),
+      TOGGLE_NO_SLEEP: () => ({ state: 'LIST'})
+    }
   },
   {
-    SHOPPING_GROCERY: () => ({
-      state: "LIST",
-    }),
+    SHOPPING_GROCERY: (_, prevContext) => prevContext
   }
 );
 

@@ -1,11 +1,13 @@
 import { dashboardSelectors, Groceries } from "../features/DashboardFeature";
-import { ChevronLeftIcon } from "@heroicons/react/outline";
+import { ChevronLeftIcon, LightBulbIcon, LightningBoltIcon } from "@heroicons/react/outline";
+import { LightBulbIcon as SolidLightBulbIcon } from "@heroicons/react/solid";
 import { groceryCategoryToBackgroundColor } from "../utils";
 import { useShoppingList } from "../features/ShoppingListFeature";
 import { useTranslations } from "next-intl";
 
 import { useEffect } from "react";
 import { useEnvironment } from "../environment";
+import { match } from "react-states";
 
 
 
@@ -17,7 +19,7 @@ export const ShoppingListView = ({
   onBackClick: () => void;
 }) => {
   const { preventScreenSleep } = useEnvironment()
-  const [, send] = useShoppingList();
+  const [shoppingList, send] = useShoppingList();
   const t = useTranslations("ShoppingListView");
   const groceriesByCategory = dashboardSelectors
     .groceriesByCategory(groceries)
@@ -40,6 +42,28 @@ export const ShoppingListView = ({
           </button>
           <h1 className="flex-2 text-lg font-medium">{t("shoppingList")}</h1>
           <span className="flex-1" />
+          <button
+          onClick={() => {
+            send({
+              type: 'TOGGLE_NO_SLEEP'
+            })
+            match(shoppingList, {
+              LIST: () => {
+                preventScreenSleep.enable()
+                
+              },
+              NOSLEEP: () => {
+                preventScreenSleep.disable()
+              }
+            })
+          }}
+          className="mx-auto inline-flex items-center justify-center border border-transparent text-sm font-medium rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+        >
+          {match(shoppingList, {
+            LIST: () => <LightBulbIcon className="w-6 h-6" />,
+            NOSLEEP: () => <SolidLightBulbIcon className="w-6 h-6 text-yellow-500" />
+          })}
+        </button>
         </div>
       </div>
       <ul className="relative z-0 divide-y divide-gray-200 border-b border-gray-200 overflow-y-scroll">
