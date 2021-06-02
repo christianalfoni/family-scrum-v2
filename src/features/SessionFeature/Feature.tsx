@@ -15,6 +15,20 @@ export type User = {
   familyId: string;
 };
 
+export type VersionContext =
+  | {
+      state: "PENDING";
+    }
+  | {
+      state: "RECENT";
+      version: string;
+    }
+  | {
+      state: "EXPIRED";
+      version: string;
+      newVersion: string;
+    };
+
 export type Context =
   | {
       state: "VERIFYING_AUTHENTICATION";
@@ -34,6 +48,7 @@ export type Context =
   | {
       state: "SIGNED_IN";
       user: User;
+      version: VersionContext;
     }
   | {
       state: "SIGNED_OUT";
@@ -61,6 +76,9 @@ const reducer = createReducer<Context, Event>({
     "AUTHENTICATION:AUTHENTICATED_WITH_FAMILY": ({ user }) => ({
       state: "SIGNED_IN",
       user,
+      version: {
+        state: "PENDING",
+      },
     }),
     "AUTHENTICATION:UNAUTHENTICATED": () => ({ state: "SIGNED_OUT" }),
     "AUTHENTICATION:ERROR": ({ error }) => ({
@@ -75,6 +93,9 @@ const reducer = createReducer<Context, Event>({
     "AUTHENTICATION:AUTHENTICATED_WITH_FAMILY": ({ user }) => ({
       state: "SIGNED_IN",
       user,
+      version: {
+        state: "PENDING",
+      },
     }),
     "AUTHENTICATION:SIGN_IN_ERROR": ({ error }): Context => ({
       state: "ERROR",
