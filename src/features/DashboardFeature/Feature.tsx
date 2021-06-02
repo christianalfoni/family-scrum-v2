@@ -40,23 +40,23 @@ export type CalendarEvent = CalendarEventDTO;
 
 export type ViewContext =
   | {
-    state: "WEEKDAYS";
-  }
+      state: "WEEKDAYS";
+    }
   | {
-    state: "GROCERIES";
-  }
+      state: "GROCERIES";
+    }
   | {
-    state: "SHOPPING_LIST";
-  }
+      state: "SHOPPING_LIST";
+    }
   | {
-    state: "PLAN_CURRENT_WEEK";
-  }
+      state: "PLAN_CURRENT_WEEK";
+    }
   | {
-    state: "PLAN_NEXT_WEEK";
-  }
+      state: "PLAN_NEXT_WEEK";
+    }
   | {
-    state: "ADD_TODO";
-  };
+      state: "ADD_TODO";
+    };
 
 export type Todos = {
   [todoId: string]: Todo;
@@ -74,75 +74,75 @@ export type WeekdayTodos = {
 
 type FamilyDataContext =
   | {
-    state: "LOADING";
-  }
+      state: "LOADING";
+    }
   | {
-    state: "LOADED";
-    family: Family;
-    groceries: Groceries;
-    todos: Todos;
-    events: CalendarEvents;
-  };
+      state: "LOADED";
+      family: Family;
+      groceries: Groceries;
+      todos: Todos;
+      events: CalendarEvents;
+    };
 
 type WeeksDataContext =
   | {
-    state: "LOADING";
-  }
+      state: "LOADING";
+    }
   | {
-    state: "LOADED";
-    previousWeek: Week;
-    currentWeek: Week;
-    nextWeek: Week;
-  };
+      state: "LOADED";
+      previousWeek: Week;
+      currentWeek: Week;
+      nextWeek: Week;
+    };
 
 type Context =
   | {
-    state: "AWAITING_AUTHENTICATION";
-  }
+      state: "AWAITING_AUTHENTICATION";
+    }
   | {
-    state: "REQUIRING_AUTHENTICATION";
-  }
+      state: "REQUIRING_AUTHENTICATION";
+    }
   | {
-    state: "LOADING";
-    user: User;
-    familyData: FamilyDataContext;
-    weeksData: WeeksDataContext;
-  }
+      state: "LOADING";
+      user: User;
+      familyData: FamilyDataContext;
+      weeksData: WeeksDataContext;
+    }
   | {
-    state: "LOADED";
-    family: Family;
-    groceries: Groceries;
-    todos: Todos;
-    events: CalendarEvents;
-    previousWeek: Week;
-    currentWeek: Week;
-    nextWeek: Week;
-    view: ViewContext;
-    user: User;
-  }
+      state: "LOADED";
+      family: Family;
+      groceries: Groceries;
+      todos: Todos;
+      events: CalendarEvents;
+      previousWeek: Week;
+      currentWeek: Week;
+      nextWeek: Week;
+      view: ViewContext;
+      user: User;
+    }
   | {
-    state: "ERROR";
-    error: string;
-  };
+      state: "ERROR";
+      error: string;
+    };
 
 export type UIEvent =
   | {
-    type: "VIEW_SELECTED";
-    view: ViewContext;
-  }
+      type: "VIEW_SELECTED";
+      view: ViewContext;
+    }
   | {
-    type: "GROCERY_CATEGORY_TOGGLED";
-    category: GroceryCategory;
-  }
+      type: "GROCERY_CATEGORY_TOGGLED";
+      category: GroceryCategory;
+    }
   | {
-    type: "GROCERY_INPUT_CHANGED";
-    input: string;
-  }
+      type: "GROCERY_INPUT_CHANGED";
+      input: string;
+    }
   | {
-    type: "ADD_GROCERY";
-    name: string;
-    category: GroceryCategory;
-  };
+      type: "ADD_GROCERY";
+      name: string;
+      category: GroceryCategory;
+    };
 
 type Event = UIEvent | AuthenticationEvent | StorageEvent;
 
@@ -266,8 +266,8 @@ const reducer = createReducer<Context, Event>({
       view:
         context.view.state === "ADD_TODO"
           ? {
-            state: "WEEKDAYS",
-          }
+              state: "WEEKDAYS",
+            }
           : context.view,
       todos,
     }),
@@ -276,8 +276,8 @@ const reducer = createReducer<Context, Event>({
       view:
         context.view.state === "ADD_TODO"
           ? {
-            state: "WEEKDAYS",
-          }
+              state: "WEEKDAYS",
+            }
           : context.view,
       events,
     }),
@@ -299,15 +299,19 @@ const categoryOrder = [
   GroceryCategoryDTO.MeatDairy,
   GroceryCategoryDTO.Frozen,
   GroceryCategoryDTO.DryGoods,
-  GroceryCategoryDTO.Other
-]
+  GroceryCategoryDTO.Other,
+];
 
 export const selectors = {
   groceriesByCategory: (groceries: Groceries) => {
     return Object.values(groceries).sort((a, b) => {
-      if (categoryOrder.indexOf(a.category) > categoryOrder.indexOf(b.category)) {
+      if (
+        categoryOrder.indexOf(a.category) > categoryOrder.indexOf(b.category)
+      ) {
         return 1;
-      } else if (categoryOrder.indexOf(a.category) < categoryOrder.indexOf(b.category)) {
+      } else if (
+        categoryOrder.indexOf(a.category) < categoryOrder.indexOf(b.category)
+      ) {
         return -1;
       }
 
@@ -318,7 +322,9 @@ export const selectors = {
     groceries: Groceries,
     category: GroceryCategory
   ): Grocery[] =>
-    Object.values(groceries).sort((a, b) => a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1).filter((grocery) => grocery.category === category),
+    Object.values(groceries)
+      .sort((a, b) => (a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1))
+      .filter((grocery) => grocery.category === category),
   filterGroceriesByInput: (groceries: Grocery[], input: string) => {
     if (input) {
       const lowerCaseInput = input.toLocaleLowerCase();
@@ -333,7 +339,7 @@ export const selectors = {
       });
     }
 
-    return groceries
+    return groceries;
   },
   todosByWeekday: (week: Week) => {
     const todosByWeekday: [
@@ -361,24 +367,26 @@ export const selectors = {
 
     return todosByWeekday;
   },
-  sortedEvents: (events: CalendarEvents) => Object.values(events).sort((a, b) => {
-    if (a.date > b.date) {
-      return 1
-    } else if (a.date < b.date) {
-      return -1
-    }
+  sortedEvents: (events: CalendarEvents) =>
+    Object.values(events).sort((a, b) => {
+      if (a.date > b.date) {
+        return 1;
+      } else if (a.date < b.date) {
+        return -1;
+      }
 
-    return 0
-  }),
-  sortedTodos: (todos: Todos) => Object.values(todos).sort((a, b) => {
-    if (a.created < b.created) {
-      return 1
-    } else if (a.created > b.created) {
-      return -1
-    }
+      return 0;
+    }),
+  sortedTodos: (todos: Todos) =>
+    Object.values(todos).sort((a, b) => {
+      if (a.created < b.created) {
+        return 1;
+      } else if (a.created > b.created) {
+        return -1;
+      }
 
-    return 0
-  })
+      return 0;
+    }),
 };
 
 export const Feature = ({ children, initialContext }: Props) => {
@@ -420,6 +428,9 @@ export const Feature = ({ children, initialContext }: Props) => {
       }),
       SIGNED_OUT: () => ({
         state: "REQUIRING_AUTHENTICATION",
+      }),
+      UPDATING_VERSION: () => ({
+        state: "AWAITING_AUTHENTICATION",
       }),
     });
 
