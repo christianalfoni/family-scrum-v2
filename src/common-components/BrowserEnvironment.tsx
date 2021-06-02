@@ -9,6 +9,7 @@ import { createAuthentication } from "../environment/authentication/browser";
 import { createStorage } from "../environment/storage/browser";
 import { createPreventScreenSleep } from "../environment/preventScreenSleep/browser";
 import { createVersion } from "../environment/version/browser";
+import { createVisibility } from "../environment/visibility/browser";
 
 const app = firebase.initializeApp({
   apiKey: "AIzaSyAxghfnwp44VyGkJazhRvjUwbKSSAHm0oo",
@@ -36,6 +37,7 @@ export default function BrowserEnvironment({
         storage: createStorage(app),
         preventScreenSleep: createPreventScreenSleep(),
         version: createVersion(),
+        visibility: createVisibility(),
       }}
     >
       {children}

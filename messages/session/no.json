@@ -5,5 +5,9 @@
     "loginWithGoogle": "Logg inn med Google",
     "somethingWrong": "Noe gikk galt",
     "noFamily": "Ingen familie"
+  },
+  "UpdateModal": {
+    "newVersion": "Ny versjon tilgjengelig",
+    "update": "Oppdater"
   }
 }

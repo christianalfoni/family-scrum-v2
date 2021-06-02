@@ -5,6 +5,7 @@ import { createAuthentication } from "../environment/authentication/next";
 import { createPreventScreenSleep } from "../environment/preventScreenSleep/next";
 import { createStorage } from "../environment/storage/next";
 import { createVersion } from "../environment/version/next";
+import { createVisibility } from "../environment/visibility/next";
 
 export default function SandboxEnvironment({
   children,
@@ -18,6 +19,7 @@ export default function SandboxEnvironment({
         storage: createStorage(),
         preventScreenSleep: createPreventScreenSleep(),
         version: createVersion(),
+        visibility: createVisibility(),
       }}
     >
       {children}

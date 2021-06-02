@@ -5,5 +5,9 @@
     "loginWithGoogle": "Sign in with Google",
     "somethingWrong": "Something went wrong",
     "noFamily": "No family assigned"
+  },
+  "UpdateModal": {
+    "newVersion": "There is a new version",
+    "update": "Update"
   }
 }

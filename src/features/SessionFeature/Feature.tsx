@@ -10,6 +10,7 @@ import { useDevtools } from "react-states/devtools";
 import { useEnvironment } from "../../environment";
 import { AuthenticationEvent } from "../../environment/authentication";
 import { VersionEvent } from "../../environment/version";
+import { VisibilityEvent } from "../../environment/visibility";
 
 export type User = {
   id: string;
@@ -57,71 +58,95 @@ export type Context =
   | {
       state: "ERROR";
       error: string;
+    }
+  | {
+      state: "UPDATING_VERSION";
     };
 
-export type UIEvent = {
-  type: "SIGN_IN";
+type TransientContext = {
+  state: "CHECKING_VERSION";
 };
 
-export type Event = UIEvent | AuthenticationEvent | VersionEvent;
+export type UIEvent =
+  | {
+      type: "SIGN_IN";
+    }
+  | {
+      type: "UPDATE";
+    };
 
-const context = createContext<Context, UIEvent>();
+export type Event =
+  | UIEvent
+  | AuthenticationEvent
+  | VersionEvent
+  | VisibilityEvent;
+
+const context = createContext<Context, UIEvent, TransientContext>();
 
 export const useFeature = createHook(context);
 
-const reducer = createReducer<Context, Event>({
-  VERIFYING_AUTHENTICATION: {
-    "AUTHENTICATION:AUTHENTICATED": ({ user }) => ({
-      state: "NO_FAMILY",
-    }),
-    "AUTHENTICATION:AUTHENTICATED_WITH_FAMILY": ({ user }) => ({
-      state: "SIGNED_IN",
-      user,
-      version: {
-        state: "PENDING",
-      },
-    }),
-    "AUTHENTICATION:UNAUTHENTICATED": () => ({ state: "SIGNED_OUT" }),
-    "AUTHENTICATION:ERROR": ({ error }) => ({
-      state: "ERROR",
-      error,
-    }),
+const reducer = createReducer<Context, Event, TransientContext>(
+  {
+    VERIFYING_AUTHENTICATION: {
+      "AUTHENTICATION:AUTHENTICATED": ({ user }) => ({
+        state: "NO_FAMILY",
+      }),
+      "AUTHENTICATION:AUTHENTICATED_WITH_FAMILY": ({ user }) => ({
+        state: "SIGNED_IN",
+        user,
+        version: {
+          state: "PENDING",
+        },
+      }),
+      "AUTHENTICATION:UNAUTHENTICATED": () => ({ state: "SIGNED_OUT" }),
+      "AUTHENTICATION:ERROR": ({ error }) => ({
+        state: "ERROR",
+        error,
+      }),
+    },
+    SIGNING_IN: {
+      "AUTHENTICATION:AUTHENTICATED": ({ user }) => ({
+        state: "NO_FAMILY",
+      }),
+      "AUTHENTICATION:AUTHENTICATED_WITH_FAMILY": ({ user }) => ({
+        state: "SIGNED_IN",
+        user,
+        version: {
+          state: "PENDING",
+        },
+      }),
+      "AUTHENTICATION:SIGN_IN_ERROR": ({ error }): Context => ({
+        state: "ERROR",
+        error,
+      }),
+    },
+    SIGNED_IN: {
+      "AUTHENTICATION:UNAUTHENTICATED": () => ({ state: "SIGNED_OUT" }),
+      "VERSION:NEW": ({ newVersion, version }, context) => ({
+        ...context,
+        version: {
+          state: "EXPIRED",
+          newVersion,
+          version,
+        },
+      }),
+      "VISIBILITY:VISIBLE": () => ({
+        state: "CHECKING_VERSION",
+      }),
+    },
+    SIGNED_OUT: {
+      SIGN_IN: () => ({ state: "SIGNING_IN" }),
+    },
+    CREATING_FAMILY: {},
+    JOINING_FAMILY: {},
+    NO_FAMILY: {},
+    ERROR: {},
+    UPDATING_VERSION: {},
   },
-  SIGNING_IN: {
-    "AUTHENTICATION:AUTHENTICATED": ({ user }) => ({
-      state: "NO_FAMILY",
-    }),
-    "AUTHENTICATION:AUTHENTICATED_WITH_FAMILY": ({ user }) => ({
-      state: "SIGNED_IN",
-      user,
-      version: {
-        state: "PENDING",
-      },
-    }),
-    "AUTHENTICATION:SIGN_IN_ERROR": ({ error }): Context => ({
-      state: "ERROR",
-      error,
-    }),
-  },
-  SIGNED_IN: {
-    "AUTHENTICATION:UNAUTHENTICATED": () => ({ state: "SIGNED_OUT" }),
-    "VERSION:NEW": ({ newVersion, version }, context) => ({
-      ...context,
-      version: {
-        state: "EXPIRED",
-        newVersion,
-        version,
-      },
-    }),
-  },
-  SIGNED_OUT: {
-    SIGN_IN: () => ({ state: "SIGNING_IN" }),
-  },
-  CREATING_FAMILY: {},
-  JOINING_FAMILY: {},
-  NO_FAMILY: {},
-  ERROR: {},
-});
+  {
+    CHECKING_VERSION: (_, prevContext) => prevContext,
+  }
+);
 
 export type Props = {
   children: React.ReactNode;
@@ -134,7 +159,7 @@ export const Feature = ({
     state: "VERIFYING_AUTHENTICATION",
   },
 }: Props) => {
-  const { authentication, version } = useEnvironment();
+  const { authentication, version, visibility } = useEnvironment();
   const featureReducer = useReducer(reducer, initialContext);
 
   if (process.env.NODE_ENV === "development" && process.browser) {
@@ -144,12 +169,14 @@ export const Feature = ({
   const [feature, send] = featureReducer;
 
   useEvents(authentication.events, send);
-
   useEvents(version.events, send);
+  useEvents(visibility.events, send);
 
   useEnterEffect(feature, "SIGNING_IN", () => authentication.signIn());
 
-  useEnterEffect(feature, "SIGNED_IN", () => version.checkVersion());
+  useEnterEffect(feature, "CHECKING_VERSION", () => version.checkVersion());
+
+  useEnterEffect(feature, "UPDATING_VERSION", () => version.update());
 
   return <context.Provider value={featureReducer}>{children}</context.Provider>;
 };
