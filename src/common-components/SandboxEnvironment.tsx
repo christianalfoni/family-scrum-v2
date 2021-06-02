@@ -4,6 +4,7 @@ import { EnvironmentProvider } from "../environment";
 import { createAuthentication } from "../environment/authentication/sandbox";
 import { createPreventScreenSleep } from "../environment/preventScreenSleep/sandbox";
 import { createStorage } from "../environment/storage/sandbox";
+import { createVersion } from "../environment/version/sandbox";
 
 export default function SandboxEnvironment({
   children,
@@ -15,7 +16,8 @@ export default function SandboxEnvironment({
       environment={{
         authentication: createAuthentication(),
         storage: createStorage(),
-        preventScreenSleep: createPreventScreenSleep()
+        preventScreenSleep: createPreventScreenSleep(),
+        version: createVersion(),
       }}
     >
       {children}

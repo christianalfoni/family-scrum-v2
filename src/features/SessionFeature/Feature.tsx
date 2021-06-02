@@ -9,6 +9,7 @@ import {
 import { useDevtools } from "react-states/devtools";
 import { useEnvironment } from "../../environment";
 import { AuthenticationEvent } from "../../environment/authentication";
+import { VersionEvent } from "../../environment/version";
 
 export type User = {
   id: string;
@@ -62,7 +63,7 @@ export type UIEvent = {
   type: "SIGN_IN";
 };
 
-export type Event = UIEvent | AuthenticationEvent;
+export type Event = UIEvent | AuthenticationEvent | VersionEvent;
 
 const context = createContext<Context, UIEvent>();
 
@@ -104,6 +105,14 @@ const reducer = createReducer<Context, Event>({
   },
   SIGNED_IN: {
     "AUTHENTICATION:UNAUTHENTICATED": () => ({ state: "SIGNED_OUT" }),
+    "VERSION:NEW": ({ newVersion, version }, context) => ({
+      ...context,
+      version: {
+        state: "EXPIRED",
+        newVersion,
+        version,
+      },
+    }),
   },
   SIGNED_OUT: {
     SIGN_IN: () => ({ state: "SIGNING_IN" }),
@@ -125,7 +134,7 @@ export const Feature = ({
     state: "VERIFYING_AUTHENTICATION",
   },
 }: Props) => {
-  const { authentication } = useEnvironment();
+  const { authentication, version } = useEnvironment();
   const featureReducer = useReducer(reducer, initialContext);
 
   if (process.env.NODE_ENV === "development" && process.browser) {
@@ -136,7 +145,11 @@ export const Feature = ({
 
   useEvents(authentication.events, send);
 
+  useEvents(version.events, send);
+
   useEnterEffect(feature, "SIGNING_IN", () => authentication.signIn());
+
+  useEnterEffect(feature, "SIGNED_IN", () => version.checkVersion());
 
   return <context.Provider value={featureReducer}>{children}</context.Provider>;
 };
