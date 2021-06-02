@@ -1,4 +1,3 @@
-import dynamic from "next/dynamic";
 import React from "react";
 import { EnvironmentProvider } from "../environment";
 import { createAuthentication } from "../environment/authentication/sandbox";
@@ -18,7 +17,7 @@ export default function SandboxEnvironment({
         authentication: createAuthentication(),
         storage: createStorage(),
         preventScreenSleep: createPreventScreenSleep(),
-        version: createVersion(),
+        version: createVersion("1.0.0", "1.2.0"),
         visibility: createVisibility(),
       }}
     >

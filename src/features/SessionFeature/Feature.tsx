@@ -133,6 +133,7 @@ const reducer = createReducer<Context, Event, TransientContext>(
       "VISIBILITY:VISIBLE": () => ({
         state: "CHECKING_VERSION",
       }),
+      UPDATE: () => ({ state: "UPDATING_VERSION" }),
     },
     SIGNED_OUT: {
       SIGN_IN: () => ({ state: "SIGNING_IN" }),
