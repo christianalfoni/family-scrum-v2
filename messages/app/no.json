@@ -33,7 +33,9 @@
     "MEAT_DAIRY": "Fisk, Kjøtt og Meieri",
     "FROZEN": "Frossent",
     "DRY_GOOD": "Tørrvarer",
-    "OTHER": "Annet"
+    "OTHER": "Annet",
+    "linkBarcode": "Koble strekkode",
+    "unlinkBarcode": "Frakoble strekkode"
   },
   "PlanWeekView": {
     "archive": "Arkiver"

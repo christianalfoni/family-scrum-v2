@@ -13,72 +13,112 @@ export { GroceryCategory };
 
 type Context =
   | {
-      state: "FILTERED";
-      category: GroceryCategory;
-      input: string;
-    }
+    state: "FILTERED";
+    category: GroceryCategory;
+    input: string;
+  }
   | {
-      state: "UNFILTERED";
-      input: string;
-    };
+    state: "UNFILTERED";
+    input: string;
+  };
 
 type TransientContext =
   | {
-      state: "ADDING_GROCERY";
-      name: string;
-      category: GroceryCategory;
-    }
+    state: "ADDING_GROCERY";
+    name: string;
+    category: GroceryCategory;
+  }
   | {
-      state: "INCREASING_SHOP_COUNT";
-      id: string;
-    }
+    state: "INCREASING_SHOP_COUNT";
+    id: string;
+  }
   | {
-      state: "RESETTING_SHOP_COUNT";
-      id: string;
-    };
+    state: "RESETTING_SHOP_COUNT";
+    id: string;
+  }
+  | {
+    state: 'LINKING_BARCODE'
+    barcodeId: string
+    groceryId: string
+  }
+  | {
+    state: 'UNLINKING_BARCODE'
+    barcodeId: string
+    groceryId: string
+  }
 
 type UIEvent =
   | {
-      type: "ADD_GROCERY";
-    }
+    type: "ADD_GROCERY";
+  }
   | {
-      type: "GROCERY_INPUT_CHANGED";
-      input: string;
-    }
+    type: "GROCERY_INPUT_CHANGED";
+    input: string;
+  }
   | {
-      type: "GROCERY_CATEGORY_TOGGLED";
-      category: GroceryCategory;
-    }
+    type: "GROCERY_CATEGORY_TOGGLED";
+    category: GroceryCategory;
+  }
   | {
-      type: "INCREASE_SHOP_COUNT";
-      id: string;
-    }
+    type: "INCREASE_SHOP_COUNT";
+    id: string;
+  }
   | {
-      type: "RESET_SHOP_COUNT";
-      id: string;
-    };
+    type: "RESET_SHOP_COUNT";
+    id: string;
+  } | {
+    type: 'LINK_BARCODE'
+    barcodeId: string
+    groceryId: string
+  } | {
+    type: 'UNLINK_BARCODE'
+    barcodeId: string
+    groceryId: string
+  }
 
 type Event = UIEvent;
 
 const featureContext = createContext<Context, UIEvent, TransientContext>();
 
+const defaultHandlers = {
+  INCREASE_SHOP_COUNT: ({ id }: { id: string }): TransientContext => ({
+    state: "INCREASING_SHOP_COUNT",
+    id,
+  }),
+  RESET_SHOP_COUNT: ({ id }: { id: string }): TransientContext => ({
+    state: "RESETTING_SHOP_COUNT",
+    id,
+  }),
+  LINK_BARCODE: ({ groceryId, barcodeId }: { groceryId: string, barcodeId: string }): TransientContext => ({
+    state: 'LINKING_BARCODE',
+    groceryId,
+    barcodeId
+  }),
+  UNLINK_BARCODE: ({ groceryId, barcodeId }: { groceryId: string, barcodeId: string }): TransientContext => ({
+    state: 'UNLINKING_BARCODE',
+    groceryId,
+    barcodeId
+  })
+}
+
 const reducer = createReducer<Context, Event, TransientContext>(
   {
     FILTERED: {
+      ...defaultHandlers,
       GROCERY_CATEGORY_TOGGLED: (
         { category },
         { input, category: existingCategory }
       ) =>
         existingCategory === category
           ? {
-              state: "UNFILTERED",
-              input,
-            }
+            state: "UNFILTERED",
+            input,
+          }
           : {
-              state: "FILTERED",
-              input,
-              category,
-            },
+            state: "FILTERED",
+            input,
+            category,
+          },
       GROCERY_INPUT_CHANGED: ({ input }, context) => ({
         ...context,
         input,
@@ -88,16 +128,9 @@ const reducer = createReducer<Context, Event, TransientContext>(
         category,
         name: input,
       }),
-      INCREASE_SHOP_COUNT: ({ id }, context) => ({
-        state: "INCREASING_SHOP_COUNT",
-        id,
-      }),
-      RESET_SHOP_COUNT: ({ id }, context) => ({
-        state: "RESETTING_SHOP_COUNT",
-        id,
-      }),
     },
     UNFILTERED: {
+      ...defaultHandlers,
       GROCERY_CATEGORY_TOGGLED: ({ category }, { input }) => ({
         state: "FILTERED",
         input,
@@ -106,14 +139,6 @@ const reducer = createReducer<Context, Event, TransientContext>(
       GROCERY_INPUT_CHANGED: ({ input }, context) => ({
         ...context,
         input,
-      }),
-      INCREASE_SHOP_COUNT: ({ id }) => ({
-        state: "INCREASING_SHOP_COUNT",
-        id,
-      }),
-      RESET_SHOP_COUNT: ({ id }) => ({
-        state: "RESETTING_SHOP_COUNT",
-        id,
       }),
     },
   },
@@ -125,6 +150,8 @@ const reducer = createReducer<Context, Event, TransientContext>(
     }),
     INCREASING_SHOP_COUNT: (_, prevContext) => prevContext,
     RESETTING_SHOP_COUNT: (_, prevContext) => prevContext,
+    LINKING_BARCODE: (_, prevContext) => prevContext,
+    UNLINKING_BARCODE: (_, prevContext) => prevContext,
   }
 );
 
@@ -161,6 +188,14 @@ export const Feature = ({
 
   useEnterEffect(context, "RESETTING_SHOP_COUNT", ({ id }) => {
     storage.resetGroceryShopCount(familyId, id);
+  });
+
+  useEnterEffect(context, "LINKING_BARCODE", ({ barcodeId, groceryId }) => {
+    storage.linkBarcode(familyId, barcodeId, groceryId);
+  });
+
+  useEnterEffect(context, "UNLINKING_BARCODE", ({ barcodeId, groceryId }) => {
+    storage.unlinkBarcode(familyId, barcodeId, groceryId);
   });
 
   return (

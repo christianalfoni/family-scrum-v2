@@ -32,6 +32,7 @@ export const Dashboard = () => {
           previousWeek,
           events,
           user,
+          barcodes
         }) => {
           return match(view, {
             SHOPPING_LIST: () => (
@@ -53,6 +54,7 @@ export const Dashboard = () => {
             GROCERIES: () => (
               <GroceriesFeature familyId={family.id}>
                 <GroceriesView
+                  barcodes={barcodes}
                   groceries={groceries}
                   onBackClick={() =>
                     send({

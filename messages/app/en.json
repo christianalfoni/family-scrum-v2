@@ -33,7 +33,9 @@
     "MEAT_DAIRY": "Fish, Meat and Dairy",
     "FROZEN": "Frozen",
     "DRY_GOOD": "Dry Goods",
-    "OTHER": "Other"
+    "OTHER": "Other",
+    "linkBarcode": "Link barcode",
+    "unlinkBarcode": "Unlink barcode"
   },
   "PlanWeekView": {
     "archive": "Archive"

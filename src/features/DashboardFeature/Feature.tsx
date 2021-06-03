@@ -24,6 +24,10 @@ import levenshtein from "fast-levenshtein";
 
 export type GroceryCategory = GroceryCategoryDTO;
 
+export type Barcodes = {
+  [barcodeId: string]: string[]
+}
+
 export type Family = FamilyDTO;
 
 export type { User } from "../SessionFeature";
@@ -40,23 +44,23 @@ export type CalendarEvent = CalendarEventDTO;
 
 export type ViewContext =
   | {
-      state: "WEEKDAYS";
-    }
+    state: "WEEKDAYS";
+  }
   | {
-      state: "GROCERIES";
-    }
+    state: "GROCERIES";
+  }
   | {
-      state: "SHOPPING_LIST";
-    }
+    state: "SHOPPING_LIST";
+  }
   | {
-      state: "PLAN_CURRENT_WEEK";
-    }
+    state: "PLAN_CURRENT_WEEK";
+  }
   | {
-      state: "PLAN_NEXT_WEEK";
-    }
+    state: "PLAN_NEXT_WEEK";
+  }
   | {
-      state: "ADD_TODO";
-    };
+    state: "ADD_TODO";
+  };
 
 export type Todos = {
   [todoId: string]: Todo;
@@ -74,75 +78,77 @@ export type WeekdayTodos = {
 
 type FamilyDataContext =
   | {
-      state: "LOADING";
-    }
+    state: "LOADING";
+  }
   | {
-      state: "LOADED";
-      family: Family;
-      groceries: Groceries;
-      todos: Todos;
-      events: CalendarEvents;
-    };
+    state: "LOADED";
+    family: Family;
+    groceries: Groceries;
+    todos: Todos;
+    events: CalendarEvents;
+    barcodes: Barcodes
+  };
 
 type WeeksDataContext =
   | {
-      state: "LOADING";
-    }
+    state: "LOADING";
+  }
   | {
-      state: "LOADED";
-      previousWeek: Week;
-      currentWeek: Week;
-      nextWeek: Week;
-    };
+    state: "LOADED";
+    previousWeek: Week;
+    currentWeek: Week;
+    nextWeek: Week;
+  };
 
 type Context =
   | {
-      state: "AWAITING_AUTHENTICATION";
-    }
+    state: "AWAITING_AUTHENTICATION";
+  }
   | {
-      state: "REQUIRING_AUTHENTICATION";
-    }
+    state: "REQUIRING_AUTHENTICATION";
+  }
   | {
-      state: "LOADING";
-      user: User;
-      familyData: FamilyDataContext;
-      weeksData: WeeksDataContext;
-    }
+    state: "LOADING";
+    user: User;
+    familyData: FamilyDataContext;
+    weeksData: WeeksDataContext;
+  }
   | {
-      state: "LOADED";
-      family: Family;
-      groceries: Groceries;
-      todos: Todos;
-      events: CalendarEvents;
-      previousWeek: Week;
-      currentWeek: Week;
-      nextWeek: Week;
-      view: ViewContext;
-      user: User;
-    }
+    state: "LOADED";
+    family: Family;
+    groceries: Groceries;
+    todos: Todos;
+    events: CalendarEvents;
+    previousWeek: Week;
+    currentWeek: Week;
+    nextWeek: Week;
+    view: ViewContext;
+    user: User;
+    barcodes: Barcodes
+  }
   | {
-      state: "ERROR";
-      error: string;
-    };
+    state: "ERROR";
+    error: string;
+  };
 
 export type UIEvent =
   | {
-      type: "VIEW_SELECTED";
-      view: ViewContext;
-    }
+    type: "VIEW_SELECTED";
+    view: ViewContext;
+  }
   | {
-      type: "GROCERY_CATEGORY_TOGGLED";
-      category: GroceryCategory;
-    }
+    type: "GROCERY_CATEGORY_TOGGLED";
+    category: GroceryCategory;
+  }
   | {
-      type: "GROCERY_INPUT_CHANGED";
-      input: string;
-    }
+    type: "GROCERY_INPUT_CHANGED";
+    input: string;
+  }
   | {
-      type: "ADD_GROCERY";
-      name: string;
-      category: GroceryCategory;
-    };
+    type: "ADD_GROCERY";
+    name: string;
+    category: GroceryCategory;
+  };
 
 type Event = UIEvent | AuthenticationEvent | StorageEvent;
 
@@ -180,7 +186,7 @@ const reducer = createReducer<Context, Event>({
   },
   LOADING: {
     "STORAGE:FETCH_FAMILY_DATA_SUCCESS": (
-      { groceries, todos, family, events },
+      { groceries, todos, family, events, barcodes },
       context
     ) =>
       match(context.weeksData, {
@@ -192,6 +198,7 @@ const reducer = createReducer<Context, Event>({
             todos,
             family,
             events,
+            barcodes
           },
         }),
         LOADED: ({ currentWeek, nextWeek, previousWeek }): Context => ({
@@ -206,6 +213,7 @@ const reducer = createReducer<Context, Event>({
           groceries,
           todos,
           family,
+          barcodes,
           events,
         }),
       }),
@@ -223,7 +231,7 @@ const reducer = createReducer<Context, Event>({
             nextWeek,
           },
         }),
-        LOADED: ({ events, family, todos, groceries }): Context => ({
+        LOADED: ({ events, family, todos, groceries, barcodes }): Context => ({
           state: "LOADED",
           view: {
             state: "WEEKDAYS",
@@ -236,6 +244,7 @@ const reducer = createReducer<Context, Event>({
           todos,
           family,
           events,
+          barcodes
         }),
       }),
     "STORAGE:FETCH_WEEKS_ERROR": ({ error }) => ({
@@ -252,6 +261,10 @@ const reducer = createReducer<Context, Event>({
       ...context,
       groceries,
     }),
+    "STORAGE:BARCODES_UPDATE": ({ barcodes }, context) => ({
+      ...context,
+      barcodes
+    }),
     "STORAGE:WEEKS_UPDATE": (
       { currentWeek, nextWeek, previousWeek },
       context
@@ -266,8 +279,8 @@ const reducer = createReducer<Context, Event>({
       view:
         context.view.state === "ADD_TODO"
           ? {
-              state: "WEEKDAYS",
-            }
+            state: "WEEKDAYS",
+          }
           : context.view,
       todos,
     }),
@@ -276,8 +289,8 @@ const reducer = createReducer<Context, Event>({
       view:
         context.view.state === "ADD_TODO"
           ? {
-              state: "WEEKDAYS",
-            }
+            state: "WEEKDAYS",
+          }
           : context.view,
       events,
     }),
@@ -387,6 +400,17 @@ export const selectors = {
 
       return 0;
     }),
+  barcodesByGroceryId: (barcodes: Barcodes) => Object.keys(barcodes).reduce<{ [groceryId: string]: string }>((aggr, barcodeId) => {
+    return {
+      ...aggr,
+      ...barcodes[barcodeId].reduce<{ [groceryId: string]: string }>((subAggr, groceryId) => {
+        subAggr[groceryId] = barcodeId
+
+        return subAggr
+      }, {})
+    }
+  }, {}),
+  unlinkedBarcodes: (barcodes: Barcodes) => Object.keys(barcodes).filter((barcodeId) => !barcodes[barcodeId].length)
 };
 
 export const Feature = ({ children, initialContext }: Props) => {

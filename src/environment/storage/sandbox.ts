@@ -33,8 +33,10 @@ export const createStorage = (): Storage => {
     },
   };
 
-  let barcodes = {
-    123: null
+  let barcodes: {
+    [barcodeId: string]: string[]
+  } = {
+    123: []
   }
 
 
@@ -328,9 +330,27 @@ export const createStorage = (): Storage => {
         previousWeek: weeks[previousWeekId],
       });
     },
-    linkBarcode() {
+    linkBarcode(familyId, barcodeId, groceryId) {
+      barcodes = {
+        ...barcodes,
+        [barcodeId]: barcodes[barcodeId].concat(groceryId)
+      }
 
+      this.events.emit({
+        type: 'STORAGE:BARCODES_UPDATE',
+        barcodes
+      })
     },
-    unlinkBarcode() {}
+    unlinkBarcode(familyId, barcodeId, groceryId) {
+      barcodes = {
+        ...barcodes,
+        [barcodeId]: barcodes[barcodeId].filter((existingGroceryId) => existingGroceryId !== groceryId)
+      }
+
+      this.events.emit({
+        type: 'STORAGE:BARCODES_UPDATE',
+        barcodes
+      })
+    }
   };
 };

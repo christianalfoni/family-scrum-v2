@@ -79,7 +79,7 @@ export type StorageEvent =
       [eventId: string]: CalendarEventDTO;
     };
     barcodes: {
-      [barcodeId: string]: string | null
+      [barcodeId: string]: string[]
     } 
   }
   | {
@@ -95,7 +95,7 @@ export type StorageEvent =
   | {
     type: "STORAGE:BARCODES_UPDATE";
     barcodes: {
-      [barcodeId: string]: string | null
+      [barcodeId: string]: string[]
     }
   }
   | {
@@ -285,5 +285,5 @@ export interface Storage {
    * @fires STORAGE:BARCODES_UPDATE
    * @fires STORAGE:UNLINK_BARCODE_ERROR
    */
-   unlinkBarcode(familyId: string, barcodeId: string): void;
+   unlinkBarcode(familyId: string, barcodeId: string, groceryId: string): void;
 }
