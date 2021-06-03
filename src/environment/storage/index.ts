@@ -78,6 +78,9 @@ export type StorageEvent =
     events: {
       [eventId: string]: CalendarEventDTO;
     };
+    barcodes: {
+      [barcodeId: string]: string | null
+    } 
   }
   | {
     type: "STORAGE:FETCH_FAMILY_DATA_ERROR";
@@ -88,6 +91,12 @@ export type StorageEvent =
     previousWeek: WeekDTO;
     currentWeek: WeekDTO;
     nextWeek: WeekDTO;
+  }
+  | {
+    type: "STORAGE:BARCODES_UPDATE";
+    barcodes: {
+      [barcodeId: string]: string | null
+    }
   }
   | {
     type: "STORAGE:FETCH_WEEKS_ERROR";
@@ -172,6 +181,10 @@ export interface Storage {
   events: Events<StorageEvent>;
   /**
    *
+   * @fires STORAGE:GROCERIES_UPDATE
+   * @fires STORAGE:TODOS_UPDATE
+   * @fires STORAGE:EVENTS_UPDATE
+   * @fires STORAGE:BARCODES_UPDATE
    * @fires STORAGE:FETCH_FAMILY_DATA_SUCCESS
    * @fires STORAGE:FETCH_FAMILY_DATA_ERROR
    */
@@ -261,4 +274,16 @@ export interface Storage {
     weekdayIndex: number;
     active: boolean;
   }): void;
+  /**
+   *
+   * @fires STORAGE:BARCODES_UPDATE
+   * @fires STORAGE:LINK_BARCODE_ERROR
+   */
+  linkBarcode(familyId: string, barcodeId: string, groceryId: string): void;
+  /**
+   *
+   * @fires STORAGE:BARCODES_UPDATE
+   * @fires STORAGE:UNLINK_BARCODE_ERROR
+   */
+   unlinkBarcode(familyId: string, barcodeId: string): void;
 }

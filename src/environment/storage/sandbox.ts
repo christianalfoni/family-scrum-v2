@@ -33,6 +33,11 @@ export const createStorage = (): Storage => {
     },
   };
 
+  let barcodes = {
+    123: null
+  }
+
+
   let groceries: {
     [groceryId: string]: GroceryDTO;
   } = {
@@ -42,7 +47,7 @@ export const createStorage = (): Storage => {
       modified: Date.now(),
       category: GroceryCategoryDTO.DryGoods,
       name: "Gryn",
-      shopCount: 1,
+      shopCount: 1
     },
   };
 
@@ -213,6 +218,7 @@ export const createStorage = (): Storage => {
         todos,
         family,
         events,
+        barcodes
       });
     },
     archiveTodo(_, id) {
@@ -322,5 +328,9 @@ export const createStorage = (): Storage => {
         previousWeek: weeks[previousWeekId],
       });
     },
+    linkBarcode() {
+
+    },
+    unlinkBarcode() {}
   };
 };
