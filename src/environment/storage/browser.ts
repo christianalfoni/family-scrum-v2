@@ -88,54 +88,24 @@ export const createStorage = (app: firebase.app.App): Storage => {
 
   function onSnapshot<T extends { [id: string]: { id: string } }>(
     query: firebase.firestore.Query<firebase.firestore.DocumentData>,
-    getCurrentData: () => T,
-    cb: (updatedData: T, docId: string) => void
+    cb: (updatedData: T) => void
   ) {
     query.onSnapshot((snapshot) => {
-      snapshot.docChanges().forEach((change) => {
-        const id = change.doc.id;
-        const docData = change.doc.data();
+      if (!snapshot.docs.length) {
+        return
+      }
 
-        switch (change.type) {
-          case "added": {
-            cb(
-              {
-                ...getCurrentData(),
-                [id]: {
-                  ...docData,
-                  id,
-                  created: docData.created.toMillis(),
-                  modified: docData.modified.toMillis(),
-                },
-              },
-              id
-            );
-            break;
-          }
-          case "modified": {
-            cb(
-              {
-                ...getCurrentData(),
-                [id]: {
-                  ...docData,
-                  id,
-                  modified: docData.modified.toMillis(),
-                },
-              },
-              id
-            );
-            break;
-          }
-          case "removed": {
-            const updatedData = {
-              ...getCurrentData(),
-            };
-            delete updatedData[id];
-            cb(updatedData, id);
-            break;
-          }
+      cb(snapshot.docs.reduce((aggr, doc) => {
+        const data = doc.data({ serverTimestamps: 'estimate' })
+        aggr[doc.id] = {
+          ...data,
+          id: doc.id,
+          modified: data.modified.toMillis(),
+          created: data.created.toMillis()
         }
-      });
+
+        return aggr
+      }, {} as any))
     });
   }
 
@@ -166,13 +136,14 @@ export const createStorage = (app: firebase.app.App): Storage => {
           });
         }
 
-        onSnapshot(
+        onSnapshot<{
+          [id: string]: GroceryDTO
+        }>(
           groceriesCollection.where(
             "modified",
             ">",
             firebase.firestore.Timestamp.now()
           ),
-          () => groceries,
           (updatedGroceries) => {
             this.events.emit({
               type: "STORAGE:GROCERIES_UPDATE",
@@ -181,13 +152,14 @@ export const createStorage = (app: firebase.app.App): Storage => {
           }
         );
 
-        onSnapshot(
+        onSnapshot<{
+          [id: string]: TodoDTO
+        }>(
           todosCollection.where(
             "modified",
             ">",
             firebase.firestore.Timestamp.now()
           ),
-          () => todos,
           (updatedTodos) => {
             this.events.emit({
               type: "STORAGE:TODOS_UPDATE",
@@ -196,13 +168,14 @@ export const createStorage = (app: firebase.app.App): Storage => {
           }
         );
 
-        onSnapshot(
+        onSnapshot<{
+          [id: string]: CalendarEventDTO
+        }>(
           eventsCollection.where(
             "modified",
             ">",
             firebase.firestore.Timestamp.now()
           ),
-          () => calendarEvents,
           (updatedEvents) => {
             this.events.emit({
               type: "STORAGE:EVENTS_UPDATE",
@@ -211,13 +184,14 @@ export const createStorage = (app: firebase.app.App): Storage => {
           }
         );
 
-        onSnapshot(
+        onSnapshot<{
+          [id: string]: BarcodeDTO
+        }>(
           barcodesCollection.where(
             "modified",
             ">",
             firebase.firestore.Timestamp.now()
           ),
-          () => barcodes,
           (updatedBarcodes) => {
             this.events.emit({
               type: "STORAGE:BARCODES_UPDATE",
@@ -655,55 +629,31 @@ export const createStorage = (app: firebase.app.App): Storage => {
           .collection(WEEKS_TODOS_COLLECTION)
           .where("modified", ">", firebase.firestore.Timestamp.now())
           .onSnapshot((snapshot) => {
-            snapshot.docChanges().forEach((change) => {
-              const id = change.doc.id;
-              const data = change.doc.data();
+            if (!snapshot.docs.length) {
+              return
+            }
 
-              switch (change.type) {
-                case "added": {
-                  weeks = {
-                    ...weeks,
-                    [weekId]: {
-                      ...weeks[weekId],
-                      todos: {
-                        ...weeks[weekId].todos,
-                        [id]: {
-                          ...data.activityByUserId,
-                          [userId]: weeks[weekId].todos[id][userId],
-                        },
-                      },
-                    },
-                  };
-                  break;
-                }
-                case "modified": {
-                  weeks = {
-                    ...weeks,
-                    [weekId]: {
-                      ...weeks[weekId],
-                      todos: {
-                        ...weeks[weekId].todos,
-                        [id]: {
-                          ...data.activityByUserId,
-                          [userId]: weeks[weekId].todos[id][userId],
-                        },
-                      },
-                    },
-                  };
-                  break;
-                }
-                case "removed": {
-                  // This never happens
-                  break;
-                }
+            weeks = {
+              ...weeks,
+              [weekId]: {
+                ...weeks[weekId],
+                todos: snapshot.docs.reduce<{ [id: string]: { [userId: string]: WeekTodoActivity } }>((aggr, doc) => {
+                  const data = doc.data({ serverTimestamps: 'estimate' })
+                  aggr[doc.id] = {
+                    ...data.activityByUserId,
+                    [userId]: weeks[weekId].todos[doc.id]?.[userId]
+                  }
+
+                  return aggr
+                }, {})
               }
+            }
 
-              this.events.emit({
-                type: "STORAGE:WEEKS_UPDATE",
-                previousWeek: weeks[getPreviousWeekId()],
-                currentWeek: weeks[getCurrentWeekId()],
-                nextWeek: weeks[getNextWeekId()],
-              });
+            this.events.emit({
+              type: "STORAGE:WEEKS_UPDATE",
+              previousWeek: weeks[getPreviousWeekId()],
+              currentWeek: weeks[getCurrentWeekId()],
+              nextWeek: weeks[getNextWeekId()],
             });
           });
       });
@@ -758,6 +708,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
         .doc(weekId)
         .collection(WEEKS_TODOS_COLLECTION)
         .doc(todoId);
+      const weekTodoActivity: WeekTodoActivity = weeks[weekId].todos[todoId]?.[userId] ?? [false, false, false, false, false, false, false];
 
       weeks = {
         ...weeks,
@@ -768,9 +719,9 @@ export const createStorage = (app: firebase.app.App): Storage => {
             [todoId]: {
               ...weeks[weekId].todos[todoId],
               [userId]: [
-                ...weeks[weekId].todos[todoId][userId].slice(0, weekdayIndex),
+                ...weekTodoActivity.slice(0, weekdayIndex),
                 active,
-                ...weeks[weekId].todos[todoId][userId].slice(weekdayIndex + 1),
+                ...weekTodoActivity.slice(weekdayIndex + 1),
               ] as WeekTodoActivity,
             },
           },
