@@ -1,7 +1,8 @@
 {
-  "version": "0.0.5",
+  "version": "0.0.4",
   "scripts": {
     "dev": "next dev",
+    "deploy:functions": "firebase deploy --only functions",
     "dev:sandbox": "SANDBOX=true next dev",
     "build": "next build",
     "start": "next start"
