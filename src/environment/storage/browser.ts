@@ -88,6 +88,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
 
   function onSnapshot<T extends { [id: string]: { id: string } }>(
     query: firebase.firestore.Query<firebase.firestore.DocumentData>,
+    getCurrentData: () => T,
     cb: (updatedData: T) => void
   ) {
     query.onSnapshot((snapshot) => {
@@ -95,17 +96,20 @@ export const createStorage = (app: firebase.app.App): Storage => {
         return
       }
 
-      cb(snapshot.docs.reduce((aggr, doc) => {
-        const data = doc.data({ serverTimestamps: 'estimate' })
-        aggr[doc.id] = {
-          ...data,
-          id: doc.id,
-          modified: data.modified.toMillis(),
-          created: data.created.toMillis()
-        }
+      cb({
+        ...getCurrentData(),
+        ...snapshot.docs.reduce((aggr, doc) => {
+          const data = doc.data({ serverTimestamps: 'estimate' })
+          aggr[doc.id] = {
+            ...data,
+            id: doc.id,
+            modified: data.modified.toMillis(),
+            created: data.created.toMillis()
+          }
 
-        return aggr
-      }, {} as any))
+          return aggr
+        }, {} as any)
+      })
     });
   }
 
@@ -136,15 +140,15 @@ export const createStorage = (app: firebase.app.App): Storage => {
           });
         }
 
-        onSnapshot<{
-          [id: string]: GroceryDTO
-        }>(
+        onSnapshot(
           groceriesCollection.where(
             "modified",
             ">",
             firebase.firestore.Timestamp.now()
           ),
+          () => groceries,
           (updatedGroceries) => {
+            groceries = updatedGroceries
             this.events.emit({
               type: "STORAGE:GROCERIES_UPDATE",
               groceries: updatedGroceries,
@@ -152,15 +156,15 @@ export const createStorage = (app: firebase.app.App): Storage => {
           }
         );
 
-        onSnapshot<{
-          [id: string]: TodoDTO
-        }>(
+        onSnapshot(
           todosCollection.where(
             "modified",
             ">",
             firebase.firestore.Timestamp.now()
           ),
+          () => todos,
           (updatedTodos) => {
+            todos = updatedTodos
             this.events.emit({
               type: "STORAGE:TODOS_UPDATE",
               todos: updatedTodos,
@@ -168,15 +172,15 @@ export const createStorage = (app: firebase.app.App): Storage => {
           }
         );
 
-        onSnapshot<{
-          [id: string]: CalendarEventDTO
-        }>(
+        onSnapshot(
           eventsCollection.where(
             "modified",
             ">",
             firebase.firestore.Timestamp.now()
           ),
+          () => calendarEvents,
           (updatedEvents) => {
+            calendarEvents = updatedEvents
             this.events.emit({
               type: "STORAGE:EVENTS_UPDATE",
               events: updatedEvents,
@@ -184,15 +188,15 @@ export const createStorage = (app: firebase.app.App): Storage => {
           }
         );
 
-        onSnapshot<{
-          [id: string]: BarcodeDTO
-        }>(
+        onSnapshot(
           barcodesCollection.where(
             "modified",
             ">",
             firebase.firestore.Timestamp.now()
           ),
+          () => barcodes,
           (updatedBarcodes) => {
+            barcodes = updatedBarcodes
             this.events.emit({
               type: "STORAGE:BARCODES_UPDATE",
               barcodes: updatedBarcodes,
