@@ -34,11 +34,11 @@ export const createStorage = (): Storage => {
   };
 
   let barcodes: {
-    [barcodeId: string]: string[]
+    [barcodeId: string]: string | null;
   } = {
-    123: []
-  }
-
+    123: null,
+    456: "grocery_0",
+  };
 
   let groceries: {
     [groceryId: string]: GroceryDTO;
@@ -49,7 +49,7 @@ export const createStorage = (): Storage => {
       modified: Date.now(),
       category: GroceryCategoryDTO.DryGoods,
       name: "Gryn",
-      shopCount: 1
+      shopCount: 1,
     },
   };
 
@@ -220,7 +220,7 @@ export const createStorage = (): Storage => {
         todos,
         family,
         events,
-        barcodes
+        barcodes,
       });
     },
     archiveTodo(_, id) {
@@ -254,8 +254,8 @@ export const createStorage = (): Storage => {
           ...events[eventId],
           userIds: events[eventId].userIds.includes(userId)
             ? events[eventId].userIds.filter(
-              (existingUserId) => existingUserId !== userId
-            )
+                (existingUserId) => existingUserId !== userId
+              )
             : events[eventId].userIds.concat(userId),
         },
       };
@@ -333,24 +333,24 @@ export const createStorage = (): Storage => {
     linkBarcode(familyId, barcodeId, groceryId) {
       barcodes = {
         ...barcodes,
-        [barcodeId]: barcodes[barcodeId].concat(groceryId)
-      }
+        [barcodeId]: groceryId,
+      };
 
       this.events.emit({
-        type: 'STORAGE:BARCODES_UPDATE',
-        barcodes
-      })
+        type: "STORAGE:BARCODES_UPDATE",
+        barcodes,
+      });
     },
     unlinkBarcode(familyId, barcodeId, groceryId) {
       barcodes = {
         ...barcodes,
-        [barcodeId]: barcodes[barcodeId].filter((existingGroceryId) => existingGroceryId !== groceryId)
-      }
+        [barcodeId]: null,
+      };
 
       this.events.emit({
-        type: 'STORAGE:BARCODES_UPDATE',
-        barcodes
-      })
-    }
+        type: "STORAGE:BARCODES_UPDATE",
+        barcodes,
+      });
+    },
   };
 };

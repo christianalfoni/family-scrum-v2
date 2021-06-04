@@ -42,5 +42,11 @@ export const createStorage = (): Storage => {
     toggleEventParticipation() {
       throw shouldNotCallError;
     },
+    linkBarcode() {
+      throw shouldNotCallError;
+    },
+    unlinkBarcode() {
+      throw shouldNotCallError;
+    },
   };
 };
