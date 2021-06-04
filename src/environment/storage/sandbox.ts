@@ -8,6 +8,7 @@ import {
   FamilyDTO,
   CalendarEventDTO,
   WeekTodoActivity,
+  BarcodeDTO,
 } from ".";
 import {
   getCurrentWeekId,
@@ -34,10 +35,20 @@ export const createStorage = (): Storage => {
   };
 
   let barcodes: {
-    [barcodeId: string]: string | null;
+    [barcodeId: string]: BarcodeDTO;
   } = {
-    123: null,
-    456: "grocery_0",
+    '123': {
+      id: '123',
+      created: Date.now(),
+      modified: Date.now(),
+      groceryId: null
+    },
+    '456': {
+      id: '456',
+      created: Date.now(),
+      modified: Date.now(),
+      groceryId: "grocery_0",
+    }
   };
 
   let groceries: {
@@ -254,8 +265,8 @@ export const createStorage = (): Storage => {
           ...events[eventId],
           userIds: events[eventId].userIds.includes(userId)
             ? events[eventId].userIds.filter(
-                (existingUserId) => existingUserId !== userId
-              )
+              (existingUserId) => existingUserId !== userId
+            )
             : events[eventId].userIds.concat(userId),
         },
       };
@@ -333,7 +344,10 @@ export const createStorage = (): Storage => {
     linkBarcode(familyId, barcodeId, groceryId) {
       barcodes = {
         ...barcodes,
-        [barcodeId]: groceryId,
+        [barcodeId]: {
+          ...barcodes[barcodeId],
+          groceryId
+        },
       };
 
       this.events.emit({
@@ -341,10 +355,13 @@ export const createStorage = (): Storage => {
         barcodes,
       });
     },
-    unlinkBarcode(familyId, barcodeId, groceryId) {
+    unlinkBarcode(familyId, barcodeId) {
       barcodes = {
         ...barcodes,
-        [barcodeId]: null,
+        [barcodeId]: {
+          ...barcodes[barcodeId],
+          groceryId: null
+        },
       };
 
       this.events.emit({

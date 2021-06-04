@@ -44,7 +44,6 @@ type TransientContext =
   | {
     state: 'UNLINKING_BARCODE'
     barcodeId: string
-    groceryId: string
   }
 
 type UIEvent =
@@ -73,7 +72,6 @@ type UIEvent =
   } | {
     type: 'UNLINK_BARCODE'
     barcodeId: string
-    groceryId: string
   }
 
 type Event = UIEvent;
@@ -94,9 +92,8 @@ const defaultHandlers = {
     groceryId,
     barcodeId
   }),
-  UNLINK_BARCODE: ({ groceryId, barcodeId }: { groceryId: string, barcodeId: string }): TransientContext => ({
+  UNLINK_BARCODE: ({ barcodeId }: { barcodeId: string }): TransientContext => ({
     state: 'UNLINKING_BARCODE',
-    groceryId,
     barcodeId
   })
 }
@@ -194,8 +191,8 @@ export const Feature = ({
     storage.linkBarcode(familyId, barcodeId, groceryId);
   });
 
-  useEnterEffect(context, "UNLINKING_BARCODE", ({ barcodeId, groceryId }) => {
-    storage.unlinkBarcode(familyId, barcodeId, groceryId);
+  useEnterEffect(context, "UNLINKING_BARCODE", ({ barcodeId }) => {
+    storage.unlinkBarcode(familyId, barcodeId);
   });
 
   return (

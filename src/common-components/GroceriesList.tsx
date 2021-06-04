@@ -22,9 +22,9 @@ export const GroceriesList = ({
     FILTERED: ({ category, input }) =>
       input
         ? dashboardSelectors.filterGroceriesByInput(
-            Object.values(groceries),
-            input
-          )
+          Object.values(groceries),
+          input
+        )
         : dashboardSelectors.filterGroceriesByCategory(groceries, category),
     UNFILTERED: ({ input }) =>
       dashboardSelectors.filterGroceriesByInput(
@@ -58,21 +58,23 @@ export const GroceriesList = ({
                 <span className={`bg-${color}-500 h-2 w-2 rounded-full`} />
               </span>
 
+              {barcodesByGroceryId[grocery.id] ? (
+                <QrcodeIcon className="w-4 h-4 ml-3" />
+              ) : null}
+
+              <span className="font-normal ml-3 text-gray-500">
+                {grocery.shopCount}
+              </span>
+
               <span className="block ml-3">
                 <h2 className="font-medium flex items-center">
                   {grocery.name}
                 </h2>
               </span>
 
-              <span className="font-normal ml-auto text-gray-500">
-                {grocery.shopCount}
-              </span>
-
-              {barcodesByGroceryId[grocery.id] ? (
-                <QrcodeIcon className="w-4 h-4 ml-2" />
-              ) : null}
-
-              <Menu as="div" className="ml-3 flex-shrink-0 pr-2">
+              <Menu as="div" className="ml-auto flex-shrink-0 pr-2" onClick={(event: any) => {
+                event.stopPropagation()
+              }}>
                 {({ open }) => (
                   <>
                     <Menu.Button className="w-8 h-8 bg-white inline-flex items-center justify-center text-gray-400 rounded-full hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
@@ -100,18 +102,16 @@ export const GroceriesList = ({
                           <Menu.Item>
                             {({ active }) => (
                               <a
-                                onClick={(event) => {
-                                  event.stopPropagation();
+                                onClick={() => {
                                   send({
                                     type: "RESET_SHOP_COUNT",
                                     id: grocery.id,
                                   });
                                 }}
-                                className={`${
-                                  active
-                                    ? "bg-gray-100 text-gray-900"
-                                    : "text-gray-700"
-                                }
+                                className={`${active
+                                  ? "bg-gray-100 text-gray-900"
+                                  : "text-gray-700"
+                                  }
                                     block px-4 py-2 text-sm`}
                               >
                                 {t("resetShopCount")}
@@ -130,15 +130,13 @@ export const GroceriesList = ({
                                         event.stopPropagation();
                                         send({
                                           type: "UNLINK_BARCODE",
-                                          groceryId: grocery.id,
                                           barcodeId,
                                         });
                                       }}
-                                      className={`${
-                                        active
-                                          ? "bg-gray-100 text-gray-900"
-                                          : "text-gray-700"
-                                      }
+                                      className={`${active
+                                        ? "bg-gray-100 text-gray-900"
+                                        : "text-gray-700"
+                                        }
                                  block px-4 py-2 text-sm`}
                                     >
                                       {t("unlinkBarcode")}{" "}
@@ -164,11 +162,10 @@ export const GroceriesList = ({
                                         barcodeId,
                                       });
                                     }}
-                                    className={`${
-                                      active
-                                        ? "bg-gray-100 text-gray-900"
-                                        : "text-gray-700"
-                                    }
+                                    className={`${active
+                                      ? "bg-gray-100 text-gray-900"
+                                      : "text-gray-700"
+                                      }
                                  block px-4 py-2 text-sm`}
                                   >
                                     {t("linkBarcode")} {barcodeId.substr(0, 4)}
@@ -184,11 +181,10 @@ export const GroceriesList = ({
                             {({ active }) => (
                               <a
                                 href="#"
-                                className={`${
-                                  active
-                                    ? "bg-gray-100 text-gray-900"
-                                    : "text-gray-700"
-                                }
+                                className={`${active
+                                  ? "bg-gray-100 text-gray-900"
+                                  : "text-gray-700"
+                                  }
                                     block px-4 py-2 text-sm`}
                               >
                                 {t("delete")}
