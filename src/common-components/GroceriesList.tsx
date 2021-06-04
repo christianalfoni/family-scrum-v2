@@ -180,7 +180,12 @@ export const GroceriesList = ({
                           <Menu.Item>
                             {({ active }) => (
                               <a
-                                href="#"
+                                onClick={() => {
+                                  send({
+                                    type: 'DELETE_GROCERY',
+                                    groceryId: grocery.id
+                                  })
+                                }}
                                 className={`${active
                                   ? "bg-gray-100 text-gray-900"
                                   : "text-gray-700"

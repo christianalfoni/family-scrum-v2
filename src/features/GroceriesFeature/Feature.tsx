@@ -29,6 +29,10 @@ type TransientContext =
     category: GroceryCategory;
   }
   | {
+    state: "DELETING_GROCERY";
+    groceryId: string
+  }
+  | {
     state: "INCREASING_SHOP_COUNT";
     id: string;
   }
@@ -49,6 +53,10 @@ type TransientContext =
 type UIEvent =
   | {
     type: "ADD_GROCERY";
+  }
+  | {
+    type: "DELETE_GROCERY";
+    groceryId: string
   }
   | {
     type: "GROCERY_INPUT_CHANGED";
@@ -95,6 +103,10 @@ const defaultHandlers = {
   UNLINK_BARCODE: ({ barcodeId }: { barcodeId: string }): TransientContext => ({
     state: 'UNLINKING_BARCODE',
     barcodeId
+  }),
+  DELETE_GROCERY: ({ groceryId }: { groceryId: string }): TransientContext => ({
+    state: 'DELETING_GROCERY',
+    groceryId
   })
 }
 
@@ -145,6 +157,7 @@ const reducer = createReducer<Context, Event, TransientContext>(
       category,
       input: "",
     }),
+    DELETING_GROCERY: (_, prevContext) => prevContext,
     INCREASING_SHOP_COUNT: (_, prevContext) => prevContext,
     RESETTING_SHOP_COUNT: (_, prevContext) => prevContext,
     LINKING_BARCODE: (_, prevContext) => prevContext,
@@ -193,6 +206,10 @@ export const Feature = ({
 
   useEnterEffect(context, "UNLINKING_BARCODE", ({ barcodeId }) => {
     storage.unlinkBarcode(familyId, barcodeId);
+  });
+
+  useEnterEffect(context, 'DELETING_GROCERY', ({ groceryId }) => {
+    storage.deleteGrocery(familyId, groceryId);
   });
 
   return (
