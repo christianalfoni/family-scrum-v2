@@ -149,13 +149,14 @@ export const createStorage = (app: firebase.app.App): Storage => {
       const groceriesCollection = familyDocRef.collection(GROCERIES_COLLECTION);
       const todosCollection = familyDocRef.collection(TODOS_COLLECTION);
       const eventsCollection = familyDocRef.collection(EVENTS_COLLECTION);
-      const barcodesCollection = familyDocRef.collection(EVENTS_COLLECTION);
+      const barcodesCollection = familyDocRef.collection(BARCODES_COLLECTION);
 
       Promise.all([
         familyDocRef.get(),
         groceriesCollection.get(),
         todosCollection.get(),
         eventsCollection.get(),
+        barcodesCollection.get(),
       ]).then(([familyDataDoc, groceriesDocs, todosDocs, eventsDocs]) => {
         if (!familyDataDoc.exists) {
           return this.events.emit({
