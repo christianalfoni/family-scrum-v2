@@ -14,7 +14,9 @@
   },
   "GroceriesView": {
     "resetShopCount": "Reset shop count",
-    "delete": "Delete"
+    "delete": "Delete",
+    "linkBarcode": "Link barcode",
+    "unlinkBarcode": "Unlink barcode"
   },
   "ShoppingList": {
     "shoppingList": "Shopping list"

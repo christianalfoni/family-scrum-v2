@@ -14,7 +14,9 @@
   },
   "GroceriesView": {
     "resetShopCount": "Tilbakestill antall",
-    "delete": "Slett"
+    "delete": "Slett",
+    "linkBarcode": "Koble strekkode",
+    "unlinkBarcode": "Frakoble strekkode"
   },
   "ShoppingList": {
     "shoppingList": "Handleliste"

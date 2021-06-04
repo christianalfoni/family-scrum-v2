@@ -7,6 +7,8 @@ import { match } from "react-states";
 import { Groceries, dashboardSelectors } from "../features/DashboardFeature";
 import { GroceryCategory, useGroceries } from "../features/GroceriesFeature";
 import { groceryCategoryToBackgroundColor } from "../utils";
+import { GroceriesList } from "../common-components/GroceriesList";
+import { Barcodes } from "../features/DashboardFeature/Feature";
 
 const GroceriesToolbar = () => {
   const [groceries, send] = useGroceries();
@@ -27,11 +29,10 @@ const GroceriesToolbar = () => {
                 category: GroceryCategory.MeatDairy,
               })
             }
-            className={`${
-              activeCategory === GroceryCategory.MeatDairy
-                ? "bg-red-500 text-white hover:bg-red-400"
-                : "bg-white text-gray-500 hover:bg-gray-50"
-            } relative inline-flex items-center px-4 py-2 rounded-l-md border border-gray-300 text-sm font-medium  focus:z-10 focus:outline-none focus:ring-1 focus:ring-red-600 focus:border-red-600`}
+            className={`${activeCategory === GroceryCategory.MeatDairy
+              ? "bg-red-500 text-white hover:bg-red-400"
+              : "bg-white text-gray-500 hover:bg-gray-50"
+              } relative inline-flex items-center px-4 py-2 rounded-l-md border border-gray-300 text-sm font-medium  focus:z-10 focus:outline-none focus:ring-1 focus:ring-red-600 focus:border-red-600`}
           >
             <span>{t(GroceryCategory.MeatDairy)}</span>
           </button>
@@ -43,11 +44,10 @@ const GroceriesToolbar = () => {
                 category: GroceryCategory.FruitVegetables,
               })
             }
-            className={`${
-              activeCategory === GroceryCategory.FruitVegetables
-                ? "bg-green-500 text-white hover:bg-green-400"
-                : "bg-white text-gray-500 hover:bg-gray-50"
-            } relative inline-flex items-center px-4 py-2  border border-gray-300 text-sm font-medium  focus:z-10 focus:outline-none focus:ring-1 focus:ring-green-600 focus:border-green-600`}
+            className={`${activeCategory === GroceryCategory.FruitVegetables
+              ? "bg-green-500 text-white hover:bg-green-400"
+              : "bg-white text-gray-500 hover:bg-gray-50"
+              } relative inline-flex items-center px-4 py-2  border border-gray-300 text-sm font-medium  focus:z-10 focus:outline-none focus:ring-1 focus:ring-green-600 focus:border-green-600`}
           >
             <span>{t(GroceryCategory.FruitVegetables)}</span>
           </button>
@@ -59,11 +59,10 @@ const GroceriesToolbar = () => {
                 category: GroceryCategory.DryGoods,
               })
             }
-            className={`${
-              activeCategory === GroceryCategory.DryGoods
-                ? "bg-yellow-500 text-white hover:bg-yellow-400"
-                : "bg-white text-gray-500 hover:bg-gray-50"
-            } relative inline-flex items-center px-4 py-2  border border-gray-300 text-sm font-medium  focus:z-10 focus:outline-none focus:ring-1 focus:ring-yellow-600 focus:border-yellow-600`}
+            className={`${activeCategory === GroceryCategory.DryGoods
+              ? "bg-yellow-500 text-white hover:bg-yellow-400"
+              : "bg-white text-gray-500 hover:bg-gray-50"
+              } relative inline-flex items-center px-4 py-2  border border-gray-300 text-sm font-medium  focus:z-10 focus:outline-none focus:ring-1 focus:ring-yellow-600 focus:border-yellow-600`}
           >
             <span>{t(GroceryCategory.DryGoods)}</span>
           </button>
@@ -75,11 +74,10 @@ const GroceriesToolbar = () => {
                 category: GroceryCategory.Frozen,
               })
             }
-            className={`${
-              activeCategory === GroceryCategory.Frozen
-                ? "bg-blue-500 text-white hover:bg-blue-400"
-                : "bg-white text-gray-500 hover:bg-gray-50"
-            } relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium  focus:z-10 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600`}
+            className={`${activeCategory === GroceryCategory.Frozen
+              ? "bg-blue-500 text-white hover:bg-blue-400"
+              : "bg-white text-gray-500 hover:bg-gray-50"
+              } relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium  focus:z-10 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600`}
           >
             <span>{t(GroceryCategory.Frozen)}</span>
           </button>
@@ -91,11 +89,10 @@ const GroceriesToolbar = () => {
                 category: GroceryCategory.Other,
               })
             }
-            className={`${
-              activeCategory === GroceryCategory.Other
-                ? "bg-gray-500 text-white hover:bg-gray-400"
-                : "bg-white text-gray-500 hover:bg-gray-50"
-            } relative inline-flex items-center px-4 py-2 rounded-r-md border border-gray-300 text-sm font-medium  focus:z-10 focus:outline-none focus:ring-1 focus:ring-gray-600 focus:border-gray-600`}
+            className={`${activeCategory === GroceryCategory.Other
+              ? "bg-gray-500 text-white hover:bg-gray-400"
+              : "bg-white text-gray-500 hover:bg-gray-50"
+              } relative inline-flex items-center px-4 py-2 rounded-r-md border border-gray-300 text-sm font-medium  focus:z-10 focus:outline-none focus:ring-1 focus:ring-gray-600 focus:border-gray-600`}
           >
             <span>{t(GroceryCategory.Other)}</span>
           </button>
@@ -142,129 +139,10 @@ const GroceriesToolbar = () => {
   );
 };
 
-export const GroceriesView = ({ groceries }: { groceries: Groceries }) => {
-  const [groceriesFeature, send] = useGroceries();
-  const t = useTranslations("GroceriesView");
-  const sortedAndFilteredGroceries = match(groceriesFeature, {
-    FILTERED: ({ input, category }) =>
-      input
-        ? dashboardSelectors.filterGroceriesByInput(
-            Object.values(groceries),
-            input
-          )
-        : dashboardSelectors.filterGroceriesByCategory(groceries, category),
-    UNFILTERED: ({ input }) =>
-      dashboardSelectors.filterGroceriesByInput(
-        dashboardSelectors.groceriesByCategory(groceries),
-        input
-      ),
-  });
+export const GroceriesView = ({ groceries, barcodes }: { groceries: Groceries, barcodes: Barcodes }) => (
+  <div className="bg-white col-span-3 p-6">
+    <GroceriesToolbar />
+    <GroceriesList groceries={groceries} barcodes={barcodes} />
+  </div>
+);
 
-  return (
-    <div className="bg-white col-span-3 p-6">
-      <GroceriesToolbar />
-      <ul className="grid gap-4 grid-cols-4 mt-3">
-        {sortedAndFilteredGroceries.map((grocery) => (
-          <li
-            key={grocery.id}
-            className="relative col-span-1 flex shadow-sm rounded-md"
-          >
-            <div
-              onClick={() => {
-                send({
-                  type: "INCREASE_SHOP_COUNT",
-                  id: grocery.id,
-                });
-              }}
-              className={`bg-${groceryCategoryToBackgroundColor(
-                grocery.category
-              )}-500 flex-shrink-0 flex items-center justify-center w-16 text-white text-sm font-medium rounded-l-md`}
-            >
-              {grocery.shopCount}
-            </div>
-            <div className="flex-1 flex items-center justify-between border-t border-r border-b border-gray-200 bg-white rounded-r-md truncate">
-              <div
-                onClick={() => {
-                  send({
-                    type: "INCREASE_SHOP_COUNT",
-                    id: grocery.id,
-                  });
-                }}
-                className="flex-1 px-4 py-4 text-md truncate text-gray-900 font-medium hover:text-gray-600"
-              >
-                {grocery.name}
-              </div>
-              <Menu as="div" className="flex-shrink-0 pr-2">
-                {({ open }) => (
-                  <>
-                    <Menu.Button className="w-8 h-8 bg-white inline-flex items-center justify-center text-gray-400 rounded-full hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
-                      <DotsVerticalIcon
-                        className="w-5 h-5"
-                        aria-hidden="true"
-                      />
-                    </Menu.Button>
-                    <Transition
-                      show={open}
-                      as={React.Fragment}
-                      enter="transition ease-out duration-100"
-                      enterFrom="transform opacity-0 scale-95"
-                      enterTo="transform opacity-100 scale-100"
-                      leave="transition ease-in duration-75"
-                      leaveFrom="transform opacity-100 scale-100"
-                      leaveTo="transform opacity-0 scale-95"
-                    >
-                      <Menu.Items
-                        static
-                        className="z-10 mx-3 origin-top-right absolute right-10 top-3 w-48 mt-1 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-200 focus:outline-none"
-                      >
-                        <div className="py-1">
-                          <Menu.Item>
-                            {({ active }) => (
-                              <a
-                                onClick={() => {
-                                  send({
-                                    type: "RESET_SHOP_COUNT",
-                                    id: grocery.id,
-                                  });
-                                }}
-                                className={`${
-                                  active
-                                    ? "bg-gray-100 text-gray-900"
-                                    : "text-gray-700"
-                                }
-                                  block px-4 py-2 text-sm`}
-                              >
-                                {t("resetShopCount")}
-                              </a>
-                            )}
-                          </Menu.Item>
-                        </div>
-                        <div className="py-1">
-                          <Menu.Item>
-                            {({ active }) => (
-                              <a
-                                href="#"
-                                className={`${
-                                  active
-                                    ? "bg-gray-100 text-gray-900"
-                                    : "text-gray-700"
-                                }
-                                  block px-4 py-2 text-sm`}
-                              >
-                                {t("delete")}
-                              </a>
-                            )}
-                          </Menu.Item>
-                        </div>
-                      </Menu.Items>
-                    </Transition>
-                  </>
-                )}
-              </Menu>
-            </div>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-};

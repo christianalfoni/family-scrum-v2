@@ -39,7 +39,7 @@ export const Dashboard = () => {
   return match(dashboard, {
     AWAITING_AUTHENTICATION: () => <DashboardSkeleton />,
     ERROR: () => <DashboardSkeleton />,
-    LOADED: ({ groceries, todos, currentWeek, family, events, view }) => {
+    LOADED: ({ groceries, todos, currentWeek, family, events, view, barcodes }) => {
       return (
         <DashboardLayout>
           <ShoppingListFeature familyId={family.id}>
@@ -65,7 +65,7 @@ export const Dashboard = () => {
               ),
               GROCERIES: () => (
                 <GroceriesFeature familyId={family.id}>
-                  <GroceriesView groceries={groceries} />
+                  <GroceriesView groceries={groceries} barcodes={barcodes} />
                 </GroceriesFeature>
               ),
             })}
