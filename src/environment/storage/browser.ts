@@ -552,6 +552,16 @@ export const createStorage = (app: firebase.app.App): Storage => {
         ...groceries,
       };
 
+      const barcodeLinks = Object.values(barcodes).filter((barcode) => barcode.groceryId === id)
+
+      if (barcodeLinks.length) {
+        return this.events.emit({
+          type: 'STORAGE:DELETE_GROCERY_ERROR',
+          id,
+          error: 'Please unlink all barcodes first'
+        })
+      }
+
       delete groceries[id];
 
       this.events.emit({
