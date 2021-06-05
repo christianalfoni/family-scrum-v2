@@ -1,10 +1,10 @@
 {
   "GroceriesToolbar": {
-    "FRUIT_VEGETABLES": "Frukt og Grønt",
-    "MEAT_DAIRY": "Fisk, Kjøtt og Meieri",
-    "FROZEN": "Frossent",
-    "DRY_GOOD": "Tørrvarer",
-    "OTHER": "Annet",
+    "groceryCategory0": "Frukt og Grønt",
+    "groceryCategory1": "Fisk, Kjøtt og Meieri",
+    "groceryCategory2": "Frossent",
+    "groceryCategory3": "Tørrvarer",
+    "groceryCategory4": "Annet",
     "filterNewGrocery": "Filtrer/Ny Matvare",
     "add": "Legg til"
   },

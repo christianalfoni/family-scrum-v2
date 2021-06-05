@@ -101,7 +101,7 @@ export const GroceriesView = ({
       </span>
       <h4 className="text-center text-lg text-gray-500">{match(groceriesFeature, {
         UNFILTERED: () => t('noCategorySelected'),
-        FILTERED: ({ category }) => t(category)
+        FILTERED: ({ category }) => t('groceryCategory' + category)
       })}</h4>
       <div className="flex items-center px-6 py-4 border-b border-gray-200">
         <div className="w-full">

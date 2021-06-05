@@ -34,7 +34,7 @@ const GroceriesToolbar = () => {
               : "bg-white text-gray-500 hover:bg-gray-50"
               } relative inline-flex items-center px-4 py-2 rounded-l-md border border-gray-300 text-sm font-medium  focus:z-10 focus:outline-none focus:ring-1 focus:ring-red-600 focus:border-red-600`}
           >
-            <span>{t(GroceryCategory.MeatDairy)}</span>
+            <span>{t('groceryCategory' + GroceryCategory.MeatDairy)}</span>
           </button>
           <button
             type="button"
@@ -49,7 +49,7 @@ const GroceriesToolbar = () => {
               : "bg-white text-gray-500 hover:bg-gray-50"
               } relative inline-flex items-center px-4 py-2  border border-gray-300 text-sm font-medium  focus:z-10 focus:outline-none focus:ring-1 focus:ring-green-600 focus:border-green-600`}
           >
-            <span>{t(GroceryCategory.FruitVegetables)}</span>
+            <span>{t('groceryCategory' + GroceryCategory.FruitVegetables)}</span>
           </button>
           <button
             type="button"
@@ -64,7 +64,7 @@ const GroceriesToolbar = () => {
               : "bg-white text-gray-500 hover:bg-gray-50"
               } relative inline-flex items-center px-4 py-2  border border-gray-300 text-sm font-medium  focus:z-10 focus:outline-none focus:ring-1 focus:ring-yellow-600 focus:border-yellow-600`}
           >
-            <span>{t(GroceryCategory.DryGoods)}</span>
+            <span>{t('groceryCategory' + GroceryCategory.DryGoods)}</span>
           </button>
           <button
             type="button"
@@ -79,7 +79,7 @@ const GroceriesToolbar = () => {
               : "bg-white text-gray-500 hover:bg-gray-50"
               } relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium  focus:z-10 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600`}
           >
-            <span>{t(GroceryCategory.Frozen)}</span>
+            <span>{t('groceryCategory' + GroceryCategory.Frozen)}</span>
           </button>
           <button
             type="button"
@@ -94,7 +94,7 @@ const GroceriesToolbar = () => {
               : "bg-white text-gray-500 hover:bg-gray-50"
               } relative inline-flex items-center px-4 py-2 rounded-r-md border border-gray-300 text-sm font-medium  focus:z-10 focus:outline-none focus:ring-1 focus:ring-gray-600 focus:border-gray-600`}
           >
-            <span>{t(GroceryCategory.Other)}</span>
+            <span>{t('groceryCategory' + GroceryCategory.Other)}</span>
           </button>
         </span>
       </span>

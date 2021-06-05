@@ -11,11 +11,11 @@ export type FamilyDTO = {
 };
 
 export enum GroceryCategoryDTO {
-  FruitVegetables = "FRUIT_VEGETABLES",
-  MeatDairy = "MEAT_DAIRY",
-  Frozen = "FROZEN",
-  DryGoods = "DRY_GOOD",
-  Other = "OTHER",
+  FruitVegetables,
+  MeatDairy,
+  Frozen,
+  DryGoods,
+  Other,
 }
 
 export type BarcodeDTO = {
