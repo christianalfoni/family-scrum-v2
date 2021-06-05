@@ -9,7 +9,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import SwiperCore, { Controller } from "swiper";
 import { dashboardSelectors, useDasbhoard } from "../features/DashboardFeature";
 import { getCurrentDayIndex, weekdays } from "../utils";
-import { useEnvironment } from "../environment";
+
 
 SwiperCore.use([Controller]);
 
@@ -64,7 +64,6 @@ const WeekdaySlideContent = ({
 );
 
 export const DashboardContentSkeleton = () => {
-  const currentDayIndex = getCurrentDayIndex();
   const t = useTranslations("DashboardView");
 
   return (
@@ -111,11 +110,12 @@ export const DashboardContentSkeleton = () => {
           allowSlideNext={false}
           allowSlidePrev={false}
           allowTouchMove={false}
-          initialSlide={currentDayIndex}
+          initialSlide={0}
         >
           {weekdays.map((weekday, index) => (
             <SwiperSlide key={weekday}>
-              <WeekdaySlideContent title={t(weekdays[index]) as string}>
+              {/* No title as server side caches this page */}
+              <WeekdaySlideContent title="">
                 {null}
               </WeekdaySlideContent>
             </SwiperSlide>

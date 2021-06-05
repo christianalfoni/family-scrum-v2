@@ -115,7 +115,7 @@ export const WeekdaysView = ({
           }
         >
           <ul className="mt-2 ">
-            {Object.keys(weekdayTodos).map((todoId) => (
+            {Object.keys(weekdayTodos).filter(todoId => todoId in todos).map((todoId) => (
               <li
                 key={todoId}
                 className="py-3 flex justify-between items-center"
