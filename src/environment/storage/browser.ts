@@ -284,7 +284,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
       });
     },
 
-    addGrocery(familyId, category, name) {
+    addGrocery(familyId, name) {
       const groceriesCollection = app
         .firestore()
         .collection(FAMILY_DATA_COLLECTION)
@@ -297,7 +297,6 @@ export const createStorage = (app: firebase.app.App): Storage => {
         ...groceries,
         [doc.id]: {
           id: doc.id,
-          category,
           name,
           created: Date.now(),
           modified: Date.now(),
@@ -315,13 +314,11 @@ export const createStorage = (app: firebase.app.App): Storage => {
           created: firebase.firestore.FieldValue.serverTimestamp(),
           modified: firebase.firestore.FieldValue.serverTimestamp(),
           shopCount: 0,
-          category,
           name,
         })
         .catch((error) => {
           this.events.emit({
             type: "STORAGE:ADD_GROCERY_ERROR",
-            category,
             name,
             error: error.message,
           });
@@ -824,5 +821,64 @@ export const createStorage = (app: firebase.app.App): Storage => {
         })
       })
     },
+    shopGrocery(familyId, id, shoppingListLength) {
+      const groceryDocRef = app
+        .firestore()
+        .collection(FAMILY_DATA_COLLECTION)
+        .doc(familyId)
+        .collection(GROCERIES_COLLECTION)
+        .doc(id);
+
+      const currentShoppingListLength = Object.values(groceries).filter((grocery) => Boolean(grocery.shopCount)).length
+
+      groceries = {
+        ...groceries,
+        [id]: {
+          ...groceries[id],
+          shopCount: 0,
+          shopHistory: {
+            ...groceries[id].shopHistory,
+            [shoppingListLength]: currentShoppingListLength
+          }
+        },
+      };
+
+      this.events.emit({
+        type: "STORAGE:GROCERIES_UPDATE",
+        groceries,
+      });
+
+      app
+        .firestore()
+        .runTransaction((transaction) =>
+          transaction.get(groceryDocRef).then((groceryDoc) => {
+            const data = groceryDoc.data();
+
+            if (!data) {
+              return storageEvents.emit({
+                type: "STORAGE:SHOP_GROCERY_ERROR",
+                id: groceryDocRef.id,
+                error: "Document does not exist",
+              });
+            }
+
+            transaction.update(groceryDocRef, {
+              modified: firebase.firestore.FieldValue.serverTimestamp(),
+              shopCount: 0,
+              shopHistory: {
+                ...data.shopHistory,
+                [shoppingListLength]: currentShoppingListLength
+              }
+            });
+          })
+        )
+        .catch((error) => {
+          storageEvents.emit({
+            type: "STORAGE:SHOP_GROCERY_ERROR",
+            id: groceryDocRef.id,
+            error: error.messsage,
+          });
+        });
+    }
   };
 };

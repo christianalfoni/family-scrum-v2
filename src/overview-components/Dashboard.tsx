@@ -1,10 +1,9 @@
 import React from "react";
 import { match } from "react-states";
 import { useDasbhoard } from "../features/DashboardFeature";
-import { GroceriesFeature } from "../features/GroceriesFeature";
-import { ShoppingListFeature } from "../features/ShoppingListFeature";
+import { EditGroceriesShoppingFeature } from "../features/EditGroceriesShoppingFeature";
+import { ShoppingListsFeature } from "../features/ShoppingListsFeature";
 import { WeekdaysFeature } from "../features/WeekdaysFeature";
-import { GroceriesView } from "./GroceriesView";
 import { ShoppingList, GroceryListSkeleton } from "./ShoppingList";
 import {
   MainContentLayout,
@@ -42,13 +41,13 @@ export const Dashboard = () => {
     LOADED: ({ groceries, todos, currentWeek, family, events, view, barcodes }) => {
       return (
         <DashboardLayout>
-          <ShoppingListFeature familyId={family.id}>
+          <ShoppingListsFeature familyId={family.id}>
             <ShoppingList groceries={groceries} />
-          </ShoppingListFeature>
+          </ShoppingListsFeature>
           <MainContentLayout>
             {match(view, {
               // Not available in this version of the app
-              SHOPPING_LIST: () => null,
+              SHOPPING_LISTS: () => null,
               PLAN_CURRENT_WEEK: () => null,
               PLAN_NEXT_WEEK: () => null,
               ADD_TODO: () => null,
@@ -62,11 +61,6 @@ export const Dashboard = () => {
                     events={events}
                   />
                 </WeekdaysFeature>
-              ),
-              GROCERIES: () => (
-                <GroceriesFeature familyId={family.id}>
-                  <GroceriesView groceries={groceries} barcodes={barcodes} />
-                </GroceriesFeature>
               ),
             })}
           </MainContentLayout>

@@ -75,15 +75,7 @@ export const DashboardContentSkeleton = () => {
           onClick={() => { }}
           color="bg-red-500"
         >
-          {t("goShopping")} (0)
-        </MenuCard>
-        <MenuCard
-          disabled
-          Icon={ShoppingCartIcon}
-          onClick={() => { }}
-          color="bg-yellow-500"
-        >
-          {t("groceries")}
+          {t("goShopping")}
         </MenuCard>
         <MenuCard
           disabled
@@ -153,10 +145,6 @@ export const DashboardView = () => {
   const t = useTranslations("DashboardView");
   const intl = useIntl();
   const { groceries, family, currentWeek, todos, events } = dashboard;
-  const shopCount = Object.values(groceries).reduce(
-    (aggr, grocery) => aggr + (grocery.shopCount > 0 ? 1 : 0),
-    0
-  );
   const currentDayIndex = getCurrentDayIndex();
   const [slideIndex, setSlideIndex] = useState(currentDayIndex);
   const todosByWeekday = dashboardSelectors.todosByWeekday(currentWeek);
@@ -168,33 +156,18 @@ export const DashboardView = () => {
     <>
       <ul className="flex flex-col p-6">
         <MenuCard
-          disabled={!shopCount}
           Icon={ShoppingCartIcon}
           onClick={() => {
             send({
               type: "VIEW_SELECTED",
               view: {
-                state: "SHOPPING_LIST",
+                state: "SHOPPING_LISTS",
               },
             });
           }}
           color="bg-red-500"
         >
-          {t("goShopping")} ({shopCount})
-        </MenuCard>
-        <MenuCard
-          Icon={ShoppingCartIcon}
-          onClick={() => {
-            send({
-              type: "VIEW_SELECTED",
-              view: {
-                state: "GROCERIES",
-              },
-            });
-          }}
-          color="bg-yellow-500"
-        >
-          {t("groceries")}
+          {t("goShopping")}
         </MenuCard>
         <MenuCard
           Icon={CalendarIcon}

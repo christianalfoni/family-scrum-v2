@@ -29,11 +29,6 @@
     "resetShopCount": "Reset shop count",
     "delete": "Delete",
     "noCategorySelected": "No category selected",
-    "groceryCategory0": "Fruit and Vegetables",
-    "groceryCategory1": "Fish, Meat and Dairy",
-    "groceryCategory2": "Frozen",
-    "groceryCategory3": "Dry Goods",
-    "groceryCategory4": "Other",
     "linkBarcode": "Link barcode",
     "unlinkBarcode": "Unlink barcode"
   },

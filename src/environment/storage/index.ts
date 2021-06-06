@@ -10,13 +10,6 @@ export type FamilyDTO = {
   };
 };
 
-export enum GroceryCategoryDTO {
-  FruitVegetables,
-  MeatDairy,
-  Frozen,
-  DryGoods,
-  Other,
-}
 
 export type BarcodeDTO = {
   id: string
@@ -30,8 +23,10 @@ export type GroceryDTO = {
   created: number;
   modified: number;
   name: string;
-  category: GroceryCategoryDTO;
   shopCount: number;
+  shopHistory?: {
+    [shoppingListSize: string]: number
+  }
 };
 
 export type TodoDTO = {
@@ -151,7 +146,6 @@ export type StorageEvent =
     type: "STORAGE:ADD_GROCERY_ERROR";
     error: string;
     name: string;
-    category: GroceryCategoryDTO;
   }
   | {
     type: "STORAGE:DELETE_GROCERY_ERROR";
@@ -160,6 +154,11 @@ export type StorageEvent =
   }
   | {
     type: "STORAGE:INCREASE_GROCERY_SHOP_COUNT_ERROR";
+    id: string;
+    error: string;
+  }
+  | {
+    type: "STORAGE:SHOP_GROCERY_ERROR";
     id: string;
     error: string;
   }
@@ -217,7 +216,6 @@ export interface Storage {
    */
   addGrocery(
     familyId: string,
-    category: GroceryCategoryDTO,
     name: string
   ): void;
   /**
@@ -243,6 +241,12 @@ export interface Storage {
    * @fires STORAGE:DELETE_GROCERY_ERROR
    */
   deleteGrocery(familyId: string, id: string): void;
+  /**
+ *
+ * @fires STORAGE:GROCERIES_UPDATE
+ * @fires STORAGE:SHOP_GROCERY_ERROR
+ */
+  shopGrocery(familyId: string, id: string, shoppingListLength: number): void;
   /**
    *
    * @fires STORAGE:GROCERIES_UPDATE

@@ -1,4 +1,4 @@
-import { useEffect, useReducer } from "react";
+import { useReducer } from "react";
 import {
   createContext,
   match,
@@ -12,7 +12,6 @@ import {
   BarcodeDTO,
   CalendarEventDTO,
   FamilyDTO,
-  GroceryCategoryDTO,
   GroceryDTO,
   StorageEvent,
   TodoDTO,
@@ -21,9 +20,8 @@ import {
 import { useSession, User } from "../SessionFeature";
 import { useDevtools } from "react-states/devtools";
 import { AuthenticationEvent } from "../../environment/authentication";
-import levenshtein from "fast-levenshtein";
 
-export type GroceryCategory = GroceryCategoryDTO;
+
 
 export type Barcodes = {
   [barcodeId: string]: BarcodeDTO;
@@ -50,10 +48,7 @@ export type ViewContext =
     state: "WEEKDAYS";
   }
   | {
-    state: "GROCERIES";
-  }
-  | {
-    state: "SHOPPING_LIST";
+    state: "SHOPPING_LISTS";
   }
   | {
     state: "PLAN_CURRENT_WEEK";
@@ -139,10 +134,7 @@ export type UIEvent =
     type: "VIEW_SELECTED";
     view: ViewContext;
   }
-  | {
-    type: "GROCERY_CATEGORY_TOGGLED";
-    category: GroceryCategory;
-  }
+
   | {
     type: "GROCERY_INPUT_CHANGED";
     input: string;
@@ -150,7 +142,7 @@ export type UIEvent =
   | {
     type: "ADD_GROCERY";
     name: string;
-    category: GroceryCategory;
+
   };
 
 type Event = UIEvent | AuthenticationEvent | StorageEvent;
@@ -310,53 +302,8 @@ export type Props = {
   initialContext?: Context;
 };
 
-const categoryOrder = [
-  GroceryCategoryDTO.FruitVegetables,
-  GroceryCategoryDTO.MeatDairy,
-  GroceryCategoryDTO.Frozen,
-  GroceryCategoryDTO.DryGoods,
-  GroceryCategoryDTO.Other,
-];
-
 export const selectors = {
-  groceriesByCategory: (groceries: Groceries) => {
-    return Object.values(groceries).sort((a, b) => {
-      if (
-        categoryOrder.indexOf(a.category) > categoryOrder.indexOf(b.category)
-      ) {
-        return 1;
-      } else if (
-        categoryOrder.indexOf(a.category) < categoryOrder.indexOf(b.category)
-      ) {
-        return -1;
-      }
 
-      return a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1;
-    });
-  },
-  filterGroceriesByCategory: (
-    groceries: Groceries,
-    category: GroceryCategory
-  ): Grocery[] =>
-    Object.values(groceries)
-      .sort((a, b) => (a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1))
-      .filter((grocery) => grocery.category === category),
-  filterGroceriesByInput: (groceries: Grocery[], input: string) => {
-    if (input) {
-      const lowerCaseInput = input.toLocaleLowerCase();
-
-      return groceries.filter((grocery) => {
-        const lowerCaseGroceryName = grocery.name.toLowerCase();
-
-        return (
-          lowerCaseGroceryName.includes(lowerCaseInput) ||
-          levenshtein.get(grocery.name.toLowerCase(), input.toLowerCase()) < 3
-        );
-      });
-    }
-
-    return groceries;
-  },
   todosByWeekday: (week: Week) => {
     const todosByWeekday: [
       WeekdayTodos,
@@ -403,21 +350,7 @@ export const selectors = {
 
       return 0;
     }),
-  barcodesByGroceryId: (barcodes: Barcodes) =>
-    Object.keys(barcodes).reduce<{ [groceryId: string]: string[] }>(
-      (aggr, barcodeId) => {
-        const barcode = barcodes[barcodeId];
 
-        if (barcode.groceryId) {
-          aggr[barcode.groceryId] = (aggr[barcode.groceryId] || []).concat(barcodeId);
-        }
-
-        return aggr;
-      },
-      {}
-    ),
-  unlinkedBarcodes: (barcodes: Barcodes) =>
-    Object.keys(barcodes).filter((barcodeId) => !barcodes[barcodeId].groceryId)
 };
 
 export const Feature = ({ children, initialContext }: Props) => {

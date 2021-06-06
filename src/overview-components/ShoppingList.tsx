@@ -2,7 +2,7 @@ import { ShoppingCartIcon } from "@heroicons/react/outline";
 import React from "react";
 import { useTranslations } from "next-intl";
 import { Groceries, dashboardSelectors } from "../features/DashboardFeature";
-import { groceryCategoryToBackgroundColor } from "../utils";
+import { shoppingListsSelectors } from "../features/ShoppingListsFeature";
 
 const GroceryListLayout = ({ children }: { children: React.ReactNode }) => (
   <div className="grid grid-cols-1 lg:col-span-2 gap-4 min-h-full">
@@ -34,9 +34,8 @@ export const GroceryListSkeleton = () => {
 
 export const ShoppingList = React.memo(
   ({ groceries }: { groceries: Groceries }) => {
-    const groceriesByCategory = dashboardSelectors
-      .groceriesByCategory(groceries)
-      .filter((grocery) => Boolean(grocery.shopCount));
+    const groceriesToShop = shoppingListsSelectors
+      .groceriesToShop(groceries)
     const t = useTranslations("ShoppingList");
 
     return (
@@ -49,24 +48,18 @@ export const ShoppingList = React.memo(
         </div>
         <div className="flow-root mt-6 flex-grow">
           <ul className="-my-5">
-            {groceriesByCategory.map((grocery) => (
+            {groceriesToShop.map((grocery) => (
               <li key={grocery.id} className="py-2">
                 <div className="flex items-center">
-                  <span className="flex items-center truncate space-x-3">
-                    <span
-                      className={`bg-${groceryCategoryToBackgroundColor(
-                        grocery.category
-                      )}-500 w-2.5 h-2.5 flex-shrink-0 rounded-full`}
-                      aria-hidden="true"
-                    />
+                  <span className="font-normal text-gray-500">
+                    {grocery.shopCount}
+                  </span>
+                  <span className="flex items-center truncate space-x-3 ml-3x ">
                     <span className="font-medium truncate leading-6 text-lg">
                       {grocery.name}
                     </span>
                   </span>
                   <span className="flex-grow" />
-                  <span className="font-normal text-gray-500">
-                    {grocery.shopCount}
-                  </span>
                 </div>
               </li>
             ))}

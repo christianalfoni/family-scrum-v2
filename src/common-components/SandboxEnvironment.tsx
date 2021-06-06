@@ -17,7 +17,7 @@ export default function SandboxEnvironment({
         authentication: createAuthentication(),
         storage: createStorage(),
         preventScreenSleep: createPreventScreenSleep(),
-        version: createVersion("1.0.0", "1.2.0"),
+        version: createVersion("1.0.0", "1.0.0"),
         visibility: createVisibility(),
       }}
     >

@@ -1,11 +1,11 @@
 import { match } from "react-states";
 import { useTranslations } from "next-intl";
 import { useDasbhoard } from "../features/DashboardFeature";
-import { ShoppingListFeature } from "../features/ShoppingListFeature";
-import { GroceriesView } from "./GroceriesView";
+import { ShoppingListsFeature } from "../features/ShoppingListsFeature";
+import { EditGroceriesShoppingList } from "./EditGroceriesShoppingList";
 import { DashboardView, DashboardContentSkeleton } from "./DashboardView";
-import { ShoppingListView } from "./ShoppingListView";
-import { GroceriesFeature } from "../features/GroceriesFeature";
+import { ShoppingListsView } from "./ShoppingListsView";
+import { EditGroceriesShoppingFeature } from "../features/EditGroceriesShoppingFeature";
 import { PlanWeekView } from "./PlanWeekView";
 import { PlanWeekFeature } from "../features/PlanWeekFeature";
 import { AddTodoFeature } from "../features/AddTodoFeature";
@@ -24,7 +24,6 @@ export const Dashboard = () => {
         REQUIRING_AUTHENTICATION: () => <DashboardContentSkeleton />,
         LOADED: ({
           family,
-          groceries,
           view,
           todos,
           currentWeek,
@@ -32,13 +31,12 @@ export const Dashboard = () => {
           previousWeek,
           events,
           user,
-          barcodes
         }) => {
           return match(view, {
-            SHOPPING_LIST: () => (
-              <ShoppingListFeature familyId={family.id}>
-                <ShoppingListView
-                  groceries={groceries}
+            SHOPPING_LISTS: () => (
+              <ShoppingListsFeature familyId={family.id}>
+                <ShoppingListsView
+                  familyId={family.id}
                   onBackClick={() =>
                     send({
                       type: "VIEW_SELECTED",
@@ -48,25 +46,9 @@ export const Dashboard = () => {
                     })
                   }
                 />
-              </ShoppingListFeature>
+              </ShoppingListsFeature>
             ),
             WEEKDAYS: () => <DashboardView />,
-            GROCERIES: () => (
-              <GroceriesFeature familyId={family.id}>
-                <GroceriesView
-                  barcodes={barcodes}
-                  groceries={groceries}
-                  onBackClick={() =>
-                    send({
-                      type: "VIEW_SELECTED",
-                      view: {
-                        state: "WEEKDAYS",
-                      },
-                    })
-                  }
-                />
-              </GroceriesFeature>
-            ),
             PLAN_CURRENT_WEEK: () => (
               <PlanWeekFeature user={user} weekId={currentWeek.id}>
                 <PlanWeekView

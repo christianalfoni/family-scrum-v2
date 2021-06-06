@@ -1,4 +1,5 @@
 import { useReducer } from "react";
+import levenshtein from "fast-levenshtein";
 import {
   createContext,
   createHook,
@@ -7,26 +8,21 @@ import {
 } from "react-states";
 import { useDevtools } from "react-states/devtools";
 import { useEnvironment } from "../../environment";
-import { GroceryCategoryDTO as GroceryCategory } from "../../environment/storage";
-
-export { GroceryCategory };
+import { Barcodes, Groceries, Grocery } from "../DashboardFeature/Feature";
 
 type Context =
   | {
     state: "FILTERED";
-    category: GroceryCategory;
     input: string;
   }
   | {
     state: "UNFILTERED";
-    input: string;
   };
 
 type TransientContext =
   | {
     state: "ADDING_GROCERY";
     name: string;
-    category: GroceryCategory;
   }
   | {
     state: "DELETING_GROCERY";
@@ -48,11 +44,20 @@ type TransientContext =
   | {
     state: 'UNLINKING_BARCODE'
     barcodeId: string
+  } | {
+    state: 'SHOPPING_GROCERY'
+    groceryId: string
+    shoppingListLength: number
   }
 
 type UIEvent =
   | {
     type: "ADD_GROCERY";
+  }
+  | {
+    type: 'SHOP_GROCERY'
+    groceryId: string
+    shoppingListLength: number
   }
   | {
     type: "DELETE_GROCERY";
@@ -61,10 +66,6 @@ type UIEvent =
   | {
     type: "GROCERY_INPUT_CHANGED";
     input: string;
-  }
-  | {
-    type: "GROCERY_CATEGORY_TOGGLED";
-    category: GroceryCategory;
   }
   | {
     type: "INCREASE_SHOP_COUNT";
@@ -114,47 +115,26 @@ const reducer = createReducer<Context, Event, TransientContext>(
   {
     FILTERED: {
       ...defaultHandlers,
-      GROCERY_CATEGORY_TOGGLED: (
-        { category },
-        { input, category: existingCategory }
-      ) =>
-        existingCategory === category
-          ? {
-            state: "UNFILTERED",
-            input,
-          }
-          : {
-            state: "FILTERED",
-            input,
-            category,
-          },
       GROCERY_INPUT_CHANGED: ({ input }, context) => ({
         ...context,
         input,
       }),
-      ADD_GROCERY: (_, { category, input }) => ({
+      ADD_GROCERY: (_, { input }) => ({
         state: "ADDING_GROCERY",
-        category,
         name: input,
       }),
     },
     UNFILTERED: {
       ...defaultHandlers,
-      GROCERY_CATEGORY_TOGGLED: ({ category }, { input }) => ({
-        state: "FILTERED",
+      GROCERY_INPUT_CHANGED: ({ input }, context) => input ? ({
+        state: 'FILTERED',
         input,
-        category,
-      }),
-      GROCERY_INPUT_CHANGED: ({ input }, context) => ({
-        ...context,
-        input,
-      }),
+      }) : context,
     },
   },
   {
-    ADDING_GROCERY: ({ category }) => ({
-      state: "FILTERED",
-      category,
+    ADDING_GROCERY: () => ({
+      state: "UNFILTERED",
       input: "",
     }),
     DELETING_GROCERY: (_, prevContext) => prevContext,
@@ -162,17 +142,60 @@ const reducer = createReducer<Context, Event, TransientContext>(
     RESETTING_SHOP_COUNT: (_, prevContext) => prevContext,
     LINKING_BARCODE: (_, prevContext) => prevContext,
     UNLINKING_BARCODE: (_, prevContext) => prevContext,
+    SHOPPING_GROCERY: (_, prevContext) => prevContext
   }
 );
 
 export const useFeature = createHook(featureContext);
+
+export const selectors = {
+  barcodesByGroceryId: (barcodes: Barcodes) =>
+    Object.keys(barcodes).reduce<{ [groceryId: string]: string[] }>(
+      (aggr, barcodeId) => {
+        const barcode = barcodes[barcodeId];
+
+        if (barcode.groceryId) {
+          aggr[barcode.groceryId] = (aggr[barcode.groceryId] || []).concat(barcodeId);
+        }
+
+        return aggr;
+      },
+      {}
+    ),
+  unlinkedBarcodes: (barcodes: Barcodes) =>
+    Object.keys(barcodes).filter((barcodeId) => !barcodes[barcodeId].groceryId),
+  sortedGroceriesByName: (groceries: Groceries) => Object.values(groceries).sort((a, b) => {
+    if (a.name.toLowerCase() > b.name.toLowerCase()) {
+      return 1
+    } else if (a.name.toLowerCase() < b.name.toLowerCase()) {
+      return -1
+    }
+
+    return 0
+  }),
+  filteredGroceriesByInput: (groceries: Grocery[], input: string) => {
+    if (input) {
+      const lowerCaseInput = input.toLocaleLowerCase();
+
+      return groceries.filter((grocery) => {
+        const lowerCaseGroceryName = grocery.name.toLowerCase();
+
+        return (
+          lowerCaseGroceryName.includes(lowerCaseInput) ||
+          levenshtein.get(grocery.name.toLowerCase(), input.toLowerCase()) < 3
+        );
+      });
+    }
+
+    return groceries;
+  },
+}
 
 export const Feature = ({
   children,
   familyId,
   initialContext = {
     state: "UNFILTERED",
-    input: "",
   },
 }: {
   children: React.ReactNode;
@@ -188,8 +211,8 @@ export const Feature = ({
 
   const [context] = feature;
 
-  useEnterEffect(context, "ADDING_GROCERY", ({ category, name }) => {
-    storage.addGrocery(familyId, category, name);
+  useEnterEffect(context, "ADDING_GROCERY", ({ name }) => {
+    storage.addGrocery(familyId, name);
   });
 
   useEnterEffect(context, "INCREASING_SHOP_COUNT", ({ id }) => {
@@ -211,6 +234,10 @@ export const Feature = ({
   useEnterEffect(context, 'DELETING_GROCERY', ({ groceryId }) => {
     storage.deleteGrocery(familyId, groceryId);
   });
+
+  useEnterEffect(context, 'SHOPPING_GROCERY', ({ groceryId, shoppingListLength }) => {
+    storage.shopGrocery(familyId, groceryId, shoppingListLength)
+  })
 
   return (
     <featureContext.Provider value={feature}>

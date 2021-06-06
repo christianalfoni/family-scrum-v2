@@ -48,5 +48,8 @@ export const createStorage = (): Storage => {
     unlinkBarcode() {
       throw shouldNotCallError;
     },
+    shopGrocery() {
+      throw shouldNotCallError;
+    }
   };
 };

@@ -1,10 +1,5 @@
 {
   "GroceriesToolbar": {
-    "groceryCategory0": "Fruit and Vegetables",
-    "groceryCategory1": "Fish, Meat and Dairy",
-    "groceryCategory2": "Frozen",
-    "groceryCategory3": "Dry Goods",
-    "groceryCategory4": "Other",
     "filterNewGrocery": "Filter/New Grocery",
     "add": "Add"
   },

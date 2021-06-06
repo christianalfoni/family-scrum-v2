@@ -1,7 +1,6 @@
 import { events as reactStatesEvents } from "react-states";
 import {
   GroceryDTO,
-  GroceryCategoryDTO,
   Storage,
   WeekDTO,
   TodoDTO,
@@ -58,7 +57,6 @@ export const createStorage = (): Storage => {
       id: "grocery_0",
       created: Date.now(),
       modified: Date.now(),
-      category: GroceryCategoryDTO.DryGoods,
       name: "Gryn",
       shopCount: 1,
     },
@@ -151,12 +149,11 @@ export const createStorage = (): Storage => {
         previousWeek: weeks[previousWeekId],
       });
     },
-    addGrocery(_, category, name) {
+    addGrocery(_, name) {
       const newGrocery: GroceryDTO = {
         id: `grocery_${Object.keys(groceries).length}`,
         created: Date.now(),
         modified: Date.now(),
-        category,
         name,
         shopCount: 0,
       };
@@ -369,5 +366,25 @@ export const createStorage = (): Storage => {
         barcodes,
       });
     },
+    shopGrocery(familyId, id, shoppingListLength) {
+      const currentShoppingListLength = Object.values(groceries).filter((grocery) => Boolean(grocery.shopCount)).length
+
+      groceries = {
+        ...groceries,
+        [id]: {
+          ...groceries[id],
+          shopCount: 0,
+          shopHistory: {
+            ...groceries[id].shopHistory,
+            [shoppingListLength]: currentShoppingListLength
+          }
+        },
+      };
+
+      this.events.emit({
+        type: "STORAGE:GROCERIES_UPDATE",
+        groceries,
+      });
+    }
   };
 };

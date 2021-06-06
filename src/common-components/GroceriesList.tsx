@@ -1,11 +1,10 @@
 import * as React from "react";
 import { Menu, Transition } from "@headlessui/react";
-import { dashboardSelectors } from "../features/DashboardFeature";
+import { editGroceriesShoppingSelectors } from "../features/EditGroceriesShoppingFeature";
 import { DotsVerticalIcon, QrcodeIcon } from "@heroicons/react/outline";
-import { groceryCategoryToBackgroundColor } from "../utils";
 
 import { Groceries, Barcodes } from "../features/DashboardFeature/Feature";
-import { useGroceries } from "../features/GroceriesFeature";
+import { useEditGroceriesShopping } from "../features/EditGroceriesShoppingFeature";
 import { match } from "react-states";
 import { useTranslations } from "next-intl";
 
@@ -16,29 +15,25 @@ export const GroceriesList = ({
   groceries: Groceries;
   barcodes: Barcodes;
 }) => {
-  const [groceriesFeature, send] = useGroceries();
+  const [groceriesFeature, send] = useEditGroceriesShopping();
   const t = useTranslations("GroceriesView");
   const sortedAndFilteredGroceries = match(groceriesFeature, {
-    FILTERED: ({ category, input }) =>
+    FILTERED: ({ input }) =>
       input
-        ? dashboardSelectors.filterGroceriesByInput(
+        ? editGroceriesShoppingSelectors.filteredGroceriesByInput(
           Object.values(groceries),
           input
         )
-        : dashboardSelectors.filterGroceriesByCategory(groceries, category),
-    UNFILTERED: ({ input }) =>
-      dashboardSelectors.filterGroceriesByInput(
-        dashboardSelectors.groceriesByCategory(groceries),
-        input
-      ),
+        : editGroceriesShoppingSelectors.sortedGroceriesByName(groceries),
+    UNFILTERED: () =>
+      editGroceriesShoppingSelectors.sortedGroceriesByName(groceries)
   });
-  const barcodesByGroceryId = dashboardSelectors.barcodesByGroceryId(barcodes);
-  const unlinkedBarcodes = dashboardSelectors.unlinkedBarcodes(barcodes);
+  const barcodesByGroceryId = editGroceriesShoppingSelectors.barcodesByGroceryId(barcodes);
+  const unlinkedBarcodes = editGroceriesShoppingSelectors.unlinkedBarcodes(barcodes);
 
   return (
     <ul className="relative z-0 divide-y divide-gray-200 border-b border-gray-200 overflow-y-auto h-full">
       {sortedAndFilteredGroceries.map((grocery) => {
-        const color = groceryCategoryToBackgroundColor(grocery.category);
         return (
           <li
             key={grocery.id}
@@ -51,16 +46,6 @@ export const GroceriesList = ({
             className="relative pl-4 pr-6 py-5 hover:bg-gray-50 sm:py-6 sm:pl-6 lg:pl-8 xl:pl-6"
           >
             <div className="flex items-center">
-              <span
-                className={`bg-${color}-300 h-4 w-4 rounded-full flex items-center justify-center`}
-                aria-hidden="true"
-              >
-                <span className={`bg-${color}-500 h-2 w-2 rounded-full`} />
-              </span>
-
-              {barcodesByGroceryId[grocery.id] ? (
-                <QrcodeIcon className="w-4 h-4 ml-3" />
-              ) : null}
 
               <span className="font-normal ml-3 text-gray-500">
                 {grocery.shopCount}
@@ -71,6 +56,11 @@ export const GroceriesList = ({
                   {grocery.name}
                 </h2>
               </span>
+
+
+              {barcodesByGroceryId[grocery.id] ? (
+                <QrcodeIcon className="w-4 h-4 ml-3" />
+              ) : null}
 
               <Menu as="div" className="ml-auto flex-shrink-0 pr-2" onClick={(event: any) => {
                 event.stopPropagation()

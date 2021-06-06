@@ -29,11 +29,6 @@
     "resetShopCount": "Tilbakestill antall",
     "delete": "Slett",
     "noCategorySelected": "Ingen kategori valgt",
-    "groceryCategory0": "Frukt og Grønt",
-    "groceryCategory1": "Fisk, Kjøtt og Meieri",
-    "groceryCategory2": "Frossent",
-    "groceryCategory3": "Tørrvarer",
-    "groceryCategory4": "Annet",
     "linkBarcode": "Koble strekkode",
     "unlinkBarcode": "Frakoble strekkode"
   },
