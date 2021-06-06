@@ -1,8 +1,8 @@
 import { ShoppingCartIcon } from "@heroicons/react/outline";
 import React from "react";
 import { useTranslations } from "next-intl";
-import { Groceries, dashboardSelectors } from "../features/DashboardFeature";
-import { shoppingListsSelectors } from "../features/ShoppingListsFeature";
+import { Groceries } from "../features/DashboardFeature";
+import { groceriesShoppingSelectors } from "../features/GroceriesShoppingFeature";
 
 const GroceryListLayout = ({ children }: { children: React.ReactNode }) => (
   <div className="grid grid-cols-1 lg:col-span-2 gap-4 min-h-full">
@@ -34,7 +34,7 @@ export const GroceryListSkeleton = () => {
 
 export const ShoppingList = React.memo(
   ({ groceries }: { groceries: Groceries }) => {
-    const groceriesToShop = shoppingListsSelectors
+    const groceriesToShop = groceriesShoppingSelectors
       .groceriesToShop(groceries)
     const t = useTranslations("ShoppingList");
 
