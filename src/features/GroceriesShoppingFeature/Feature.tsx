@@ -12,7 +12,9 @@ import { Groceries } from "../DashboardFeature/Feature";
 
 type Context =
     | {
-        state: "SHOPPING";
+        state: "LIST";
+    } | {
+        state: 'NO_SLEEP'
     }
 
 type TransientContext = {
@@ -24,6 +26,8 @@ type UIEvent =
     {
         type: 'SHOP_GROCERY'
         groceryId: string
+    } | {
+        type: 'TOGGLE_NO_SLEEP'
     }
 
 type Event = UIEvent;
@@ -33,12 +37,20 @@ const featureContext = createContext<Context, UIEvent, TransientContext>();
 
 const reducer = createReducer<Context, Event, TransientContext>(
     {
-        SHOPPING: {
+        LIST: {
             SHOP_GROCERY: ({ groceryId }) => ({
                 state: 'SHOPPING_GROCERY',
                 groceryId
-            })
-        }
+            }),
+            TOGGLE_NO_SLEEP: () => ({ state: 'NO_SLEEP' })
+        },
+        NO_SLEEP: {
+            SHOP_GROCERY: ({ groceryId }) => ({
+                state: 'SHOPPING_GROCERY',
+                groceryId
+            }),
+            TOGGLE_NO_SLEEP: () => ({ state: 'LIST' })
+        },
     },
     {
 
@@ -49,6 +61,9 @@ const reducer = createReducer<Context, Event, TransientContext>(
 export const useFeature = createHook(featureContext);
 
 export const selectors = {
+    shopCount(groceries: Groceries) {
+        return Object.values(groceries).filter((grocery) => Boolean(grocery.shopCount)).length
+    },
     groceriesToShop(groceries: Groceries) {
         const groceriesToShop = Object.values(groceries).filter((grocery) => Boolean(grocery.shopCount))
 
@@ -92,7 +107,7 @@ export const Feature = ({
     children,
     familyId,
     initialContext = {
-        state: "SHOPPING",
+        state: "LIST",
     },
 }: {
     children: React.ReactNode;
@@ -103,11 +118,12 @@ export const Feature = ({
     const [dashboardContext] = useDasbhoard('LOADED')
     const feature = useReducer(reducer, initialContext);
     // We get the initial length of the grocery list, which is kept
-    // as long as this feature is active
+    // as long as this feature is active. This is used to build history
+    // of when a grocery was picked
     const [shoppingListLength] = useState(() => Object.values(dashboardContext.groceries).filter((grocery) => Boolean(grocery.shopCount)).length)
 
     if (process.env.NODE_ENV === "development" && process.browser) {
-        useDevtools("Groceries", feature);
+        useDevtools("GroceriesShopping", feature);
     }
 
     const [context] = feature;

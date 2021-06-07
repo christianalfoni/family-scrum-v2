@@ -9,6 +9,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import SwiperCore, { Controller } from "swiper";
 import { dashboardSelectors, useDasbhoard } from "../features/DashboardFeature";
 import { getCurrentDayIndex, weekdays } from "../utils";
+import { groceriesShoppingSelectors } from "../features/GroceriesShoppingFeature";
 
 
 SwiperCore.use([Controller]);
@@ -75,7 +76,15 @@ export const DashboardContentSkeleton = () => {
           onClick={() => { }}
           color="bg-red-500"
         >
-          {t("goShopping")}
+          {t("goShopping")} (0)
+        </MenuCard>
+        <MenuCard
+          disabled
+          Icon={ShoppingCartIcon}
+          onClick={() => { }}
+          color="bg-yellow-500"
+        >
+          {t("groceries")}
         </MenuCard>
         <MenuCard
           disabled
@@ -161,13 +170,27 @@ export const DashboardView = () => {
             send({
               type: "VIEW_SELECTED",
               view: {
-                state: "SHOPPING_LISTS",
+                state: "GROCERIES_SHOPPING",
               },
             });
           }}
           color="bg-red-500"
         >
-          {t("goShopping")}
+          {t("goShopping")} ({groceriesShoppingSelectors.shopCount(groceries)})
+        </MenuCard>
+        <MenuCard
+          Icon={ShoppingCartIcon}
+          onClick={() => {
+            send({
+              type: "VIEW_SELECTED",
+              view: {
+                state: "GROCERIES",
+              },
+            });
+          }}
+          color="bg-yellow-500"
+        >
+          {t("groceries")}
         </MenuCard>
         <MenuCard
           Icon={CalendarIcon}

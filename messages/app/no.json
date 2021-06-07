@@ -35,7 +35,7 @@
   "PlanWeekView": {
     "archive": "Arkiver"
   },
-  "ShoppingListView": {
+  "GroceriesShoppingView": {
     "shoppingList": "Handleliste"
   }
 }

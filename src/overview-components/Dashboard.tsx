@@ -1,8 +1,8 @@
 import React from "react";
 import { match } from "react-states";
 import { useDasbhoard } from "../features/DashboardFeature";
-import { EditGroceriesShoppingFeature } from "../features/EditGroceriesShoppingFeature";
-import { ShoppingListsFeature } from "../features/ShoppingListsFeature";
+import { GroceriesFeature } from "../features/GroceriesFeature";
+import { GroceriesShoppingFeature } from "../features/GroceriesShoppingFeature";
 import { WeekdaysFeature } from "../features/WeekdaysFeature";
 import { ShoppingList, GroceryListSkeleton } from "./ShoppingList";
 import {
@@ -41,13 +41,14 @@ export const Dashboard = () => {
     LOADED: ({ groceries, todos, currentWeek, family, events, view, barcodes }) => {
       return (
         <DashboardLayout>
-          <ShoppingListsFeature familyId={family.id}>
+          <GroceriesShoppingFeature familyId={family.id}>
             <ShoppingList groceries={groceries} />
-          </ShoppingListsFeature>
+          </GroceriesShoppingFeature>
           <MainContentLayout>
             {match(view, {
               // Not available in this version of the app
-              SHOPPING_LISTS: () => null,
+              GROCERIES_SHOPPING: () => null,
+              GROCERIES: () => null,
               PLAN_CURRENT_WEEK: () => null,
               PLAN_NEXT_WEEK: () => null,
               ADD_TODO: () => null,

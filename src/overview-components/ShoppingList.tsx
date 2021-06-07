@@ -54,8 +54,8 @@ export const ShoppingList = React.memo(
                   <span className="font-normal text-gray-500">
                     {grocery.shopCount}
                   </span>
-                  <span className="flex items-center truncate space-x-3 ml-3x ">
-                    <span className="font-medium truncate leading-6 text-lg">
+                  <span className="flex items-center truncate space-x-3 ml-3 ">
+                    <span className="font-medium truncate leading-6 text-md">
                       {grocery.name}
                     </span>
                   </span>

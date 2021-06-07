@@ -48,7 +48,10 @@ export type ViewContext =
     state: "WEEKDAYS";
   }
   | {
-    state: "SHOPPING_LISTS";
+    state: "GROCERIES_SHOPPING";
+  }
+  | {
+    state: "GROCERIES";
   }
   | {
     state: "PLAN_CURRENT_WEEK";

@@ -1,10 +1,10 @@
 import * as React from "react";
 import { Menu, Transition } from "@headlessui/react";
-import { editGroceriesShoppingSelectors } from "../features/EditGroceriesShoppingFeature";
+import { groceriesSelectors } from "../features/GroceriesFeature";
 import { DotsVerticalIcon, QrcodeIcon } from "@heroicons/react/outline";
 
 import { Groceries, Barcodes } from "../features/DashboardFeature/Feature";
-import { useEditGroceriesShopping } from "../features/EditGroceriesShoppingFeature";
+import { useGroceries } from "../features/GroceriesFeature";
 import { match } from "react-states";
 import { useTranslations } from "next-intl";
 
@@ -15,21 +15,21 @@ export const GroceriesList = ({
   groceries: Groceries;
   barcodes: Barcodes;
 }) => {
-  const [groceriesFeature, send] = useEditGroceriesShopping();
+  const [groceriesFeature, send] = useGroceries();
   const t = useTranslations("GroceriesView");
   const sortedAndFilteredGroceries = match(groceriesFeature, {
     FILTERED: ({ input }) =>
       input
-        ? editGroceriesShoppingSelectors.filteredGroceriesByInput(
+        ? groceriesSelectors.filteredGroceriesByInput(
           Object.values(groceries),
           input
         )
-        : editGroceriesShoppingSelectors.sortedGroceriesByName(groceries),
+        : groceriesSelectors.sortedGroceriesByName(groceries),
     UNFILTERED: () =>
-      editGroceriesShoppingSelectors.sortedGroceriesByName(groceries)
+      groceriesSelectors.sortedGroceriesByName(groceries)
   });
-  const barcodesByGroceryId = editGroceriesShoppingSelectors.barcodesByGroceryId(barcodes);
-  const unlinkedBarcodes = editGroceriesShoppingSelectors.unlinkedBarcodes(barcodes);
+  const barcodesByGroceryId = groceriesSelectors.barcodesByGroceryId(barcodes);
+  const unlinkedBarcodes = groceriesSelectors.unlinkedBarcodes(barcodes);
 
   return (
     <ul className="relative z-0 divide-y divide-gray-200 border-b border-gray-200 overflow-y-auto h-full">
