@@ -50,6 +50,9 @@ export const createStorage = (): Storage => {
     },
     shopGrocery() {
       throw shouldNotCallError;
-    }
+    },
+    addImageToGrocery() {
+      throw shouldNotCallError;
+    },
   };
 };

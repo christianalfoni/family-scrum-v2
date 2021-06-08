@@ -10,13 +10,12 @@ export type FamilyDTO = {
   };
 };
 
-
 export type BarcodeDTO = {
-  id: string
+  id: string;
   created: number;
   modified: number;
-  groceryId: string | null
-}
+  groceryId: string | null;
+};
 
 export type GroceryDTO = {
   id: string;
@@ -24,9 +23,10 @@ export type GroceryDTO = {
   modified: number;
   name: string;
   shopCount: number;
+  image?: string;
   shopHistory?: {
-    [shoppingListSize: string]: number
-  }
+    [shoppingListSize: string]: number;
+  };
 };
 
 export type TodoDTO = {
@@ -69,127 +69,132 @@ export type WeekDTO = {
 
 export type StorageEvent =
   | {
-    type: "STORAGE:FETCH_FAMILY_DATA_SUCCESS";
-    family: FamilyDTO;
-    groceries: {
-      [groceryId: string]: GroceryDTO;
+      type: "STORAGE:FETCH_FAMILY_DATA_SUCCESS";
+      family: FamilyDTO;
+      groceries: {
+        [groceryId: string]: GroceryDTO;
+      };
+      todos: {
+        [todoId: string]: TodoDTO;
+      };
+      events: {
+        [eventId: string]: CalendarEventDTO;
+      };
+      barcodes: {
+        [barcodeId: string]: BarcodeDTO;
+      };
+    }
+  | {
+      type: "STORAGE:FETCH_FAMILY_DATA_ERROR";
+      error: string;
+    }
+  | {
+      type: "STORAGE:WEEKS_UPDATE";
+      previousWeek: WeekDTO;
+      currentWeek: WeekDTO;
+      nextWeek: WeekDTO;
+    }
+  | {
+      type: "STORAGE:BARCODES_UPDATE";
+      barcodes: {
+        [barcodeId: string]: BarcodeDTO;
+      };
+    }
+  | {
+      type: "STORAGE:LINK_BARCODE_ERROR";
+      error: string;
+    }
+  | {
+      type: "STORAGE:UNLINK_BARCODE_ERROR";
+      error: string;
+    }
+  | {
+      type: "STORAGE:FETCH_WEEKS_ERROR";
+      error: string;
+    }
+  | {
+      type: "STORAGE:EVENTS_UPDATE";
+      events: {
+        [eventId: string]: CalendarEventDTO;
+      };
+    }
+  | {
+      type: "STORAGE:ADD_EVENT_ERROR";
+      error: string;
+      description: string;
+      date: number;
+      userId: string;
+    }
+  | {
+      type: "STORAGE:TODOS_UPDATE";
+      todos: {
+        [todoId: string]: TodoDTO;
+      };
+    }
+  | {
+      type: "STORAGE:ADD_TODO_ERROR";
+      error: string;
+      description: string;
+    }
+  | {
+      type: "STORAGE:GROCERIES_UPDATE";
+      groceries: {
+        [groceryId: string]: GroceryDTO;
+      };
+    }
+  | {
+      type: "STORAGE:ADD_GROCERY_ERROR";
+      error: string;
+      name: string;
+    }
+  | {
+      type: "STORAGE:DELETE_GROCERY_ERROR";
+      id: string;
+      error: string;
+    }
+  | {
+      type: "STORAGE:INCREASE_GROCERY_SHOP_COUNT_ERROR";
+      id: string;
+      error: string;
+    }
+  | {
+      type: "STORAGE:SHOP_GROCERY_ERROR";
+      id: string;
+      error: string;
+    }
+  | {
+      type: "STORAGE:RESET_GROCERY_SHOP_COUNT_ERROR";
+      id: string;
+      error: string;
+    }
+  | {
+      type: "STORAGE:ARCHIVE_TODO_ERROR";
+      id: string;
+      error: string;
+    }
+  | {
+      type: "STORAGE:ARCHIVE_EVENT_ERROR";
+      id: string;
+      error: string;
+    }
+  | {
+      type: "STORAGE:TOGGLE_EVENT_PARTICIPATION_ERROR";
+      eventId: string;
+      userId: string;
+      error: string;
+    }
+  | {
+      type: "STORAGE:SET_WEEK_TODO_ACTIVITY_ERROR";
+      weekId: string;
+      todoId: string;
+      userId: string;
+      error: string;
+    }
+  | {
+      type: "STORAGE:ADD_IMAGE_TO_GROCERY_ERROR";
+      groceryId: string;
+      error: string;
     };
-    todos: {
-      [todoId: string]: TodoDTO;
-    };
-    events: {
-      [eventId: string]: CalendarEventDTO;
-    };
-    barcodes: {
-      [barcodeId: string]: BarcodeDTO
-    };
-  }
-  | {
-    type: "STORAGE:FETCH_FAMILY_DATA_ERROR";
-    error: string;
-  }
-  | {
-    type: "STORAGE:WEEKS_UPDATE";
-    previousWeek: WeekDTO;
-    currentWeek: WeekDTO;
-    nextWeek: WeekDTO;
-  }
-  | {
-    type: "STORAGE:BARCODES_UPDATE";
-    barcodes: {
-      [barcodeId: string]: BarcodeDTO
-    };
-  }
-  | {
-    type: "STORAGE:LINK_BARCODE_ERROR";
-    error: string;
-  }
-  | {
-    type: "STORAGE:UNLINK_BARCODE_ERROR";
-    error: string;
-  }
-  | {
-    type: "STORAGE:FETCH_WEEKS_ERROR";
-    error: string;
-  }
-  | {
-    type: "STORAGE:EVENTS_UPDATE";
-    events: {
-      [eventId: string]: CalendarEventDTO;
-    };
-  }
-  | {
-    type: "STORAGE:ADD_EVENT_ERROR";
-    error: string;
-    description: string;
-    date: number;
-    userId: string;
-  }
-  | {
-    type: "STORAGE:TODOS_UPDATE";
-    todos: {
-      [todoId: string]: TodoDTO;
-    };
-  }
-  | {
-    type: "STORAGE:ADD_TODO_ERROR";
-    error: string;
-    description: string;
-  }
-  | {
-    type: "STORAGE:GROCERIES_UPDATE";
-    groceries: {
-      [groceryId: string]: GroceryDTO;
-    };
-  }
-  | {
-    type: "STORAGE:ADD_GROCERY_ERROR";
-    error: string;
-    name: string;
-  }
-  | {
-    type: "STORAGE:DELETE_GROCERY_ERROR";
-    id: string;
-    error: string;
-  }
-  | {
-    type: "STORAGE:INCREASE_GROCERY_SHOP_COUNT_ERROR";
-    id: string;
-    error: string;
-  }
-  | {
-    type: "STORAGE:SHOP_GROCERY_ERROR";
-    id: string;
-    error: string;
-  }
-  | {
-    type: "STORAGE:RESET_GROCERY_SHOP_COUNT_ERROR";
-    id: string;
-    error: string;
-  }
-  | {
-    type: "STORAGE:ARCHIVE_TODO_ERROR";
-    id: string;
-    error: string;
-  }
-  | {
-    type: "STORAGE:ARCHIVE_EVENT_ERROR";
-    id: string;
-    error: string;
-  }
-  | {
-    type: "STORAGE:TOGGLE_EVENT_PARTICIPATION_ERROR";
-    eventId: string;
-    userId: string;
-    error: string;
-  }
-  | {
-    type: "STORAGE:SET_WEEK_TODO_ACTIVITY_ERROR";
-    weekId: string;
-    todoId: string;
-    userId: string;
-    error: string;
-  };
 
 export interface Storage {
   events: Events<StorageEvent>;
@@ -214,10 +219,7 @@ export interface Storage {
    * @fires STORAGE:GROCERIES_UPDATE
    * @fires STORAGE:ADD_GROCERY_ERROR
    */
-  addGrocery(
-    familyId: string,
-    name: string
-  ): void;
+  addGrocery(familyId: string, name: string): void;
   /**
    *
    * @fires STORAGE:TODOS_UPDATE
@@ -242,10 +244,10 @@ export interface Storage {
    */
   deleteGrocery(familyId: string, id: string): void;
   /**
- *
- * @fires STORAGE:GROCERIES_UPDATE
- * @fires STORAGE:SHOP_GROCERY_ERROR
- */
+   *
+   * @fires STORAGE:GROCERIES_UPDATE
+   * @fires STORAGE:SHOP_GROCERY_ERROR
+   */
   shopGrocery(familyId: string, id: string, shoppingListLength: number): void;
   /**
    *
@@ -305,4 +307,9 @@ export interface Storage {
    * @fires STORAGE:UNLINK_BARCODE_ERROR
    */
   unlinkBarcode(familyId: string, barcodeId: string): void;
+  /**
+   * @fires STORAGE:GROCERIES_UPDATE
+   * @fires STORAGE:ADD_IMAGE_TO_GROCERY_ERROR
+   */
+  addImageToGrocery(familyId: string, groceryId: string, src: string): void;
 }

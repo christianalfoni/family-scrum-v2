@@ -12,76 +12,79 @@ import { Barcodes, Groceries, Grocery } from "../DashboardFeature/Feature";
 
 type Context =
   | {
-    state: "FILTERED";
-    input: string;
-  }
+      state: "FILTERED";
+      input: string;
+    }
   | {
-    state: "UNFILTERED";
-  };
+      state: "UNFILTERED";
+    };
 
 type TransientContext =
   | {
-    state: "ADDING_GROCERY";
-    name: string;
-  }
+      state: "ADDING_GROCERY";
+      name: string;
+    }
   | {
-    state: "DELETING_GROCERY";
-    groceryId: string
-  }
+      state: "DELETING_GROCERY";
+      groceryId: string;
+    }
   | {
-    state: "INCREASING_SHOP_COUNT";
-    id: string;
-  }
+      state: "INCREASING_SHOP_COUNT";
+      id: string;
+    }
   | {
-    state: "RESETTING_SHOP_COUNT";
-    id: string;
-  }
+      state: "RESETTING_SHOP_COUNT";
+      id: string;
+    }
   | {
-    state: 'LINKING_BARCODE'
-    barcodeId: string
-    groceryId: string
-  }
+      state: "LINKING_BARCODE";
+      barcodeId: string;
+      groceryId: string;
+    }
   | {
-    state: 'UNLINKING_BARCODE'
-    barcodeId: string
-  } | {
-    state: 'SHOPPING_GROCERY'
-    groceryId: string
-    shoppingListLength: number
-  }
+      state: "UNLINKING_BARCODE";
+      barcodeId: string;
+    }
+  | {
+      state: "SHOPPING_GROCERY";
+      groceryId: string;
+      shoppingListLength: number;
+    };
 
 type UIEvent =
   | {
-    type: "ADD_GROCERY";
-  }
+      type: "ADD_GROCERY";
+    }
   | {
-    type: 'SHOP_GROCERY'
-    groceryId: string
-    shoppingListLength: number
-  }
+      type: "SHOP_GROCERY";
+      groceryId: string;
+      shoppingListLength: number;
+    }
   | {
-    type: "DELETE_GROCERY";
-    groceryId: string
-  }
+      type: "DELETE_GROCERY";
+      groceryId: string;
+    }
   | {
-    type: "GROCERY_INPUT_CHANGED";
-    input: string;
-  }
+      type: "GROCERY_INPUT_CHANGED";
+      input: string;
+    }
   | {
-    type: "INCREASE_SHOP_COUNT";
-    id: string;
-  }
+      type: "INCREASE_SHOP_COUNT";
+      id: string;
+    }
   | {
-    type: "RESET_SHOP_COUNT";
-    id: string;
-  } | {
-    type: 'LINK_BARCODE'
-    barcodeId: string
-    groceryId: string
-  } | {
-    type: 'UNLINK_BARCODE'
-    barcodeId: string
-  }
+      type: "RESET_SHOP_COUNT";
+      id: string;
+    }
+  | {
+      type: "LINK_BARCODE";
+      barcodeId: string;
+      groceryId: string;
+    }
+  | {
+      type: "UNLINK_BARCODE";
+      barcodeId: string;
+    };
 
 type Event = UIEvent;
 
@@ -96,20 +99,26 @@ const defaultHandlers = {
     state: "RESETTING_SHOP_COUNT",
     id,
   }),
-  LINK_BARCODE: ({ groceryId, barcodeId }: { groceryId: string, barcodeId: string }): TransientContext => ({
-    state: 'LINKING_BARCODE',
+  LINK_BARCODE: ({
     groceryId,
-    barcodeId
+    barcodeId,
+  }: {
+    groceryId: string;
+    barcodeId: string;
+  }): TransientContext => ({
+    state: "LINKING_BARCODE",
+    groceryId,
+    barcodeId,
   }),
   UNLINK_BARCODE: ({ barcodeId }: { barcodeId: string }): TransientContext => ({
-    state: 'UNLINKING_BARCODE',
-    barcodeId
+    state: "UNLINKING_BARCODE",
+    barcodeId,
   }),
   DELETE_GROCERY: ({ groceryId }: { groceryId: string }): TransientContext => ({
-    state: 'DELETING_GROCERY',
-    groceryId
-  })
-}
+    state: "DELETING_GROCERY",
+    groceryId,
+  }),
+};
 
 const reducer = createReducer<Context, Event, TransientContext>(
   {
@@ -126,10 +135,13 @@ const reducer = createReducer<Context, Event, TransientContext>(
     },
     UNFILTERED: {
       ...defaultHandlers,
-      GROCERY_INPUT_CHANGED: ({ input }, context) => input ? ({
-        state: 'FILTERED',
-        input,
-      }) : context,
+      GROCERY_INPUT_CHANGED: ({ input }, context) =>
+        input
+          ? {
+              state: "FILTERED",
+              input,
+            }
+          : context,
     },
   },
   {
@@ -142,7 +154,7 @@ const reducer = createReducer<Context, Event, TransientContext>(
     RESETTING_SHOP_COUNT: (_, prevContext) => prevContext,
     LINKING_BARCODE: (_, prevContext) => prevContext,
     UNLINKING_BARCODE: (_, prevContext) => prevContext,
-    SHOPPING_GROCERY: (_, prevContext) => prevContext
+    SHOPPING_GROCERY: (_, prevContext) => prevContext,
   }
 );
 
@@ -155,7 +167,9 @@ export const selectors = {
         const barcode = barcodes[barcodeId];
 
         if (barcode.groceryId) {
-          aggr[barcode.groceryId] = (aggr[barcode.groceryId] || []).concat(barcodeId);
+          aggr[barcode.groceryId] = (aggr[barcode.groceryId] || []).concat(
+            barcodeId
+          );
         }
 
         return aggr;
@@ -164,15 +178,16 @@ export const selectors = {
     ),
   unlinkedBarcodes: (barcodes: Barcodes) =>
     Object.keys(barcodes).filter((barcodeId) => !barcodes[barcodeId].groceryId),
-  sortedGroceriesByName: (groceries: Groceries) => Object.values(groceries).sort((a, b) => {
-    if (a.name.toLowerCase() > b.name.toLowerCase()) {
-      return 1
-    } else if (a.name.toLowerCase() < b.name.toLowerCase()) {
-      return -1
-    }
+  sortedGroceriesByName: (groceries: Groceries) =>
+    Object.values(groceries).sort((a, b) => {
+      if (a.name.toLowerCase() > b.name.toLowerCase()) {
+        return 1;
+      } else if (a.name.toLowerCase() < b.name.toLowerCase()) {
+        return -1;
+      }
 
-    return 0
-  }),
+      return 0;
+    }),
   filteredGroceriesByInput: (groceries: Grocery[], input: string) => {
     if (input) {
       const lowerCaseInput = input.toLocaleLowerCase();
@@ -189,7 +204,7 @@ export const selectors = {
 
     return groceries;
   },
-}
+};
 
 export const Feature = ({
   children,
@@ -231,13 +246,17 @@ export const Feature = ({
     storage.unlinkBarcode(familyId, barcodeId);
   });
 
-  useEnterEffect(context, 'DELETING_GROCERY', ({ groceryId }) => {
+  useEnterEffect(context, "DELETING_GROCERY", ({ groceryId }) => {
     storage.deleteGrocery(familyId, groceryId);
   });
 
-  useEnterEffect(context, 'SHOPPING_GROCERY', ({ groceryId, shoppingListLength }) => {
-    storage.shopGrocery(familyId, groceryId, shoppingListLength)
-  })
+  useEnterEffect(
+    context,
+    "SHOPPING_GROCERY",
+    ({ groceryId, shoppingListLength }) => {
+      storage.shopGrocery(familyId, groceryId, shoppingListLength);
+    }
+  );
 
   return (
     <featureContext.Provider value={feature}>

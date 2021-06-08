@@ -10,6 +10,7 @@ import { createStorage } from "../environment/storage/browser";
 import { createPreventScreenSleep } from "../environment/preventScreenSleep/browser";
 import { createVersion } from "../environment/version/browser";
 import { createVisibility } from "../environment/visibility/browser";
+import { createCapture } from "../environment/capture/browser";
 
 const app = firebase.initializeApp({
   apiKey: "AIzaSyAxghfnwp44VyGkJazhRvjUwbKSSAHm0oo",
@@ -38,6 +39,7 @@ export default function BrowserEnvironment({
         preventScreenSleep: createPreventScreenSleep(),
         version: createVersion(),
         visibility: createVisibility(),
+        capture: createCapture(),
       }}
     >
       {children}

@@ -36,18 +36,18 @@ export const createStorage = (): Storage => {
   let barcodes: {
     [barcodeId: string]: BarcodeDTO;
   } = {
-    '123': {
-      id: '123',
+    "123": {
+      id: "123",
       created: Date.now(),
       modified: Date.now(),
-      groceryId: null
+      groceryId: null,
     },
-    '456': {
-      id: '456',
+    "456": {
+      id: "456",
       created: Date.now(),
       modified: Date.now(),
       groceryId: "grocery_0",
-    }
+    },
   };
 
   let groceries: {
@@ -262,8 +262,8 @@ export const createStorage = (): Storage => {
           ...events[eventId],
           userIds: events[eventId].userIds.includes(userId)
             ? events[eventId].userIds.filter(
-              (existingUserId) => existingUserId !== userId
-            )
+                (existingUserId) => existingUserId !== userId
+              )
             : events[eventId].userIds.concat(userId),
         },
       };
@@ -343,7 +343,7 @@ export const createStorage = (): Storage => {
         ...barcodes,
         [barcodeId]: {
           ...barcodes[barcodeId],
-          groceryId
+          groceryId,
         },
       };
 
@@ -357,7 +357,7 @@ export const createStorage = (): Storage => {
         ...barcodes,
         [barcodeId]: {
           ...barcodes[barcodeId],
-          groceryId: null
+          groceryId: null,
         },
       };
 
@@ -367,7 +367,9 @@ export const createStorage = (): Storage => {
       });
     },
     shopGrocery(familyId, id, shoppingListLength) {
-      const currentShoppingListLength = Object.values(groceries).filter((grocery) => Boolean(grocery.shopCount)).length
+      const currentShoppingListLength = Object.values(groceries).filter(
+        (grocery) => Boolean(grocery.shopCount)
+      ).length;
 
       groceries = {
         ...groceries,
@@ -376,8 +378,8 @@ export const createStorage = (): Storage => {
           shopCount: 0,
           shopHistory: {
             ...groceries[id].shopHistory,
-            [shoppingListLength]: currentShoppingListLength
-          }
+            [shoppingListLength]: currentShoppingListLength,
+          },
         },
       };
 
@@ -385,6 +387,20 @@ export const createStorage = (): Storage => {
         type: "STORAGE:GROCERIES_UPDATE",
         groceries,
       });
-    }
+    },
+    addImageToGrocery(familyId, id, src) {
+      groceries = {
+        ...groceries,
+        [id]: {
+          ...groceries[id],
+          image: src,
+        },
+      };
+
+      this.events.emit({
+        type: "STORAGE:GROCERIES_UPDATE",
+        groceries,
+      });
+    },
   };
 };

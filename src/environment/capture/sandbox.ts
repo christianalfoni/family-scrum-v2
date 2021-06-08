@@ -1,0 +1,1 @@
+export { createCapture } from "./browser";

@@ -11,6 +11,7 @@ import { PlanWeekView } from "./PlanWeekView";
 import { PlanWeekFeature } from "../features/PlanWeekFeature";
 import { AddTodoFeature } from "../features/AddTodoFeature";
 import { AddTodoView } from "./AddTodoView";
+import { CaptureFeature } from "../features/CaptureFeature";
 
 export const Dashboard = () => {
   const [dashboard, send] = useDasbhoard();
@@ -36,26 +37,32 @@ export const Dashboard = () => {
           return match(view, {
             GROCERIES_SHOPPING: () => (
               <GroceriesShoppingFeature familyId={family.id}>
-                <GroceriesShoppingView onBackClick={() =>
-                  send({
-                    type: "VIEW_SELECTED",
-                    view: {
-                      state: "WEEKDAYS",
-                    },
-                  })
-                } />
+                <GroceriesShoppingView
+                  onBackClick={() =>
+                    send({
+                      type: "VIEW_SELECTED",
+                      view: {
+                        state: "WEEKDAYS",
+                      },
+                    })
+                  }
+                />
               </GroceriesShoppingFeature>
             ),
             GROCERIES: () => (
               <GroceriesFeature familyId={family.id}>
-                <GroceriesView onBackClick={() =>
-                  send({
-                    type: "VIEW_SELECTED",
-                    view: {
-                      state: "WEEKDAYS",
-                    },
-                  })
-                } />
+                <CaptureFeature familyId={family.id}>
+                  <GroceriesView
+                    onBackClick={() =>
+                      send({
+                        type: "VIEW_SELECTED",
+                        view: {
+                          state: "WEEKDAYS",
+                        },
+                      })
+                    }
+                  />
+                </CaptureFeature>
               </GroceriesFeature>
             ),
             WEEKDAYS: () => <DashboardView />,

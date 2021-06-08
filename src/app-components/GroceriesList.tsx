@@ -1,12 +1,17 @@
 import * as React from "react";
 import { Menu, Transition } from "@headlessui/react";
 import { groceriesSelectors } from "../features/GroceriesFeature";
-import { DotsVerticalIcon, QrcodeIcon } from "@heroicons/react/outline";
+import {
+  CameraIcon,
+  DotsVerticalIcon,
+  QrcodeIcon,
+} from "@heroicons/react/outline";
 
 import { Groceries, Barcodes } from "../features/DashboardFeature/Feature";
 import { useGroceries } from "../features/GroceriesFeature";
 import { match } from "react-states";
 import { useTranslations } from "next-intl";
+import { useCapture } from "../features/CaptureFeature";
 
 export const GroceriesList = ({
   groceries,
@@ -15,18 +20,18 @@ export const GroceriesList = ({
   groceries: Groceries;
   barcodes: Barcodes;
 }) => {
+  const [, sendCapture] = useCapture();
   const [groceriesFeature, send] = useGroceries();
   const t = useTranslations("GroceriesView");
   const sortedAndFilteredGroceries = match(groceriesFeature, {
     FILTERED: ({ input }) =>
       input
         ? groceriesSelectors.filteredGroceriesByInput(
-          Object.values(groceries),
-          input
-        )
+            Object.values(groceries),
+            input
+          )
         : groceriesSelectors.sortedGroceriesByName(groceries),
-    UNFILTERED: () =>
-      groceriesSelectors.sortedGroceriesByName(groceries)
+    UNFILTERED: () => groceriesSelectors.sortedGroceriesByName(groceries),
   });
   const barcodesByGroceryId = groceriesSelectors.barcodesByGroceryId(barcodes);
   const unlinkedBarcodes = groceriesSelectors.unlinkedBarcodes(barcodes);
@@ -46,7 +51,14 @@ export const GroceriesList = ({
             className="relative pl-4 pr-6 py-5 hover:bg-gray-50 sm:py-6 sm:pl-6 lg:pl-8 xl:pl-6"
           >
             <div className="flex items-center">
-
+              {grocery.image ? (
+                <img
+                  src={grocery.image}
+                  width={32}
+                  height={32}
+                  className="rounded-sm border-gray-300 border"
+                />
+              ) : null}
               <span className="font-normal ml-3 text-gray-500">
                 {grocery.shopCount}
               </span>
@@ -57,14 +69,17 @@ export const GroceriesList = ({
                 </h2>
               </span>
 
-
               {barcodesByGroceryId[grocery.id] ? (
                 <QrcodeIcon className="w-4 h-4 ml-3" />
               ) : null}
 
-              <Menu as="div" className="ml-auto flex-shrink-0 pr-2" onClick={(event: any) => {
-                event.stopPropagation()
-              }}>
+              <Menu
+                as="div"
+                className="ml-auto flex-shrink-0 pr-2"
+                onClick={(event: any) => {
+                  event.stopPropagation();
+                }}
+              >
                 {({ open }) => (
                   <>
                     <Menu.Button className="w-8 h-8 bg-white inline-flex items-center justify-center text-gray-400 rounded-full hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
@@ -98,13 +113,37 @@ export const GroceriesList = ({
                                     id: grocery.id,
                                   });
                                 }}
-                                className={`${active
-                                  ? "bg-gray-100 text-gray-900"
-                                  : "text-gray-700"
-                                  }
+                                className={`${
+                                  active
+                                    ? "bg-gray-100 text-gray-900"
+                                    : "text-gray-700"
+                                }
                                     block px-4 py-2 text-sm`}
                               >
                                 {t("resetShopCount")}
+                              </a>
+                            )}
+                          </Menu.Item>
+                        </div>
+                        <div className="py-1">
+                          <Menu.Item>
+                            {({ active }) => (
+                              <a
+                                onClick={() => {
+                                  sendCapture({
+                                    type: "START_CAPTURE",
+                                    groceryId: grocery.id,
+                                  });
+                                }}
+                                className={`${
+                                  active
+                                    ? "bg-gray-100 text-gray-900"
+                                    : "text-gray-700"
+                                }
+                                    px-4 py-2 text-sm flex items-center`}
+                              >
+                                <CameraIcon className="w-4 h-4 mr-2" /> Capture
+                                image
                               </a>
                             )}
                           </Menu.Item>
@@ -123,10 +162,11 @@ export const GroceriesList = ({
                                           barcodeId,
                                         });
                                       }}
-                                      className={`${active
-                                        ? "bg-gray-100 text-gray-900"
-                                        : "text-gray-700"
-                                        }
+                                      className={`${
+                                        active
+                                          ? "bg-gray-100 text-gray-900"
+                                          : "text-gray-700"
+                                      }
                                  block px-4 py-2 text-sm`}
                                     >
                                       {t("unlinkBarcode")}{" "}
@@ -152,10 +192,11 @@ export const GroceriesList = ({
                                         barcodeId,
                                       });
                                     }}
-                                    className={`${active
-                                      ? "bg-gray-100 text-gray-900"
-                                      : "text-gray-700"
-                                      }
+                                    className={`${
+                                      active
+                                        ? "bg-gray-100 text-gray-900"
+                                        : "text-gray-700"
+                                    }
                                  block px-4 py-2 text-sm`}
                                   >
                                     {t("linkBarcode")} {barcodeId.substr(0, 4)}
@@ -172,14 +213,15 @@ export const GroceriesList = ({
                               <a
                                 onClick={() => {
                                   send({
-                                    type: 'DELETE_GROCERY',
-                                    groceryId: grocery.id
-                                  })
+                                    type: "DELETE_GROCERY",
+                                    groceryId: grocery.id,
+                                  });
                                 }}
-                                className={`${active
-                                  ? "bg-gray-100 text-gray-900"
-                                  : "text-gray-700"
-                                  }
+                                className={`${
+                                  active
+                                    ? "bg-gray-100 text-gray-900"
+                                    : "text-gray-700"
+                                }
                                     block px-4 py-2 text-sm`}
                               >
                                 {t("delete")}

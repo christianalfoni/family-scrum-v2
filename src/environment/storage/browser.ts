@@ -47,7 +47,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
   } = {};
 
   let barcodes: {
-    [barcodeId: string]: BarcodeDTO
+    [barcodeId: string]: BarcodeDTO;
   } = {};
 
   const debouncedShopCount = debounce(
@@ -93,23 +93,23 @@ export const createStorage = (app: firebase.app.App): Storage => {
   ) {
     query.onSnapshot((snapshot) => {
       if (!snapshot.docs.length) {
-        return
+        return;
       }
 
       cb({
         ...getCurrentData(),
         ...snapshot.docs.reduce((aggr, doc) => {
-          const data = doc.data({ serverTimestamps: 'estimate' })
+          const data = doc.data({ serverTimestamps: "estimate" });
           aggr[doc.id] = {
             ...data,
             id: doc.id,
             modified: data.modified.toMillis(),
-            created: data.created.toMillis()
-          }
+            created: data.created.toMillis(),
+          };
 
-          return aggr
-        }, {} as any)
-      })
+          return aggr;
+        }, {} as any),
+      });
     });
   }
 
@@ -132,156 +132,164 @@ export const createStorage = (app: firebase.app.App): Storage => {
         todosCollection.get(),
         eventsCollection.get(),
         barcodesCollection.get(),
-      ]).then(([familyDataDoc, groceriesDocs, todosDocs, eventsDocs, barcodesDocs]) => {
-        if (!familyDataDoc.exists) {
-          return this.events.emit({
-            type: "STORAGE:FETCH_FAMILY_DATA_ERROR",
-            error: "Family document does not exist",
+      ]).then(
+        ([
+          familyDataDoc,
+          groceriesDocs,
+          todosDocs,
+          eventsDocs,
+          barcodesDocs,
+        ]) => {
+          if (!familyDataDoc.exists) {
+            return this.events.emit({
+              type: "STORAGE:FETCH_FAMILY_DATA_ERROR",
+              error: "Family document does not exist",
+            });
+          }
+
+          onSnapshot(
+            groceriesCollection.where(
+              "modified",
+              ">",
+              firebase.firestore.Timestamp.now()
+            ),
+            () => groceries,
+            (updatedGroceries) => {
+              groceries = updatedGroceries;
+              this.events.emit({
+                type: "STORAGE:GROCERIES_UPDATE",
+                groceries: updatedGroceries,
+              });
+            }
+          );
+
+          onSnapshot(
+            todosCollection.where(
+              "modified",
+              ">",
+              firebase.firestore.Timestamp.now()
+            ),
+            () => todos,
+            (updatedTodos) => {
+              todos = updatedTodos;
+              this.events.emit({
+                type: "STORAGE:TODOS_UPDATE",
+                todos: updatedTodos,
+              });
+            }
+          );
+
+          onSnapshot(
+            eventsCollection.where(
+              "modified",
+              ">",
+              firebase.firestore.Timestamp.now()
+            ),
+            () => calendarEvents,
+            (updatedEvents) => {
+              calendarEvents = updatedEvents;
+              this.events.emit({
+                type: "STORAGE:EVENTS_UPDATE",
+                events: updatedEvents,
+              });
+            }
+          );
+
+          onSnapshot(
+            barcodesCollection.where(
+              "modified",
+              ">",
+              firebase.firestore.Timestamp.now()
+            ),
+            () => barcodes,
+            (updatedBarcodes) => {
+              barcodes = updatedBarcodes;
+              this.events.emit({
+                type: "STORAGE:BARCODES_UPDATE",
+                barcodes: updatedBarcodes,
+              });
+            }
+          );
+
+          const family = {
+            ...familyDataDoc.data(),
+            id: familyDataDoc.id,
+          } as FamilyDTO;
+          const groceriesList = groceriesDocs.docs.map((groceryDoc) => {
+            const data = groceryDoc.data();
+
+            return {
+              id: groceryDoc.id,
+              ...data,
+              created: data.created.toMillis(),
+              modified: data.modified.toMillis(),
+            };
+          }) as GroceryDTO[];
+          const todosList = todosDocs.docs.map((todoDoc) => {
+            const data = todoDoc.data();
+
+            return {
+              id: todoDoc.id,
+              ...data,
+              created: data.created.toMillis(),
+              modified: data.created.toMillis(),
+            };
+          }) as TodoDTO[];
+          const eventsList = eventsDocs.docs.map((eventDoc) => {
+            const data = eventDoc.data();
+
+            return {
+              id: eventDoc.id,
+              ...data,
+              created: data.created.toMillis(),
+              modified: data.modified.toMillis(),
+            };
+          }) as CalendarEventDTO[];
+          const barcodesList = barcodesDocs.docs.map((barcodeDoc) => {
+            const data = barcodeDoc.data();
+
+            return {
+              id: barcodeDoc.id,
+              ...data,
+              created: data.created.toMillis(),
+            };
+          }) as BarcodeDTO[];
+
+          groceries = groceriesList.reduce<{
+            [id: string]: GroceryDTO;
+          }>((aggr, grocery) => {
+            aggr[grocery.id] = grocery;
+            return aggr;
+          }, {});
+          todos = todosList.reduce<{
+            [id: string]: TodoDTO;
+          }>((aggr, todo) => {
+            aggr[todo.id] = todo;
+            return aggr;
+          }, {});
+          calendarEvents = eventsList.reduce<{
+            [id: string]: CalendarEventDTO;
+          }>((aggr, event) => {
+            aggr[event.id] = event;
+            return aggr;
+          }, {});
+          barcodes = barcodesList.reduce<{
+            [id: string]: BarcodeDTO;
+          }>((aggr, event) => {
+            aggr[event.id] = event;
+            return aggr;
+          }, {});
+
+          this.events.emit({
+            type: "STORAGE:FETCH_FAMILY_DATA_SUCCESS",
+            family,
+            groceries,
+            todos,
+            events: calendarEvents,
+            barcodes,
           });
         }
-
-        onSnapshot(
-          groceriesCollection.where(
-            "modified",
-            ">",
-            firebase.firestore.Timestamp.now()
-          ),
-          () => groceries,
-          (updatedGroceries) => {
-            groceries = updatedGroceries
-            this.events.emit({
-              type: "STORAGE:GROCERIES_UPDATE",
-              groceries: updatedGroceries,
-            });
-          }
-        );
-
-        onSnapshot(
-          todosCollection.where(
-            "modified",
-            ">",
-            firebase.firestore.Timestamp.now()
-          ),
-          () => todos,
-          (updatedTodos) => {
-            todos = updatedTodos
-            this.events.emit({
-              type: "STORAGE:TODOS_UPDATE",
-              todos: updatedTodos,
-            });
-          }
-        );
-
-        onSnapshot(
-          eventsCollection.where(
-            "modified",
-            ">",
-            firebase.firestore.Timestamp.now()
-          ),
-          () => calendarEvents,
-          (updatedEvents) => {
-            calendarEvents = updatedEvents
-            this.events.emit({
-              type: "STORAGE:EVENTS_UPDATE",
-              events: updatedEvents,
-            });
-          }
-        );
-
-        onSnapshot(
-          barcodesCollection.where(
-            "modified",
-            ">",
-            firebase.firestore.Timestamp.now()
-          ),
-          () => barcodes,
-          (updatedBarcodes) => {
-            barcodes = updatedBarcodes
-            this.events.emit({
-              type: "STORAGE:BARCODES_UPDATE",
-              barcodes: updatedBarcodes,
-            });
-          }
-        );
-
-        const family = {
-          ...familyDataDoc.data(),
-          id: familyDataDoc.id,
-        } as FamilyDTO;
-        const groceriesList = groceriesDocs.docs.map((groceryDoc) => {
-          const data = groceryDoc.data();
-
-          return {
-            id: groceryDoc.id,
-            ...data,
-            created: data.created.toMillis(),
-            modified: data.modified.toMillis(),
-          };
-        }) as GroceryDTO[];
-        const todosList = todosDocs.docs.map((todoDoc) => {
-          const data = todoDoc.data();
-
-          return {
-            id: todoDoc.id,
-            ...data,
-            created: data.created.toMillis(),
-            modified: data.created.toMillis(),
-          };
-        }) as TodoDTO[];
-        const eventsList = eventsDocs.docs.map((eventDoc) => {
-          const data = eventDoc.data();
-
-          return {
-            id: eventDoc.id,
-            ...data,
-            created: data.created.toMillis(),
-            modified: data.modified.toMillis(),
-          };
-        }) as CalendarEventDTO[];
-        const barcodesList = barcodesDocs.docs.map((barcodeDoc) => {
-          const data = barcodeDoc.data();
-
-          return {
-            id: barcodeDoc.id,
-            ...data,
-            created: data.created.toMillis(),
-          };
-        }) as BarcodeDTO[];
-
-        groceries = groceriesList.reduce<{
-          [id: string]: GroceryDTO;
-        }>((aggr, grocery) => {
-          aggr[grocery.id] = grocery;
-          return aggr;
-        }, {});
-        todos = todosList.reduce<{
-          [id: string]: TodoDTO;
-        }>((aggr, todo) => {
-          aggr[todo.id] = todo;
-          return aggr;
-        }, {});
-        calendarEvents = eventsList.reduce<{
-          [id: string]: CalendarEventDTO;
-        }>((aggr, event) => {
-          aggr[event.id] = event;
-          return aggr;
-        }, {});
-        barcodes = barcodesList.reduce<{
-          [id: string]: BarcodeDTO;
-        }>((aggr, event) => {
-          aggr[event.id] = event;
-          return aggr;
-        }, {});
-
-        this.events.emit({
-          type: "STORAGE:FETCH_FAMILY_DATA_SUCCESS",
-          family,
-          groceries,
-          todos,
-          events: calendarEvents,
-          barcodes
-        });
-      });
+      );
     },
 
     addGrocery(familyId, name) {
@@ -527,14 +535,16 @@ export const createStorage = (app: firebase.app.App): Storage => {
         ...groceries,
       };
 
-      const barcodeLinks = Object.values(barcodes).filter((barcode) => barcode.groceryId === id)
+      const barcodeLinks = Object.values(barcodes).filter(
+        (barcode) => barcode.groceryId === id
+      );
 
       if (barcodeLinks.length) {
         return this.events.emit({
-          type: 'STORAGE:DELETE_GROCERY_ERROR',
+          type: "STORAGE:DELETE_GROCERY_ERROR",
           id,
-          error: 'Please unlink all barcodes first'
-        })
+          error: "Please unlink all barcodes first",
+        });
       }
 
       delete groceries[id];
@@ -631,24 +641,26 @@ export const createStorage = (app: firebase.app.App): Storage => {
           .where("modified", ">", firebase.firestore.Timestamp.now())
           .onSnapshot((snapshot) => {
             if (!snapshot.docs.length) {
-              return
+              return;
             }
 
             weeks = {
               ...weeks,
               [weekId]: {
                 ...weeks[weekId],
-                todos: snapshot.docs.reduce<{ [id: string]: { [userId: string]: WeekTodoActivity } }>((aggr, doc) => {
-                  const data = doc.data({ serverTimestamps: 'estimate' })
+                todos: snapshot.docs.reduce<{
+                  [id: string]: { [userId: string]: WeekTodoActivity };
+                }>((aggr, doc) => {
+                  const data = doc.data({ serverTimestamps: "estimate" });
                   aggr[doc.id] = {
                     ...data.activityByUserId,
-                    [userId]: weeks[weekId].todos[doc.id]?.[userId]
-                  }
+                    [userId]: weeks[weekId].todos[doc.id]?.[userId],
+                  };
 
-                  return aggr
-                }, {})
-              }
-            }
+                  return aggr;
+                }, {}),
+              },
+            };
 
             this.events.emit({
               type: "STORAGE:WEEKS_UPDATE",
@@ -709,7 +721,9 @@ export const createStorage = (app: firebase.app.App): Storage => {
         .doc(weekId)
         .collection(WEEKS_TODOS_COLLECTION)
         .doc(todoId);
-      const weekTodoActivity: WeekTodoActivity = weeks[weekId].todos[todoId]?.[userId] ?? [false, false, false, false, false, false, false];
+      const weekTodoActivity: WeekTodoActivity = weeks[weekId].todos[todoId]?.[
+        userId
+      ] ?? [false, false, false, false, false, false, false];
 
       weeks = {
         ...weeks,
@@ -764,7 +778,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
         ...barcodes,
         [barcodeId]: {
           ...barcodes[barcodeId],
-          groceryId
+          groceryId,
         },
       };
 
@@ -780,22 +794,24 @@ export const createStorage = (app: firebase.app.App): Storage => {
         .collection(BARCODES_COLLECTION)
         .doc(barcodeId);
 
-      barcodeDoc.update({
-        modified: firebase.firestore.FieldValue.serverTimestamp(),
-        groceryId
-      }).catch((error) => {
-        this.events.emit({
-          type: 'STORAGE:LINK_BARCODE_ERROR',
-          error: error.message
+      barcodeDoc
+        .update({
+          modified: firebase.firestore.FieldValue.serverTimestamp(),
+          groceryId,
         })
-      })
+        .catch((error) => {
+          this.events.emit({
+            type: "STORAGE:LINK_BARCODE_ERROR",
+            error: error.message,
+          });
+        });
     },
     unlinkBarcode(familyId, barcodeId) {
       barcodes = {
         ...barcodes,
         [barcodeId]: {
           ...barcodes[barcodeId],
-          groceryId: null
+          groceryId: null,
         },
       };
 
@@ -811,15 +827,17 @@ export const createStorage = (app: firebase.app.App): Storage => {
         .collection(BARCODES_COLLECTION)
         .doc(barcodeId);
 
-      barcodeDoc.update({
-        modified: firebase.firestore.FieldValue.serverTimestamp(),
-        groceryId: null
-      }).catch((error) => {
-        this.events.emit({
-          type: 'STORAGE:LINK_BARCODE_ERROR',
-          error: error.message
+      barcodeDoc
+        .update({
+          modified: firebase.firestore.FieldValue.serverTimestamp(),
+          groceryId: null,
         })
-      })
+        .catch((error) => {
+          this.events.emit({
+            type: "STORAGE:LINK_BARCODE_ERROR",
+            error: error.message,
+          });
+        });
     },
     shopGrocery(familyId, id, shoppingListLength) {
       const groceryDocRef = app
@@ -829,7 +847,9 @@ export const createStorage = (app: firebase.app.App): Storage => {
         .collection(GROCERIES_COLLECTION)
         .doc(id);
 
-      const currentShoppingListLength = Object.values(groceries).filter((grocery) => Boolean(grocery.shopCount)).length
+      const currentShoppingListLength = Object.values(groceries).filter(
+        (grocery) => Boolean(grocery.shopCount)
+      ).length;
 
       groceries = {
         ...groceries,
@@ -838,8 +858,8 @@ export const createStorage = (app: firebase.app.App): Storage => {
           shopCount: 0,
           shopHistory: {
             ...groceries[id].shopHistory,
-            [shoppingListLength]: currentShoppingListLength
-          }
+            [shoppingListLength]: currentShoppingListLength,
+          },
         },
       };
 
@@ -867,8 +887,8 @@ export const createStorage = (app: firebase.app.App): Storage => {
               shopCount: 0,
               shopHistory: {
                 ...data.shopHistory,
-                [shoppingListLength]: currentShoppingListLength
-              }
+                [shoppingListLength]: currentShoppingListLength,
+              },
             });
           })
         )
@@ -879,6 +899,40 @@ export const createStorage = (app: firebase.app.App): Storage => {
             error: error.messsage,
           });
         });
-    }
+    },
+    addImageToGrocery(familyId, id, src) {
+      const groceryDocRef = app
+        .firestore()
+        .collection(FAMILY_DATA_COLLECTION)
+        .doc(familyId)
+        .collection(GROCERIES_COLLECTION)
+        .doc(id);
+
+      groceries = {
+        ...groceries,
+        [id]: {
+          ...groceries[id],
+          image: src,
+        },
+      };
+
+      this.events.emit({
+        type: "STORAGE:GROCERIES_UPDATE",
+        groceries,
+      });
+
+      groceryDocRef
+        .update({
+          modified: firebase.firestore.FieldValue.serverTimestamp(),
+          image: src,
+        })
+        .catch((error) => {
+          this.events.emit({
+            type: "STORAGE:ADD_IMAGE_TO_GROCERY_ERROR",
+            groceryId: id,
+            error: error.message,
+          });
+        });
+    },
   };
 };
