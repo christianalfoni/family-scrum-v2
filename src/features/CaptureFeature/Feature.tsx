@@ -119,7 +119,7 @@ export const Feature = ({
   });
 
   useEnterEffect(context, "CREATING_CAPTURE", ({ id }) => {
-    capture.capture(id, 32, 32);
+    capture.capture(id, 128, 128);
   });
 
   useEnterEffect(context, "CAPTURING", ({ videoId }) => {

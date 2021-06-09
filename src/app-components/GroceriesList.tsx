@@ -51,18 +51,23 @@ export const GroceriesList = ({
             className="relative pl-4 pr-6 py-5 hover:bg-gray-50 sm:py-6 sm:pl-6 lg:pl-8 xl:pl-6"
           >
             <div className="flex items-center">
+              <span
+                className={`${
+                  grocery.shopCount
+                    ? "bg-yellow-100 text-yellow-800"
+                    : "bg-gray-100 text-gray-800"
+                } w-6 justify-center  inline-flex items-center px-1 py-0.5 rounded-full text-xs font-medium capitalize`}
+              >
+                {grocery.shopCount}
+              </span>
               {grocery.image ? (
                 <img
                   src={grocery.image}
                   width={32}
                   height={32}
-                  className="rounded-sm border-gray-300 border"
+                  className="rounded-md border-yellow-300 border ml-3"
                 />
               ) : null}
-              <span className="font-normal ml-3 text-gray-500">
-                {grocery.shopCount}
-              </span>
-
               <span className="block ml-3">
                 <h2 className="font-medium flex items-center">
                   {grocery.name}

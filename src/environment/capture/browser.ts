@@ -16,10 +16,9 @@ export const createCapture = (): Capture => ({
 
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       navigator.mediaDevices
-        .getUserMedia({ video: true })
+        .getUserMedia({ video: { facingMode: "environment" } })
         .then((stream) => {
           video.srcObject = stream;
-          video.play();
         })
         .catch((error) => {
           this.events.emit({

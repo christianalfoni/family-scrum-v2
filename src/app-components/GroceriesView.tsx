@@ -38,11 +38,11 @@ const CaptureModal = () => {
       <Dialog
         as="div"
         static
-        className="fixed z-30 inset-0 overflow-y-auto"
+        className="fixed z-30 inset-0 overflow-y-auto outline-none"
         open={open}
         onClose={() => {}}
       >
-        <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
           <Transition.Child
             as={React.Fragment}
             enter="ease-out duration-300"
@@ -55,13 +55,6 @@ const CaptureModal = () => {
             <Dialog.Overlay className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
           </Transition.Child>
 
-          {/* This element is to trick the browser into centering the modal contents. */}
-          <span
-            className="hidden sm:inline-block sm:align-middle sm:h-screen"
-            aria-hidden="true"
-          >
-            &#8203;
-          </span>
           <Transition.Child
             as={React.Fragment}
             enter="ease-out duration-300"
@@ -71,8 +64,15 @@ const CaptureModal = () => {
             leaveFrom="opacity-100 translate-y-0 sm:scale-100"
             leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
           >
-            <div className="inline-block align-middle rounded-lg bg-black text-left overflow-hidden shadow-xl transform transition-all ">
-              <video id={VIDEO_ID} className="w-96 h-96 rounded-lg m-2"></video>
+            <div className="inline-block align-middle rounded-lg text-left overflow-hidden transform transition-all ">
+              {open ? (
+                <video
+                  id={VIDEO_ID}
+                  className="rounded-lg shadow-xl"
+                  playsInline
+                  autoPlay
+                ></video>
+              ) : null}
               <button
                 type="button"
                 onClick={() => {
@@ -81,7 +81,7 @@ const CaptureModal = () => {
                     id: VIDEO_ID,
                   });
                 }}
-                className="absolute top-0 left-0 w-full h-full bg-transparent z-10 flex items-center justify-center"
+                className="absolute top-0 left-0 w-full h-full bg-transparent z-10 flex items-center justify-center outline-none"
               >
                 <CameraIcon className="text-white w-10 h-10 opacity-70" />
               </button>
