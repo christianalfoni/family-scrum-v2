@@ -3,6 +3,7 @@ import { usePlanWeek } from "../features/PlanWeekFeature";
 import { useTranslations, useIntl } from "next-intl";
 import { Menu, Transition } from "@headlessui/react";
 import {
+  ArchiveIcon,
   CalendarIcon,
   ChevronLeftIcon,
   DotsVerticalIcon,
@@ -72,57 +73,15 @@ export const PlanWeekView = ({
                 <span className="block">
                   <h2 className="font-medium">{todo.description}</h2>
                 </span>
-                <Menu as="div" className="ml-auto flex-shrink-0">
-                  {({ open }) => (
-                    <>
-                      <Menu.Button className="w-8 h-8 bg-white inline-flex items-center justify-center text-gray-400 rounded-full hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
-                        <span className="sr-only">Open options</span>
-                        <DotsVerticalIcon
-                          className="w-5 h-5"
-                          aria-hidden="true"
-                        />
-                      </Menu.Button>
-                      <Transition
-                        show={open}
-                        as={React.Fragment}
-                        enter="transition ease-out duration-100"
-                        enterFrom="transform opacity-0 scale-95"
-                        enterTo="transform opacity-100 scale-100"
-                        leave="transition ease-in duration-75"
-                        leaveFrom="transform opacity-100 scale-100"
-                        leaveTo="transform opacity-0 scale-95"
-                      >
-                        <Menu.Items
-                          static
-                          className="z-10 mx-3 origin-top-right absolute right-10 top-3 w-48 mt-1 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-200 focus:outline-none"
-                        >
-                          <div className="py-1">
-                            <Menu.Item>
-                              {({ active }) => (
-                                <a
-                                  onClick={(event) => {
-                                    event.stopPropagation();
-                                    send({
-                                      type: "ARCHIVE_TODO",
-                                      todoId: todo.id,
-                                    });
-                                  }}
-                                  className={`${active
-                                    ? "bg-gray-100 text-gray-900"
-                                    : "text-gray-700"
-                                    }
-                                    block px-4 py-2 text-sm`}
-                                >
-                                  {t("archive")}
-                                </a>
-                              )}
-                            </Menu.Item>
-                          </div>
-                        </Menu.Items>
-                      </Transition>
-                    </>
-                  )}
-                </Menu>
+                <ArchiveIcon
+                  className="text-gray-500 w-5 h-5 ml-auto my-2"
+                  onClick={() => {
+                    send({
+                      type: "ARCHIVE_TODO",
+                      todoId: todo.id,
+                    });
+                  }}
+                />
               </div>
               {userIds.map((userId) => {
                 const weekActivity: WeekTodoActivity = week.todos[todo.id]?.[
@@ -142,8 +101,8 @@ export const PlanWeekView = ({
                     {weekActivity.map((isActive, index) => {
                       const activePreviousWeek = Boolean(
                         previousWeek.todos[todo.id] &&
-                        previousWeek.todos[todo.id][userId] &&
-                        previousWeek.todos[todo.id][userId][index]
+                          previousWeek.todos[todo.id][userId] &&
+                          previousWeek.todos[todo.id][userId][index]
                       );
 
                       return (
@@ -160,13 +119,15 @@ export const PlanWeekView = ({
                               weekdayIndex: index,
                             });
                           }}
-                          className={`${isActive
-                            ? "text-white bg-red-500"
-                            : activePreviousWeek
+                          className={`${
+                            isActive
+                              ? "text-white bg-red-500"
+                              : activePreviousWeek
                               ? "text-gray-700 bg-gray-200"
                               : "text-gray-700 bg-white"
-                            } ${user.id === userId ? "" : "opacity-50"
-                            } order-1 w-10 h-8 justify-center inline-flex items-center px-2 py-1 border border-gray-300 shadow-sm text-xs font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500`}
+                          } ${
+                            user.id === userId ? "" : "opacity-50"
+                          } order-1 w-10 h-8 justify-center inline-flex items-center px-2 py-1 border border-gray-300 shadow-sm text-xs font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500`}
                         >
                           {weekdays[index].substr(0, 2)}
                         </button>
@@ -248,10 +209,11 @@ export const PlanWeekView = ({
                                       eventId: calendarEvent.id,
                                     });
                                   }}
-                                  className={`${active
-                                    ? "bg-gray-100 text-gray-900"
-                                    : "text-gray-700"
-                                    }
+                                  className={`${
+                                    active
+                                      ? "bg-gray-100 text-gray-900"
+                                      : "text-gray-700"
+                                  }
                                     block px-4 py-2 text-sm`}
                                 >
                                   {t("archive")}
