@@ -15,7 +15,6 @@ import { CaptureFeature } from "../features/CaptureFeature";
 
 export const Dashboard = () => {
   const [dashboard, send] = useDasbhoard();
-  const t = useTranslations("Dashboard");
 
   return (
     <div className="h-screen overflow-hidden bg-gray-100 flex flex-col">
@@ -70,7 +69,6 @@ export const Dashboard = () => {
               <PlanWeekFeature user={user} weekId={currentWeek.id}>
                 <PlanWeekView
                   user={user}
-                  title={t("thisWeek") as string}
                   events={events}
                   todos={todos}
                   family={family}
@@ -91,7 +89,6 @@ export const Dashboard = () => {
               <PlanWeekFeature user={user} weekId={nextWeek.id}>
                 <PlanWeekView
                   user={user}
-                  title={t("nextWeek") as string}
                   events={events}
                   todos={todos}
                   family={family}

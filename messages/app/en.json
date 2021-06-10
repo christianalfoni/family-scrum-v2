@@ -4,15 +4,11 @@
     "setDate": "Set Date",
     "save": "Save"
   },
-  "Dashboard": {
-    "thisWeek": "Plan current week",
-    "nextWeek": "Plan next week"
-  },
   "DashboardView": {
     "goShopping": "Shopping list",
     "groceries": "Groceries",
-    "planCurrentWeek": "Plan current week",
-    "planNextWeek": "Plan next week",
+    "planWeek": "Plan week",
+
     "events": "Events",
     "monday": "Monday",
     "tuesday": "Tuesday",
@@ -33,7 +29,9 @@
     "unlinkBarcode": "Unlink barcode"
   },
   "PlanWeekView": {
-    "archive": "Archive"
+    "archive": "Archive",
+    "planNextWeek": "Plan next week",
+    "planCurrentWeek": "Plan current week"
   },
   "GroceriesShoppingView": {
     "shoppingList": "Shopping list"

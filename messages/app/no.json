@@ -4,15 +4,10 @@
     "setDate": "Sett Dato",
     "save": "Lagre"
   },
-  "Dashboard": {
-    "thisWeek": "Planlegg denne uka",
-    "nextWeek": "Planlegg neste uke"
-  },
   "DashboardView": {
     "goShopping": "Handleliste",
     "groceries": "Matvarer",
-    "planCurrentWeek": "Planlegg denne uka",
-    "planNextWeek": "Planlegg neste uke",
+    "planWeek": "Planlegg uka",
     "events": "Hendelser",
     "monday": "Mandag",
     "tuesday": "Tirsdag",
@@ -33,7 +28,9 @@
     "unlinkBarcode": "Frakoble strekkode"
   },
   "PlanWeekView": {
-    "archive": "Arkiver"
+    "archive": "Arkiver",
+    "planNextWeek": "Planlegg neste uke",
+    "planCurrentWeek": "Planlegg denne uka"
   },
   "GroceriesShoppingView": {
     "shoppingList": "Handleliste"

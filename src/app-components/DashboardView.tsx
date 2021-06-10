@@ -11,7 +11,6 @@ import { dashboardSelectors, useDasbhoard } from "../features/DashboardFeature";
 import { getCurrentDayIndex, weekdays } from "../utils";
 import { groceriesShoppingSelectors } from "../features/GroceriesShoppingFeature";
 
-
 SwiperCore.use([Controller]);
 
 const MenuCard = ({
@@ -32,8 +31,9 @@ const MenuCard = ({
     onClick={onClick}
   >
     <div
-      className={`${disabled ? "bg-gray-400" : color
-        } flex-shrink-0 flex items-center justify-center w-16 text-white text-sm font-medium rounded-l-md`}
+      className={`${
+        disabled ? "bg-gray-400" : color
+      } flex-shrink-0 flex items-center justify-center w-16 text-white text-sm font-medium rounded-l-md`}
     >
       <Icon
         className={`${disabled ? "text-gray-200" : "text-white"} h-6 w-6`}
@@ -42,8 +42,9 @@ const MenuCard = ({
     </div>
     <div className="flex-1 flex items-center justify-between border-t border-r border-b border-gray-200 bg-white rounded-r-md truncate">
       <div
-        className={`${disabled ? "text-gray-400" : "text-gray-900"
-          } flex-1 px-4 py-4 text-md truncate font-medium hover:text-gray-600`}
+        className={`${
+          disabled ? "text-gray-400" : "text-gray-900"
+        } flex-1 px-4 py-4 text-md truncate font-medium hover:text-gray-600`}
       >
         {children}
       </div>
@@ -73,7 +74,7 @@ export const DashboardContentSkeleton = () => {
         <MenuCard
           disabled
           Icon={ShoppingCartIcon}
-          onClick={() => { }}
+          onClick={() => {}}
           color="bg-red-500"
         >
           {t("goShopping")} (0)
@@ -81,7 +82,7 @@ export const DashboardContentSkeleton = () => {
         <MenuCard
           disabled
           Icon={ShoppingCartIcon}
-          onClick={() => { }}
+          onClick={() => {}}
           color="bg-yellow-500"
         >
           {t("groceries")}
@@ -89,18 +90,10 @@ export const DashboardContentSkeleton = () => {
         <MenuCard
           disabled
           Icon={CalendarIcon}
-          onClick={() => { }}
-          color="bg-green-500"
-        >
-          {t("planCurrentWeek")}
-        </MenuCard>
-        <MenuCard
-          disabled
-          Icon={CalendarIcon}
-          onClick={() => { }}
+          onClick={() => {}}
           color="bg-blue-500"
         >
-          {t("planNextWeek")}
+          {t("planWeek")}
         </MenuCard>
       </ul>
       <div className="h-2/4">
@@ -116,9 +109,7 @@ export const DashboardContentSkeleton = () => {
           {weekdays.map((weekday, index) => (
             <SwiperSlide key={weekday}>
               {/* No title as server side caches this page */}
-              <WeekdaySlideContent title="">
-                {null}
-              </WeekdaySlideContent>
+              <WeekdaySlideContent title="">{null}</WeekdaySlideContent>
             </SwiperSlide>
           ))}
         </Swiper>
@@ -157,7 +148,7 @@ export const DashboardView = () => {
   const currentDayIndex = getCurrentDayIndex();
   const [slideIndex, setSlideIndex] = useState(currentDayIndex);
   const todosByWeekday = dashboardSelectors.todosByWeekday(currentWeek);
-  const sortedEvents = dashboardSelectors.sortedEvents(events)
+  const sortedEvents = dashboardSelectors.sortedEvents(events);
   const [controlledSwiper, setControlledSwiper] =
     useState<SwiperCore | null>(null);
 
@@ -198,27 +189,13 @@ export const DashboardView = () => {
             send({
               type: "VIEW_SELECTED",
               view: {
-                state: "PLAN_CURRENT_WEEK",
-              },
-            });
-          }}
-          color="bg-green-500"
-        >
-          {t("planCurrentWeek")}
-        </MenuCard>
-        <MenuCard
-          Icon={CalendarIcon}
-          onClick={() => {
-            send({
-              type: "VIEW_SELECTED",
-              view: {
                 state: "PLAN_NEXT_WEEK",
               },
             });
           }}
           color="bg-blue-500"
         >
-          {t("planNextWeek")}
+          {t("planWeek")}
         </MenuCard>
       </ul>
       <div className="h-2/4">
@@ -296,8 +273,7 @@ export const DashboardView = () => {
                       </p>
                     </div>
                   </li>
-                )
-                )}
+                ))}
               </ul>
             </div>
           </SwiperSlide>
@@ -311,9 +287,11 @@ export const DashboardView = () => {
                   controlledSwiper.slideTo(index);
                 }
               }}
-              className={`${index === currentDayIndex ? "text-red-500" : "text-gray-500"
-                } ${index === slideIndex ? "font-bold" : ""
-                } flex items-center mx-2 w-6 h-6 text-center text-xs`}
+              className={`${
+                index === currentDayIndex ? "text-red-500" : "text-gray-500"
+              } ${
+                index === slideIndex ? "font-bold" : ""
+              } flex items-center mx-2 w-6 h-6 text-center text-xs`}
             >
               {(t(weekdays[index]) as string).substr(0, 2)}
             </div>
@@ -324,8 +302,9 @@ export const DashboardView = () => {
                 controlledSwiper.slideTo(7);
               }
             }}
-            className={`${7 === slideIndex ? "text-gray-700" : "text-gray-500"
-              } flex items-center mx-2 w-6 h-6 text-center text-xs`}
+            className={`${
+              7 === slideIndex ? "text-gray-700" : "text-gray-500"
+            } flex items-center mx-2 w-6 h-6 text-center text-xs`}
           >
             <CalendarIcon className="w-4 h-4" />
           </div>

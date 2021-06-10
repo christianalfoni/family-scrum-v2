@@ -7,6 +7,7 @@ import {
   CalendarIcon,
   ChevronLeftIcon,
   DotsVerticalIcon,
+  SelectorIcon,
 } from "@heroicons/react/outline";
 import {
   CalendarEvents,
@@ -15,13 +16,12 @@ import {
   User,
   Week,
 } from "../features/DashboardFeature/Feature";
-import { weekdays } from "../utils";
+import { getCurrentWeekId, weekdays } from "../utils";
 import { WeekTodoActivity } from "../environment/storage";
-import { dashboardSelectors } from "../features/DashboardFeature";
+import { dashboardSelectors, useDasbhoard } from "../features/DashboardFeature";
 
 export const PlanWeekView = ({
   user,
-  title,
   family,
   todos,
   events,
@@ -30,7 +30,6 @@ export const PlanWeekView = ({
   onBackClick,
 }: {
   user: User;
-  title: string;
   family: Family;
   week: Week;
   events: CalendarEvents;
@@ -38,6 +37,7 @@ export const PlanWeekView = ({
   todos: Todos;
   onBackClick: () => void;
 }) => {
+  const [, sendDashboard] = useDasbhoard("LOADED");
   const [, send] = usePlanWeek();
   const t = useTranslations("PlanWeekView");
   const intl = useIntl();
@@ -50,6 +50,7 @@ export const PlanWeekView = ({
 
     return 1;
   });
+  const isCurrentWeek = week.id === getCurrentWeekId();
 
   return (
     <div className="bg-white flex flex-col h-screen">
@@ -61,7 +62,99 @@ export const PlanWeekView = ({
           >
             <ChevronLeftIcon className="h-6 w-6" aria-hidden="true" />
           </button>
-          <h1 className="flex-2 text-lg font-medium">{title}</h1>
+
+          <Menu as="div" className="px-3 relative inline-block text-left">
+            {({ open }) => (
+              <>
+                <div>
+                  <Menu.Button className="group w-full bg-gray-100 rounded-md px-3.5 py-2 text-sm text-left font-medium text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-red-500">
+                    <span className="flex w-full justify-between items-center">
+                      <span className="flex min-w-0 items-center justify-between space-x-3">
+                        <span className="flex-1 flex flex-col min-w-0">
+                          <span className="text-gray-900 text-lg font-medium truncate">
+                            {isCurrentWeek
+                              ? t("planCurrentWeek")
+                              : t("planNextWeek")}
+                          </span>
+                        </span>
+                      </span>
+                      <SelectorIcon
+                        className="flex-shrink-0 ml-2 h-5 w-5 text-gray-400 group-hover:text-gray-500"
+                        aria-hidden="true"
+                      />
+                    </span>
+                  </Menu.Button>
+                </div>
+                <Transition
+                  show={open}
+                  as={React.Fragment}
+                  enter="transition ease-out duration-100"
+                  enterFrom="transform opacity-0 scale-95"
+                  enterTo="transform opacity-100 scale-100"
+                  leave="transition ease-in duration-75"
+                  leaveFrom="transform opacity-100 scale-100"
+                  leaveTo="transform opacity-0 scale-95"
+                >
+                  <Menu.Items
+                    static
+                    className="z-10 mx-3 origin-top absolute right-0 left-0 mt-1 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-200 focus:outline-none"
+                  >
+                    <div className="py-1">
+                      <Menu.Item>
+                        {({ active }) => (
+                          <a
+                            onClick={() => {
+                              sendDashboard({
+                                type: "VIEW_SELECTED",
+                                view: {
+                                  state: "PLAN_CURRENT_WEEK",
+                                },
+                              });
+                            }}
+                            className={`
+                                ${
+                                  active
+                                    ? "bg-gray-100 text-gray-900"
+                                    : "text-gray-700"
+                                } 
+                                block px-4 py-2 text-sm
+                              `}
+                          >
+                            Current week
+                          </a>
+                        )}
+                      </Menu.Item>
+                      <Menu.Item>
+                        {({ active }) => (
+                          <a
+                            onClick={() => {
+                              sendDashboard({
+                                type: "VIEW_SELECTED",
+                                view: {
+                                  state: "PLAN_NEXT_WEEK",
+                                },
+                              });
+                            }}
+                            className={`
+                              ${
+                                active
+                                  ? "bg-gray-100 text-gray-900"
+                                  : "text-gray-700"
+                              } 
+                              block px-4 py-2 text-sm
+                            `}
+                          >
+                            Next week
+                          </a>
+                        )}
+                      </Menu.Item>
+                    </div>
+                  </Menu.Items>
+                </Transition>
+              </>
+            )}
+          </Menu>
+
           <span className="flex-1" />
         </div>
       </div>
