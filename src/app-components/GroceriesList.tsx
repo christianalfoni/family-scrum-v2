@@ -20,18 +20,18 @@ export const GroceriesList = ({
   groceries: Groceries;
   barcodes: Barcodes;
 }) => {
+  const [now] = React.useState(Date.now());
   const [, sendCapture] = useCapture();
   const [groceriesFeature, send] = useGroceries();
   const t = useTranslations("GroceriesView");
   const sortedAndFilteredGroceries = match(groceriesFeature, {
     FILTERED: ({ input }) =>
-      input
-        ? groceriesSelectors.filteredGroceriesByInput(
-            Object.values(groceries),
-            input
-          )
-        : groceriesSelectors.sortedGroceriesByName(groceries),
-    UNFILTERED: () => groceriesSelectors.sortedGroceriesByName(groceries),
+      groceriesSelectors.filteredGroceriesByInput(
+        Object.values(groceries),
+        input
+      ),
+    UNFILTERED: () =>
+      groceriesSelectors.sortedGroceriesByNameAndCreated(groceries, now),
   });
   const barcodesByGroceryId = groceriesSelectors.barcodesByGroceryId(barcodes);
   const unlinkedBarcodes = groceriesSelectors.unlinkedBarcodes(barcodes);

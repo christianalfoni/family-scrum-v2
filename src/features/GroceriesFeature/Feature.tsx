@@ -124,10 +124,15 @@ const reducer = createReducer<Context, Event, TransientContext>(
   {
     FILTERED: {
       ...defaultHandlers,
-      GROCERY_INPUT_CHANGED: ({ input }, context) => ({
-        ...context,
-        input,
-      }),
+      GROCERY_INPUT_CHANGED: ({ input }, context) =>
+        input
+          ? {
+              ...context,
+              input,
+            }
+          : {
+              state: "UNFILTERED",
+            },
       ADD_GROCERY: (_, { input }) => ({
         state: "ADDING_GROCERY",
         name: input,
@@ -184,6 +189,16 @@ export const selectors = {
         return 1;
       } else if (a.name.toLowerCase() < b.name.toLowerCase()) {
         return -1;
+      }
+
+      return 0;
+    }),
+  sortedGroceriesByNameAndCreated: (groceries: Groceries, since: number) =>
+    Object.values(groceries).sort((a, b) => {
+      if (a.created > since || a.name.toLowerCase() < b.name.toLowerCase()) {
+        return -1;
+      } else if (a.name.toLowerCase() > b.name.toLowerCase()) {
+        return 1;
       }
 
       return 0;

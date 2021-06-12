@@ -21,13 +21,11 @@ import { useSession, User } from "../SessionFeature";
 import { useDevtools } from "react-states/devtools";
 import { AuthenticationEvent } from "../../environment/authentication";
 
-
-
 export type Barcodes = {
   [barcodeId: string]: BarcodeDTO;
 };
 
-export type Barcode = BarcodeDTO
+export type Barcode = BarcodeDTO;
 
 export type Family = FamilyDTO;
 
@@ -45,23 +43,23 @@ export type CalendarEvent = CalendarEventDTO;
 
 export type ViewContext =
   | {
-    state: "WEEKDAYS";
-  }
+      state: "WEEKDAYS";
+    }
   | {
-    state: "GROCERIES_SHOPPING";
-  }
+      state: "GROCERIES_SHOPPING";
+    }
   | {
-    state: "GROCERIES";
-  }
+      state: "GROCERIES";
+    }
   | {
-    state: "PLAN_CURRENT_WEEK";
-  }
+      state: "PLAN_CURRENT_WEEK";
+    }
   | {
-    state: "PLAN_NEXT_WEEK";
-  }
+      state: "PLAN_NEXT_WEEK";
+    }
   | {
-    state: "ADD_TODO";
-  };
+      state: "ADD_TODO";
+    };
 
 export type Todos = {
   [todoId: string]: Todo;
@@ -79,74 +77,72 @@ export type WeekdayTodos = {
 
 type FamilyDataContext =
   | {
-    state: "LOADING";
-  }
+      state: "LOADING";
+    }
   | {
-    state: "LOADED";
-    family: Family;
-    groceries: Groceries;
-    todos: Todos;
-    events: CalendarEvents;
-    barcodes: Barcodes;
-  };
+      state: "LOADED";
+      family: Family;
+      groceries: Groceries;
+      todos: Todos;
+      events: CalendarEvents;
+      barcodes: Barcodes;
+    };
 
 type WeeksDataContext =
   | {
-    state: "LOADING";
-  }
+      state: "LOADING";
+    }
   | {
-    state: "LOADED";
-    previousWeek: Week;
-    currentWeek: Week;
-    nextWeek: Week;
-  };
+      state: "LOADED";
+      previousWeek: Week;
+      currentWeek: Week;
+      nextWeek: Week;
+    };
 
 type Context =
   | {
-    state: "AWAITING_AUTHENTICATION";
-  }
+      state: "AWAITING_AUTHENTICATION";
+    }
   | {
-    state: "REQUIRING_AUTHENTICATION";
-  }
+      state: "REQUIRING_AUTHENTICATION";
+    }
   | {
-    state: "LOADING";
-    user: User;
-    familyData: FamilyDataContext;
-    weeksData: WeeksDataContext;
-  }
+      state: "LOADING";
+      user: User;
+      familyData: FamilyDataContext;
+      weeksData: WeeksDataContext;
+    }
   | {
-    state: "LOADED";
-    family: Family;
-    groceries: Groceries;
-    todos: Todos;
-    events: CalendarEvents;
-    previousWeek: Week;
-    currentWeek: Week;
-    nextWeek: Week;
-    view: ViewContext;
-    user: User;
-    barcodes: Barcodes;
-  }
+      state: "LOADED";
+      family: Family;
+      groceries: Groceries;
+      todos: Todos;
+      events: CalendarEvents;
+      previousWeek: Week;
+      currentWeek: Week;
+      nextWeek: Week;
+      view: ViewContext;
+      user: User;
+      barcodes: Barcodes;
+    }
   | {
-    state: "ERROR";
-    error: string;
-  };
+      state: "ERROR";
+      error: string;
+    };
 
 export type UIEvent =
   | {
-    type: "VIEW_SELECTED";
-    view: ViewContext;
-  }
-
+      type: "VIEW_SELECTED";
+      view: ViewContext;
+    }
   | {
-    type: "GROCERY_INPUT_CHANGED";
-    input: string;
-  }
+      type: "GROCERY_INPUT_CHANGED";
+      input: string;
+    }
   | {
-    type: "ADD_GROCERY";
-    name: string;
-
-  };
+      type: "ADD_GROCERY";
+      name: string;
+    };
 
 type Event = UIEvent | AuthenticationEvent | StorageEvent;
 
@@ -277,8 +273,8 @@ const reducer = createReducer<Context, Event>({
       view:
         context.view.state === "ADD_TODO"
           ? {
-            state: "WEEKDAYS",
-          }
+              state: "WEEKDAYS",
+            }
           : context.view,
       todos,
     }),
@@ -287,8 +283,8 @@ const reducer = createReducer<Context, Event>({
       view:
         context.view.state === "ADD_TODO"
           ? {
-            state: "WEEKDAYS",
-          }
+              state: "WEEKDAYS",
+            }
           : context.view,
       events,
     }),
@@ -306,7 +302,6 @@ export type Props = {
 };
 
 export const selectors = {
-
   todosByWeekday: (week: Week) => {
     const todosByWeekday: [
       WeekdayTodos,
@@ -353,7 +348,6 @@ export const selectors = {
 
       return 0;
     }),
-
 };
 
 export const Feature = ({ children, initialContext }: Props) => {
