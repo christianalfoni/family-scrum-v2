@@ -76,7 +76,7 @@ const TodoItem = React.memo(
       if (archiving) {
         const id = setTimeout(() => {
           archiveTodo(todo.id);
-        }, 2000);
+        }, 1500);
 
         return () => clearTimeout(id);
       }
@@ -90,7 +90,7 @@ const TodoItem = React.memo(
             <h2 className="font-medium">{todo.description}</h2>
           </span>
           <CheckCircleIcon
-            className="text-gray-500 w-5 h-5 ml-auto my-2"
+            className="absolute top-2 right-2 text-gray-500 w-6 h-6"
             onClick={() => {
               setArchiving(true);
             }}
@@ -234,10 +234,9 @@ export const PlanWeekView = ({
             {({ open }) => (
               <>
                 <div>
-                  <Menu.Button className="group w-full bg-gray-100 rounded-md px-3.5 py-2 text-sm text-left font-medium text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-red-500">
+                  <Menu.Button className="group w-full rounded-md px-3.5 py-2 text-sm text-left font-medium text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-red-500">
                     <span className="flex w-full justify-between items-center">
                       <span className="flex min-w-0 items-center justify-between space-x-3">
-                        <CalendarIcon className="w-4 h-4 text-gray-800" />
                         <span className="flex-1 flex flex-col min-w-0">
                           <span className="text-gray-900 text-lg font-medium truncate">
                             {isCurrentWeek
@@ -288,7 +287,7 @@ export const PlanWeekView = ({
                                 block px-4 py-2 text-sm
                               `}
                           >
-                            Current week
+                            {t("planCurrentWeek")}
                           </a>
                         )}
                       </Menu.Item>
@@ -312,7 +311,7 @@ export const PlanWeekView = ({
                               block px-4 py-2 text-sm
                             `}
                           >
-                            Next week
+                            {t("planNextWeek")}
                           </a>
                         )}
                       </Menu.Item>
