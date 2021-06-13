@@ -17,6 +17,7 @@ import {
   Todos,
   User,
   Week,
+  CalendarEvent,
 } from "../features/DashboardFeature/Feature";
 import { getCurrentWeekId, weekdays } from "../utils";
 import { WeekTodoActivity } from "../environment/storage";
@@ -153,6 +154,70 @@ const TodoItem = React.memo(
   }
 );
 
+const CalendarEventItem = React.memo(
+  ({
+    event,
+    onClick,
+    family,
+    archiveEvent,
+  }: {
+    event: CalendarEvent;
+    onClick: () => void;
+    archiveEvent: (id: string) => void;
+    family: Family;
+  }) => {
+    const intl = useIntl();
+
+    const [archiving, setArchiving] = React.useState(false);
+
+    React.useEffect(() => {
+      if (archiving) {
+        const id = setTimeout(() => {
+          archiveEvent(event.id);
+        }, 1500);
+
+        return () => clearTimeout(id);
+      }
+    }, [archiving]);
+
+    return (
+      <li className="relative pl-4 pr-6 py-5" onClick={onClick}>
+        {archiving ? <Confirmed /> : null}
+        <div className="flex items-center">
+          <span className="block">
+            <span className="flex items-center">
+              <CalendarIcon className="text-red-600 w-4 h-4" />
+              <h4 className="text-gray-500 text-sm ml-1 mr-2">
+                {intl.formatDateTime(event.date, {
+                  day: "numeric",
+                  month: "long",
+                })}
+              </h4>
+              <div className="flex flex-shrink-0 -space-x-1">
+                {event.userIds.map((userId) => (
+                  <img
+                    key={userId}
+                    className="max-w-none h-6 w-6 rounded-full ring-2 ring-white"
+                    src={family.users[userId].avatar!}
+                    alt={family.users[userId].name}
+                  />
+                ))}
+              </div>
+            </span>
+            <h2 className="font-medium">{event.description}</h2>
+          </span>
+          <CheckCircleIcon
+            className="absolute top-2 right-2 text-gray-500 w-6 h-6"
+            onClick={() => {
+              setArchiving(true);
+            }}
+          />
+        </div>
+      </li>
+    );
+  }
+);
+
 export const PlanWeekView = ({
   user,
   family,
@@ -173,7 +238,6 @@ export const PlanWeekView = ({
   const [, sendDashboard] = useDasbhoard("LOADED");
   const [, send] = usePlanWeek();
   const t = useTranslations("PlanWeekView");
-  const intl = useIntl();
   const sortedTodos = dashboardSelectors.sortedTodos(todos);
   const eventsList = dashboardSelectors.sortedEvents(events);
   const sortedUserIds = React.useMemo(
@@ -339,97 +403,25 @@ export const PlanWeekView = ({
             week={week}
           />
         ))}
-        {eventsList.map((calendarEvent) => {
-          return (
-            <li
-              key={calendarEvent.id}
-              className="relative pl-4 pr-6 py-5"
-              onClick={() => {
-                send({
-                  type: "TOGGLE_EVENT",
-                  eventId: calendarEvent.id,
-                });
-              }}
-            >
-              <div className="flex items-center">
-                <span className="block">
-                  <span className="flex items-center">
-                    <CalendarIcon className="text-red-600 w-4 h-4" />
-                    <h4 className="text-gray-500 text-sm ml-1 mr-2">
-                      {intl.formatDateTime(calendarEvent.date, {
-                        day: "numeric",
-                        month: "long",
-                      })}
-                    </h4>
-                    <div className="flex flex-shrink-0 -space-x-1">
-                      {calendarEvent.userIds.map((userId) => (
-                        <img
-                          key={userId}
-                          className="max-w-none h-6 w-6 rounded-full ring-2 ring-white"
-                          src={family.users[userId].avatar!}
-                          alt={family.users[userId].name}
-                        />
-                      ))}
-                    </div>
-                  </span>
-                  <h2 className="font-medium">{calendarEvent.description}</h2>
-                </span>
-                <Menu as="div" className="ml-auto flex-shrink-0">
-                  {({ open }) => (
-                    <>
-                      <Menu.Button className="w-8 h-8 bg-white inline-flex items-center justify-center text-gray-400 rounded-full hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
-                        <span className="sr-only">Open options</span>
-                        <DotsVerticalIcon
-                          className="w-5 h-5"
-                          aria-hidden="true"
-                        />
-                      </Menu.Button>
-                      <Transition
-                        show={open}
-                        as={React.Fragment}
-                        enter="transition ease-out duration-100"
-                        enterFrom="transform opacity-0 scale-95"
-                        enterTo="transform opacity-100 scale-100"
-                        leave="transition ease-in duration-75"
-                        leaveFrom="transform opacity-100 scale-100"
-                        leaveTo="transform opacity-0 scale-95"
-                      >
-                        <Menu.Items
-                          static
-                          className="z-10 mx-3 origin-top-right absolute right-10 top-3 w-48 mt-1 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-200 focus:outline-none"
-                        >
-                          <div className="py-1">
-                            <Menu.Item>
-                              {({ active }) => (
-                                <a
-                                  onClick={(event) => {
-                                    event.stopPropagation();
-                                    send({
-                                      type: "ARCHIVE_EVENT",
-                                      eventId: calendarEvent.id,
-                                    });
-                                  }}
-                                  className={`${
-                                    active
-                                      ? "bg-gray-100 text-gray-900"
-                                      : "text-gray-700"
-                                  }
-                                    block px-4 py-2 text-sm`}
-                                >
-                                  {t("archive")}
-                                </a>
-                              )}
-                            </Menu.Item>
-                          </div>
-                        </Menu.Items>
-                      </Transition>
-                    </>
-                  )}
-                </Menu>
-              </div>
-            </li>
-          );
-        })}
+        {eventsList.map((calendarEvent) => (
+          <CalendarEventItem
+            key={calendarEvent.id}
+            event={calendarEvent}
+            family={family}
+            onClick={() => {
+              send({
+                type: "TOGGLE_EVENT",
+                eventId: calendarEvent.id,
+              });
+            }}
+            archiveEvent={(id) => {
+              send({
+                type: "ARCHIVE_EVENT",
+                eventId: id,
+              });
+            }}
+          />
+        ))}
       </ul>
     </div>
   );

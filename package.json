@@ -1,5 +1,5 @@
 {
-  "version": "0.0.17",
+  "version": "0.0.18",
   "scripts": {
     "dev": "next dev",
     "deploy:functions": "firebase deploy --only functions",
