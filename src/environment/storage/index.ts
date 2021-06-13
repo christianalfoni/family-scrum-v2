@@ -69,24 +69,8 @@ export type WeekDTO = {
 
 export type StorageEvent =
   | {
-      type: "STORAGE:FETCH_FAMILY_DATA_SUCCESS";
+      type: "STORAGE:FAMILY_UPDATE";
       family: FamilyDTO;
-      groceries: {
-        [groceryId: string]: GroceryDTO;
-      };
-      todos: {
-        [todoId: string]: TodoDTO;
-      };
-      events: {
-        [eventId: string]: CalendarEventDTO;
-      };
-      barcodes: {
-        [barcodeId: string]: BarcodeDTO;
-      };
-    }
-  | {
-      type: "STORAGE:FETCH_FAMILY_DATA_ERROR";
-      error: string;
     }
   | {
       type: "STORAGE:WEEKS_UPDATE";

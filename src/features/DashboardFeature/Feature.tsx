@@ -6,6 +6,7 @@ import {
   createReducer,
   useEnterEffect,
   useEvents,
+  PickContext,
 } from "react-states";
 import { useEnvironment } from "../../environment";
 import {
@@ -75,30 +76,6 @@ export type WeekdayTodos = {
   [todoId: string]: string[];
 };
 
-type FamilyDataContext =
-  | {
-      state: "LOADING";
-    }
-  | {
-      state: "LOADED";
-      family: Family;
-      groceries: Groceries;
-      todos: Todos;
-      events: CalendarEvents;
-      barcodes: Barcodes;
-    };
-
-type WeeksDataContext =
-  | {
-      state: "LOADING";
-    }
-  | {
-      state: "LOADED";
-      previousWeek: Week;
-      currentWeek: Week;
-      nextWeek: Week;
-    };
-
 type Context =
   | {
       state: "AWAITING_AUTHENTICATION";
@@ -109,8 +86,14 @@ type Context =
   | {
       state: "LOADING";
       user: User;
-      familyData: FamilyDataContext;
-      weeksData: WeeksDataContext;
+      groceries?: Groceries;
+      todos?: Todos;
+      events?: CalendarEvents;
+      previousWeek?: Week;
+      currentWeek?: Week;
+      nextWeek?: Week;
+      family?: Family;
+      barcodes?: Barcodes;
     }
   | {
       state: "LOADED";
@@ -150,15 +133,50 @@ const featureContext = createContext<Context, UIEvent>();
 
 export const useFeature = createHook(featureContext);
 
+const evaluateLoadedContext = (
+  context: PickContext<Context, "LOADING">
+): Context => {
+  if (
+    context.currentWeek &&
+    context.nextWeek &&
+    context.previousWeek &&
+    context.events &&
+    context.groceries &&
+    context.todos &&
+    context.barcodes &&
+    context.family
+  ) {
+    return {
+      state: "LOADED",
+      view: {
+        state: "WEEKDAYS",
+      },
+      barcodes: context.barcodes,
+      currentWeek: context.currentWeek,
+      events: context.events,
+      family: context.family,
+      groceries: context.groceries,
+      nextWeek: context.nextWeek,
+      previousWeek: context.previousWeek,
+      todos: context.todos,
+      user: context.user,
+    };
+  }
+
+  return context;
+};
+
 const reducer = createReducer<Context, Event>({
   AWAITING_AUTHENTICATION: {
     "AUTHENTICATION:AUTHENTICATED_WITH_FAMILY": ({ user }) => ({
       state: "LOADING",
-      familyData: {
-        state: "LOADING",
-      },
-      weeksData: {
-        state: "LOADING",
+      dataLoaded: {
+        barcodes: false,
+        events: false,
+        family: false,
+        groceries: false,
+        todos: false,
+        weeks: false,
       },
       user,
     }),
@@ -169,88 +187,63 @@ const reducer = createReducer<Context, Event>({
   REQUIRING_AUTHENTICATION: {
     "AUTHENTICATION:AUTHENTICATED_WITH_FAMILY": ({ user }) => ({
       state: "LOADING",
-      familyData: {
-        state: "LOADING",
-      },
-      weeksData: {
-        state: "LOADING",
+      dataLoaded: {
+        barcodes: false,
+        events: false,
+        family: false,
+        groceries: false,
+        todos: false,
+        weeks: false,
       },
       user,
     }),
   },
   LOADING: {
-    "STORAGE:FETCH_FAMILY_DATA_SUCCESS": (
-      { groceries, todos, family, events, barcodes },
-      context
-    ) =>
-      match(context.weeksData, {
-        LOADING: (): Context => ({
-          ...context,
-          familyData: {
-            state: "LOADED",
-            groceries,
-            todos,
-            family,
-            events,
-            barcodes,
-          },
-        }),
-        LOADED: ({ currentWeek, nextWeek, previousWeek }): Context => ({
-          state: "LOADED",
-          view: {
-            state: "WEEKDAYS",
-          },
-          user: context.user,
-          currentWeek,
-          nextWeek,
-          previousWeek,
-          groceries,
-          todos,
-          family,
-          barcodes,
-          events,
-        }),
+    "STORAGE:FAMILY_UPDATE": ({ family }, context) =>
+      evaluateLoadedContext({
+        ...context,
+        family,
       }),
     "STORAGE:WEEKS_UPDATE": (
       { previousWeek, currentWeek, nextWeek },
       context
     ) =>
-      match(context.familyData, {
-        LOADING: (): Context => ({
-          ...context,
-          weeksData: {
-            state: "LOADED",
-            previousWeek,
-            currentWeek,
-            nextWeek,
-          },
-        }),
-        LOADED: ({ events, family, todos, groceries, barcodes }): Context => ({
-          state: "LOADED",
-          view: {
-            state: "WEEKDAYS",
-          },
-          user: context.user,
-          currentWeek,
-          nextWeek,
-          previousWeek,
-          groceries,
-          todos,
-          family,
-          events,
-          barcodes,
-        }),
+      evaluateLoadedContext({
+        ...context,
+        previousWeek,
+        currentWeek,
+        nextWeek,
+      }),
+    "STORAGE:GROCERIES_UPDATE": ({ groceries }, context) =>
+      evaluateLoadedContext({
+        ...context,
+        groceries,
+      }),
+    "STORAGE:TODOS_UPDATE": ({ todos }, context) =>
+      evaluateLoadedContext({
+        ...context,
+        todos,
+      }),
+    "STORAGE:EVENTS_UPDATE": ({ events }, context) =>
+      evaluateLoadedContext({
+        ...context,
+        events,
+      }),
+    "STORAGE:BARCODES_UPDATE": ({ barcodes }, context) =>
+      evaluateLoadedContext({
+        ...context,
+        barcodes,
       }),
     "STORAGE:FETCH_WEEKS_ERROR": ({ error }) => ({
       state: "ERROR",
       error,
     }),
-    "STORAGE:FETCH_FAMILY_DATA_ERROR": ({ error }) => ({
-      state: "ERROR",
-      error,
-    }),
   },
   LOADED: {
+    "STORAGE:FAMILY_UPDATE": ({ family }, context) => ({
+      ...context,
+      family,
+    }),
     "STORAGE:GROCERIES_UPDATE": ({ groceries }, context) => ({
       ...context,
       groceries,
@@ -379,11 +372,13 @@ export const Feature = ({ children, initialContext }: Props) => {
       }),
       SIGNED_IN: ({ user }) => ({
         state: "LOADING",
-        familyData: {
-          state: "LOADING",
-        },
-        weeksData: {
-          state: "LOADING",
+        dataLoaded: {
+          barcodes: false,
+          events: false,
+          family: false,
+          groceries: false,
+          todos: false,
+          weeks: false,
         },
         user,
       }),

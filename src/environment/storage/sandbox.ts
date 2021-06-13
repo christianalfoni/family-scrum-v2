@@ -223,12 +223,24 @@ export const createStorage = (): Storage => {
     async fetchFamilyData() {
       await randomWait();
       this.events.emit({
-        type: "STORAGE:FETCH_FAMILY_DATA_SUCCESS",
-        groceries,
-        todos,
+        type: "STORAGE:FAMILY_UPDATE",
         family,
-        events,
+      });
+      this.events.emit({
+        type: "STORAGE:GROCERIES_UPDATE",
+        groceries,
+      });
+      this.events.emit({
+        type: "STORAGE:BARCODES_UPDATE",
         barcodes,
+      });
+      this.events.emit({
+        type: "STORAGE:TODOS_UPDATE",
+        todos,
+      });
+      this.events.emit({
+        type: "STORAGE:EVENTS_UPDATE",
+        events,
       });
     },
     archiveTodo(_, id) {

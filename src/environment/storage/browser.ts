@@ -27,8 +27,6 @@ const BARCODES_COLLECTION = "barcodes";
 const WEEKS_COLLECTION = "weeks";
 const WEEKS_TODOS_COLLECTION = "todos";
 
-const DATA_UPDATE_DEBOUNCE_MS = 200;
-
 export const createStorage = (app: firebase.app.App): Storage => {
   const storageEvents = events<StorageEvent>();
 
@@ -94,19 +92,48 @@ export const createStorage = (app: firebase.app.App): Storage => {
     cb: (updatedData: T) => void
   ) => {
     query.onSnapshot((snapshot) => {
-      cb(
-        snapshot.docs.reduce((aggr, doc) => {
-          const data = doc.data({ serverTimestamps: "estimate" });
-          aggr[doc.id] = {
-            ...data,
-            id: doc.id,
-            modified: data.modified.toMillis(),
-            created: data.created.toMillis(),
-          };
+      let updatedData = getCurrentData();
+      snapshot.docChanges().forEach((docChange) => {
+        const id = docChange.doc.id;
 
-          return aggr;
-        }, {} as any)
-      );
+        switch (docChange.type) {
+          case "added": {
+            const data = docChange.doc.data();
+            updatedData = {
+              ...updatedData,
+              [id]: {
+                ...data,
+                id,
+                created: data.created.toMillis(),
+                modified: data.modified.toMillis(),
+              },
+            };
+            break;
+          }
+          case "modified": {
+            const data = docChange.doc.data();
+
+            updatedData = {
+              ...updatedData,
+              [id]: {
+                ...updatedData[id],
+                ...data,
+                modified: data.modified.toMillis(),
+              },
+            };
+            break;
+          }
+          case "removed": {
+            updatedData = {
+              ...updatedData,
+            };
+            delete updatedData[id];
+            break;
+          }
+        }
+      });
+
+      cb(updatedData);
     });
   };
 
@@ -123,151 +150,60 @@ export const createStorage = (app: firebase.app.App): Storage => {
       const eventsCollection = familyDocRef.collection(EVENTS_COLLECTION);
       const barcodesCollection = familyDocRef.collection(BARCODES_COLLECTION);
 
-      Promise.all([
-        familyDocRef.get(),
-        groceriesCollection.get(),
-        todosCollection.get(),
-        eventsCollection.get(),
-        barcodesCollection.get(),
-      ]).then(
-        ([
-          familyDataDoc,
-          groceriesDocs,
-          todosDocs,
-          eventsDocs,
-          barcodesDocs,
-        ]) => {
-          if (!familyDataDoc.exists) {
-            return this.events.emit({
-              type: "STORAGE:FETCH_FAMILY_DATA_ERROR",
-              error: "Family document does not exist",
-            });
-          }
+      familyDocRef.onSnapshot((snapshot) => {
+        this.events.emit({
+          type: "STORAGE:FAMILY_UPDATE",
+          family: {
+            ...snapshot.data(),
+            id: snapshot.id,
+          } as FamilyDTO,
+        });
+      });
 
-          onSnapshot(
-            groceriesCollection,
-            () => groceries,
-            debounce((updatedGroceries) => {
-              groceries = updatedGroceries;
-              this.events.emit({
-                type: "STORAGE:GROCERIES_UPDATE",
-                groceries: updatedGroceries,
-              });
-            }, DATA_UPDATE_DEBOUNCE_MS)
-          );
-
-          onSnapshot(
-            todosCollection,
-            () => todos,
-            debounce((updatedTodos) => {
-              todos = updatedTodos;
-              this.events.emit({
-                type: "STORAGE:TODOS_UPDATE",
-                todos: updatedTodos,
-              });
-            }, DATA_UPDATE_DEBOUNCE_MS)
-          );
-
-          onSnapshot(
-            eventsCollection,
-            () => calendarEvents,
-            debounce((updatedEvents) => {
-              calendarEvents = updatedEvents;
-              this.events.emit({
-                type: "STORAGE:EVENTS_UPDATE",
-                events: updatedEvents,
-              });
-            }, DATA_UPDATE_DEBOUNCE_MS)
-          );
-
-          onSnapshot(
-            barcodesCollection,
-            () => barcodes,
-            debounce((updatedBarcodes) => {
-              barcodes = updatedBarcodes;
-              this.events.emit({
-                type: "STORAGE:BARCODES_UPDATE",
-                barcodes: updatedBarcodes,
-              });
-            }, DATA_UPDATE_DEBOUNCE_MS)
-          );
-
-          const family = {
-            ...familyDataDoc.data(),
-            id: familyDataDoc.id,
-          } as FamilyDTO;
-          const groceriesList = groceriesDocs.docs.map((groceryDoc) => {
-            const data = groceryDoc.data();
-
-            return {
-              id: groceryDoc.id,
-              ...data,
-              created: data.created.toMillis(),
-              modified: data.modified.toMillis(),
-            };
-          }) as GroceryDTO[];
-          const todosList = todosDocs.docs.map((todoDoc) => {
-            const data = todoDoc.data();
-
-            return {
-              id: todoDoc.id,
-              ...data,
-              created: data.created.toMillis(),
-              modified: data.created.toMillis(),
-            };
-          }) as TodoDTO[];
-          const eventsList = eventsDocs.docs.map((eventDoc) => {
-            const data = eventDoc.data();
-
-            return {
-              id: eventDoc.id,
-              ...data,
-              created: data.created.toMillis(),
-              modified: data.modified.toMillis(),
-            };
-          }) as CalendarEventDTO[];
-          const barcodesList = barcodesDocs.docs.map((barcodeDoc) => {
-            const data = barcodeDoc.data();
-
-            return {
-              id: barcodeDoc.id,
-              ...data,
-              created: data.created.toMillis(),
-            };
-          }) as BarcodeDTO[];
-
-          groceries = groceriesList.reduce<{
-            [id: string]: GroceryDTO;
-          }>((aggr, grocery) => {
-            aggr[grocery.id] = grocery;
-            return aggr;
-          }, {});
-          todos = todosList.reduce<{
-            [id: string]: TodoDTO;
-          }>((aggr, todo) => {
-            aggr[todo.id] = todo;
-            return aggr;
-          }, {});
-          calendarEvents = eventsList.reduce<{
-            [id: string]: CalendarEventDTO;
-          }>((aggr, event) => {
-            aggr[event.id] = event;
-            return aggr;
-          }, {});
-          barcodes = barcodesList.reduce<{
-            [id: string]: BarcodeDTO;
-          }>((aggr, event) => {
-            aggr[event.id] = event;
-            return aggr;
-          }, {});
-
+      onSnapshot(
+        groceriesCollection,
+        () => groceries,
+        (updatedGroceries) => {
+          groceries = updatedGroceries;
           this.events.emit({
-            type: "STORAGE:FETCH_FAMILY_DATA_SUCCESS",
-            family,
-            groceries,
-            todos,
-            events: calendarEvents,
-            barcodes,
+            type: "STORAGE:GROCERIES_UPDATE",
+            groceries: updatedGroceries,
+          });
+        }
+      );
+
+      onSnapshot(
+        todosCollection,
+        () => todos,
+        (updatedTodos) => {
+          todos = updatedTodos;
+          this.events.emit({
+            type: "STORAGE:TODOS_UPDATE",
+            todos: updatedTodos,
+          });
+        }
+      );
+
+      onSnapshot(
+        eventsCollection,
+        () => calendarEvents,
+        (updatedEvents) => {
+          calendarEvents = updatedEvents;
+          this.events.emit({
+            type: "STORAGE:EVENTS_UPDATE",
+            events: updatedEvents,
+          });
+        }
+      );
+
+      onSnapshot(
+        barcodesCollection,
+        () => barcodes,
+        (updatedBarcodes) => {
+          barcodes = updatedBarcodes;
+          this.events.emit({
+            type: "STORAGE:BARCODES_UPDATE",
+            barcodes: updatedBarcodes,
           });
         }
       );
@@ -605,7 +541,8 @@ export const createStorage = (app: firebase.app.App): Storage => {
         getPreviousWeekId(),
         getCurrentWeekId(),
         getNextWeekId(),
-        // We only fetch and subscribe to what we do not have
+        // We only fetch and subscribe to what we do not have as this
+        // might be called multiple times
       ].filter((weekId) => !(weekId in weeks));
 
       const weeksCollection = app
@@ -617,47 +554,40 @@ export const createStorage = (app: firebase.app.App): Storage => {
       weekIds.forEach((weekId) => {
         const weekDocRef = weeksCollection.doc(weekId);
 
-        weekDocRef.collection(WEEKS_TODOS_COLLECTION).onSnapshot(
-          debounce(
-            (
-              snapshot: firebase.firestore.QuerySnapshot<firebase.firestore.DocumentData>
-            ) => {
-              weeks = {
-                ...weeks,
-                [weekId]: {
-                  ...weeks[weekId],
-                  todos: snapshot.docs.reduce<{
-                    [id: string]: { [userId: string]: WeekTodoActivity };
-                  }>((aggr, doc) => {
-                    const data = doc.data({ serverTimestamps: "estimate" });
-                    aggr[doc.id] = {
-                      ...data.activityByUserId,
-                      [userId]: weeks[weekId].todos[doc.id]?.[userId] ?? [
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                      ],
-                    };
+        weekDocRef.collection(WEEKS_TODOS_COLLECTION).onSnapshot((snapshot) => {
+          weeks = {
+            ...weeks,
+            [weekId]: {
+              ...weeks[weekId],
+              todos: snapshot.docs.reduce<{
+                [id: string]: { [userId: string]: WeekTodoActivity };
+              }>((aggr, doc) => {
+                const data = doc.data({ serverTimestamps: "estimate" });
+                aggr[doc.id] = {
+                  ...data.activityByUserId,
+                  [userId]: weeks[weekId]?.todos[doc.id]?.[userId] ?? [
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                  ],
+                };
 
-                    return aggr;
-                  }, {}),
-                },
-              };
-
-              this.events.emit({
-                type: "STORAGE:WEEKS_UPDATE",
-                previousWeek: weeks[getPreviousWeekId()],
-                currentWeek: weeks[getCurrentWeekId()],
-                nextWeek: weeks[getNextWeekId()],
-              });
+                return aggr;
+              }, {}),
             },
-            DATA_UPDATE_DEBOUNCE_MS
-          )
-        );
+          };
+
+          this.events.emit({
+            type: "STORAGE:WEEKS_UPDATE",
+            previousWeek: weeks[getPreviousWeekId()],
+            currentWeek: weeks[getCurrentWeekId()],
+            nextWeek: weeks[getNextWeekId()],
+          });
+        });
       });
 
       Promise.all(
