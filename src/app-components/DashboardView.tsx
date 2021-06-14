@@ -8,8 +8,13 @@ import React, { useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import SwiperCore, { Controller } from "swiper";
 import { dashboardSelectors, useDasbhoard } from "../features/DashboardFeature";
-import { getCurrentDayIndex, weekdays } from "../utils";
+import {
+  getCurrentDayIndex,
+  getFirstDateOfCurrentWeek,
+  weekdays,
+} from "../utils";
 import { groceriesShoppingSelectors } from "../features/GroceriesShoppingFeature";
+import { addDays, format, isSameDay } from "date-fns";
 
 SwiperCore.use([Controller]);
 
@@ -54,13 +59,18 @@ const MenuCard = ({
 
 const WeekdaySlideContent = ({
   title,
+  date,
   children,
 }: {
   title: string;
+  date: string;
   children: React.ReactNode;
 }) => (
   <div className="px-6">
-    <h1 className="text-xl">{title}</h1>
+    <div className="flex items-center">
+      <h1 className="text-xl">{title}</h1>
+      <span className="text-md text-gray-500 ml-auto">{date}</span>
+    </div>
     {children}
   </div>
 );
@@ -109,7 +119,9 @@ export const DashboardContentSkeleton = () => {
           {weekdays.map((weekday, index) => (
             <SwiperSlide key={weekday}>
               {/* No title as server side caches this page */}
-              <WeekdaySlideContent title="">{null}</WeekdaySlideContent>
+              <WeekdaySlideContent title="" date="">
+                {null}
+              </WeekdaySlideContent>
             </SwiperSlide>
           ))}
         </Swiper>
@@ -146,17 +158,20 @@ export const DashboardView = () => {
   const intl = useIntl();
   const { groceries, family, currentWeek, todos, events } = dashboard;
   const currentDayIndex = getCurrentDayIndex();
+  const currentWeekDate = getFirstDateOfCurrentWeek();
   const [slideIndex, setSlideIndex] = useState(currentDayIndex);
   const todosByWeekday = dashboardSelectors.todosByWeekday(currentWeek);
   const sortedEvents = dashboardSelectors.sortedEvents(events);
   const [controlledSwiper, setControlledSwiper] =
     useState<SwiperCore | null>(null);
+  const shopCount = groceriesShoppingSelectors.shopCount(groceries);
 
   return (
     <>
       <ul className="flex flex-col p-6">
         <MenuCard
           Icon={ShoppingCartIcon}
+          disabled={!shopCount}
           onClick={() => {
             send({
               type: "VIEW_SELECTED",
@@ -167,7 +182,7 @@ export const DashboardView = () => {
           }}
           color="bg-red-500"
         >
-          {t("goShopping")} ({groceriesShoppingSelectors.shopCount(groceries)})
+          {t("goShopping")} ({shopCount})
         </MenuCard>
         <MenuCard
           Icon={ShoppingCartIcon}
@@ -207,21 +222,30 @@ export const DashboardView = () => {
           onSwiper={setControlledSwiper}
           initialSlide={slideIndex}
         >
-          {todosByWeekday.map((weekdayTodos, index) => (
-            <SwiperSlide key={index}>
-              <WeekdaySlideContent title={t(weekdays[index]) as string}>
-                {
-                  <ul className="mt-2 ">
-                    {Object.keys(weekdayTodos)
-                      .filter((todoId) => todoId in todos)
-                      .map((todoId) => (
+          {todosByWeekday.map((weekdayTodos, index) => {
+            const todaysEvents = sortedEvents.filter((event) =>
+              isSameDay(event.date, addDays(currentWeekDate, index))
+            );
+
+            return (
+              <SwiperSlide key={index}>
+                <WeekdaySlideContent
+                  title={`${t(weekdays[index])}`}
+                  date={intl.formatDateTime(addDays(currentWeekDate, index), {
+                    day: "numeric",
+                    month: "long",
+                  })}
+                >
+                  {
+                    <ul className="mt-2 ">
+                      {todaysEvents.map((event) => (
                         <li
-                          key={todoId}
-                          className="py-3 flex justify-between items-center"
+                          key={event.id}
+                          className="py-2 flex justify-between items-center"
                         >
                           <div className="flex items-center space-x-2">
                             <div className="flex flex-shrink-0 -space-x-1">
-                              {weekdayTodos[todoId].map((userId) => (
+                              {event.userIds.map((userId) => (
                                 <img
                                   key={userId}
                                   className="max-w-none h-6 w-6 rounded-full ring-2 ring-white"
@@ -230,17 +254,43 @@ export const DashboardView = () => {
                                 />
                               ))}
                             </div>
+
                             <p className="ml-4 text-sm font-medium text-gray-900">
-                              {todos[todoId].description}
+                              {event.description}
                             </p>
                           </div>
                         </li>
                       ))}
-                  </ul>
-                }
-              </WeekdaySlideContent>
-            </SwiperSlide>
-          ))}
+                      {Object.keys(weekdayTodos)
+                        .filter((todoId) => todoId in todos)
+                        .map((todoId) => (
+                          <li
+                            key={todoId}
+                            className="py-2 flex justify-between items-center"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <div className="flex flex-shrink-0 -space-x-1">
+                                {weekdayTodos[todoId].map((userId) => (
+                                  <img
+                                    key={userId}
+                                    className="max-w-none h-6 w-6 rounded-full ring-2 ring-white"
+                                    src={family.users[userId].avatar!}
+                                    alt={family.users[userId].name}
+                                  />
+                                ))}
+                              </div>
+                              <p className="ml-4 text-sm font-medium text-gray-900">
+                                {todos[todoId].description}
+                              </p>
+                            </div>
+                          </li>
+                        ))}
+                    </ul>
+                  }
+                </WeekdaySlideContent>
+              </SwiperSlide>
+            );
+          })}
           <SwiperSlide>
             <div className="px-6">
               <h1 className="text-xl">{t("events")}</h1>

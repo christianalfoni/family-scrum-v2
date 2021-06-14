@@ -98,7 +98,9 @@ export const createStorage = (app: firebase.app.App): Storage => {
 
         switch (docChange.type) {
           case "added": {
-            const data = docChange.doc.data();
+            const data = docChange.doc.data({
+              serverTimestamps: "estimate",
+            });
             updatedData = {
               ...updatedData,
               [id]: {
@@ -111,7 +113,9 @@ export const createStorage = (app: firebase.app.App): Storage => {
             break;
           }
           case "modified": {
-            const data = docChange.doc.data();
+            const data = docChange.doc.data({
+              serverTimestamps: "estimate",
+            });
 
             updatedData = {
               ...updatedData,
@@ -119,6 +123,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
                 ...updatedData[id],
                 ...data,
                 modified: data.modified.toMillis(),
+                created: data.created.toMillis(),
               },
             };
             break;

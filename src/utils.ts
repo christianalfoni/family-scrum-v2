@@ -1,12 +1,12 @@
 import { setDay, format, subDays, addDays, getDay, parse } from "date-fns";
 
-const getFirstDateOfPreviousWeek = () =>
+export const getFirstDateOfPreviousWeek = () =>
   setDay(subDays(new Date(), 7), 1, { weekStartsOn: 1 });
 
-const getFirstDateOfCurrentWeek = () =>
+export const getFirstDateOfCurrentWeek = () =>
   setDay(new Date(), 1, { weekStartsOn: 1 });
 
-const getFirstDateOfNextWeek = () =>
+export const getFirstDateOfNextWeek = () =>
   setDay(addDays(new Date(), 7), 1, { weekStartsOn: 1 });
 
 export const getPreviousWeekId = () => {
@@ -94,4 +94,3 @@ export const getWeekdayIndexes = (dates: string[], weekDates: string[]) => {
     .filter((date) => weekDates.includes(date))
     .map((date) => getDay(parse(date, "yyyyMMdd", new Date())));
 };
-
