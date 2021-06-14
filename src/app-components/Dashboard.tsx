@@ -65,6 +65,26 @@ export const Dashboard = () => {
               </GroceriesFeature>
             ),
             WEEKDAYS: () => <DashboardView />,
+            TODOS: () => (
+              <PlanWeekFeature user={user} weekId={currentWeek.id}>
+              <PlanWeekView
+                user={user}
+                events={events}
+                todos={todos}
+                family={family}
+                previousWeek={previousWeek}
+                week={currentWeek}
+                onBackClick={() =>
+                  send({
+                    type: "VIEW_SELECTED",
+                    view: {
+                      state: "WEEKDAYS",
+                    },
+                  })
+                }
+              />
+            </PlanWeekFeature>
+            ),
             PLAN_CURRENT_WEEK: () => (
               <PlanWeekFeature user={user} weekId={currentWeek.id}>
                 <PlanWeekView

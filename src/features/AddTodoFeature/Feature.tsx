@@ -8,27 +8,47 @@ import {
 import { useDevtools } from "react-states/devtools";
 import { useEnvironment } from "../../environment";
 
-type ValidationContext =
+type DateContext =
   | {
-      state: "VALID";
+      state: "INACTIVE";
     }
   | {
-      state: "INVALID";
+      state: "ACTIVE";
+      date: number;
+    };
+
+type TimeContext =
+  | {
+      state: "INACTIVE";
+    }
+  | {
+      state: "ACTIVE";
+      time: string;
+    };
+
+type ChecklistContext =
+  | {
+      state: "INACTIVE";
+    }
+  | {
+      state: "ACTIVE";
+      items: Array<{ title: string; completed: boolean }>;
     };
 
 type BaseContext = {
   description: string;
-  validation: ValidationContext;
+  date: DateContext;
+  time: TimeContext;
+  checkList: ChecklistContext;
 };
 
 type Context = BaseContext &
   (
     | {
-        state: "DEFINING_TODO";
+        state: "VALID";
       }
     | {
-        state: "DEFINING_EVENT";
-        date: number;
+        state: "INVALID";
       }
   );
 
@@ -49,20 +69,28 @@ type UIEvent =
       description: string;
     }
   | {
+      type: "DATE_TOGGLED";
+    }
+  | {
       type: "DATE_CHANGED";
       date: number;
     }
   | {
-      type: "ADD_DATE";
+      type: "TIME_TOGGLED";
     }
   | {
-      type: "ADD_EVENT";
+      type: "TIME_CHANGED";
+      time: string;
+    }
+  | {
+      type: "CHECKLIST_TOGGLED";
+    }
+  | {
+      type: "CHECKLIST_ITEM_ADDED";
+      description: string;
     }
   | {
       type: "ADD_TODO";
-    }
-  | {
-      type: "CANCEL_DATE";
     };
 
 type Event = UIEvent;
@@ -74,47 +102,50 @@ const DESCRIPTION_CHANGED = (
   context: Context
 ): Context => ({
   ...context,
-  validation: {
-    state: description ? "VALID" : "INVALID",
-  },
-  description,
+  state: description ? "VALID" : "INVALID",
+});
+
+const DATE_TOGGLED = (_: any, context: Context): Context => ({
+  ...context,
+  date:
+    context.date.state === "ACTIVE"
+      ? {
+          state: "INACTIVE",
+        }
+      : {
+          state: "ACTIVE",
+          date: Date.now(),
+        },
+});
+
+const DATE_CHANGED = (
+  { date }: { date: number },
+  context: Context
+): Context => ({
+  ...context,
+  date:
+    context.date.state === "ACTIVE"
+      ? {
+          ...context.date,
+          date,
+        }
+      : context.date,
 });
 
 const reducer = createReducer<Context, Event, TransientContext>(
   {
-    DEFINING_TODO: {
+    INVALID: {
       DESCRIPTION_CHANGED,
-      ADD_DATE: (_, context) => ({
-        ...context,
-        state: "DEFINING_EVENT",
-        date: Date.now(),
-      }),
-      ADD_TODO: (_, context) =>
-        context.validation.state === "VALID"
-          ? {
-              state: "ADDING_TODO",
-              description: context.description,
-            }
-          : context,
+      DATE_TOGGLED,
+      DATE_CHANGED,
     },
-    DEFINING_EVENT: {
+    VALID: {
       DESCRIPTION_CHANGED,
-      DATE_CHANGED: ({ date }, context) => ({
-        ...context,
-        date,
-      }),
-      ADD_EVENT: (_, context) =>
-        context.validation.state === "VALID"
-          ? {
-              state: "ADDING_EVENT",
-              description: context.description,
-              date: context.date,
-            }
-          : context,
-      CANCEL_DATE: (_, { description, validation }) => ({
-        state: "DEFINING_TODO",
-        description,
-        validation,
+      DATE_TOGGLED,
+      DATE_CHANGED,
+      ADD_TODO: (_, context) => ({
+        state: "ADDING_TODO",
+        description: context.description,
       }),
     },
   },
@@ -131,10 +162,16 @@ export const Feature = ({
   userId,
   children,
   initialContext = {
-    state: "DEFINING_TODO",
+    state: "INVALID",
     description: "",
-    validation: {
-      state: "INVALID",
+    checkList: {
+      state: "INACTIVE",
+    },
+    date: {
+      state: "INACTIVE",
+    },
+    time: {
+      state: "INACTIVE",
     },
   },
 }: {

@@ -7,7 +7,7 @@
   "DashboardView": {
     "goShopping": "Handleliste",
     "groceries": "Matvarer",
-    "planWeek": "Planlegg uka",
+    "todos": "Gjøremål",
     "events": "Hendelser",
     "monday": "Mandag",
     "tuesday": "Tirsdag",
@@ -29,8 +29,8 @@
   },
   "PlanWeekView": {
     "archive": "Arkiver",
-    "planNextWeek": "Planlegg neste uke",
-    "planCurrentWeek": "Planlegg denne uka"
+    "nextWeek": "Neste uke",
+    "currentWeek": "Denne uka"
   },
   "GroceriesShoppingView": {
     "shoppingList": "Handleliste"

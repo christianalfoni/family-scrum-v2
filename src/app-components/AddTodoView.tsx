@@ -8,24 +8,22 @@ import { format } from "date-fns";
 export const AddTodoView = ({ onBackClick }: { onBackClick: () => void }) => {
   const [addTodo, send] = useAddTodo();
   const t = useTranslations("AddTodoView");
-  
+
   return (
-    <>
-      <div className="bg-white lg:min-w-0 lg:flex-1">
-        <div className="pl-4 pr-6 pt-4 pb-4 border-b border-t border-gray-200 sm:pl-6 lg:pl-8 xl:pl-6 xl:pt-6 xl:border-t-0">
-          <div className="flex items-center">
-            <button
-              onClick={onBackClick}
-              className="flex-1 bg-white p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500"
-            >
-              <ChevronLeftIcon className="h-6 w-6" aria-hidden="true" />
-            </button>
-            <h1 className="flex-2 text-lg font-medium">{t("addTodo")}</h1>
-            <span className="flex-1" />
-          </div>
+    <div className="bg-white lg:min-w-0 lg:flex-1">
+      <div className="pl-4 pr-6 pt-4 pb-4 border-b border-t border-gray-200 sm:pl-6 lg:pl-8 xl:pl-6 xl:pt-6 xl:border-t-0">
+        <div className="flex items-center">
+          <button
+            onClick={onBackClick}
+            className="flex-1 bg-white p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500"
+          >
+            <ChevronLeftIcon className="h-6 w-6" aria-hidden="true" />
+          </button>
+          <h1 className="flex-2 text-lg font-medium">{t("addTodo")}</h1>
+          <span className="flex-1" />
         </div>
       </div>
-      <div className="p-6 flex flex-col">
+      <div className="flex flex-col">
         <textarea
           rows={3}
           onChange={(event) => {
@@ -34,8 +32,8 @@ export const AddTodoView = ({ onBackClick }: { onBackClick: () => void }) => {
               description: event.target.value,
             });
           }}
-          className="shadow-sm block w-full focus:ring-blue-500 focus:border-blue-500 sm:text-sm border-gray-300 rounded-md"
-          placeholder="Description"
+          className="p-2 shadow-sm block w-full focus:ring-blue-500 focus:border-blue-500 sm:text-sm border-none"
+          placeholder="Description..."
           value={addTodo.description}
         />
         <div className="h-24 flex items-center justify-center">
@@ -102,6 +100,6 @@ export const AddTodoView = ({ onBackClick }: { onBackClick: () => void }) => {
           {t("save")}
         </button>
       </div>
-    </>
+    </div>
   );
 };

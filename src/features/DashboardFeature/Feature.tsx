@@ -53,6 +53,9 @@ export type ViewContext =
       state: "GROCERIES";
     }
   | {
+      state: "TODOS";
+    }
+  | {
       state: "PLAN_CURRENT_WEEK";
     }
   | {

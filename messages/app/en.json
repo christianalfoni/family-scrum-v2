@@ -7,8 +7,7 @@
   "DashboardView": {
     "goShopping": "Shopping list",
     "groceries": "Groceries",
-    "planWeek": "Plan week",
-
+    "todos": "Todos",
     "events": "Events",
     "monday": "Monday",
     "tuesday": "Tuesday",
@@ -30,8 +29,8 @@
   },
   "PlanWeekView": {
     "archive": "Archive",
-    "planNextWeek": "Plan next week",
-    "planCurrentWeek": "Plan current week"
+    "nextWeek": "Next week",
+    "currentWeek": "Current week"
   },
   "GroceriesShoppingView": {
     "shoppingList": "Shopping list"

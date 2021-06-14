@@ -1,5 +1,7 @@
 import {
   CalendarIcon,
+  CheckCircleIcon,
+  CollectionIcon,
   PlusIcon,
   ShoppingCartIcon,
 } from "@heroicons/react/outline";
@@ -91,7 +93,7 @@ export const DashboardContentSkeleton = () => {
         </MenuCard>
         <MenuCard
           disabled
-          Icon={ShoppingCartIcon}
+          Icon={CollectionIcon}
           onClick={() => {}}
           color="bg-yellow-500"
         >
@@ -99,11 +101,11 @@ export const DashboardContentSkeleton = () => {
         </MenuCard>
         <MenuCard
           disabled
-          Icon={CalendarIcon}
+          Icon={CheckCircleIcon}
           onClick={() => {}}
           color="bg-blue-500"
         >
-          {t("planWeek")}
+          {t("todos")}
         </MenuCard>
       </ul>
       <div className="h-2/4">
@@ -185,7 +187,7 @@ export const DashboardView = () => {
           {t("goShopping")} ({shopCount})
         </MenuCard>
         <MenuCard
-          Icon={ShoppingCartIcon}
+          Icon={CollectionIcon}
           onClick={() => {
             send({
               type: "VIEW_SELECTED",
@@ -199,7 +201,7 @@ export const DashboardView = () => {
           {t("groceries")}
         </MenuCard>
         <MenuCard
-          Icon={CalendarIcon}
+          Icon={CheckCircleIcon}
           onClick={() => {
             send({
               type: "VIEW_SELECTED",
@@ -210,7 +212,7 @@ export const DashboardView = () => {
           }}
           color="bg-blue-500"
         >
-          {t("planWeek")}
+          {t("todos")}
         </MenuCard>
       </ul>
       <div className="h-2/4">

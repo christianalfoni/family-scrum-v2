@@ -294,7 +294,7 @@ export const PlanWeekView = ({
             </button>
           </div>
 
-          <Menu as="div" className="px-3 relative flex-2 text-left">
+          <Menu as="div" className="relative ml-auto text-left">
             {({ open }) => (
               <>
                 <div>
@@ -302,10 +302,8 @@ export const PlanWeekView = ({
                     <span className="flex w-full justify-between items-center">
                       <span className="flex min-w-0 items-center justify-between space-x-3">
                         <span className="flex-1 flex flex-col min-w-0">
-                          <span className="text-gray-900 text-lg font-medium truncate">
-                            {isCurrentWeek
-                              ? t("planCurrentWeek")
-                              : t("planNextWeek")}
+                          <span className="text-gray-900 text-md font-medium truncate">
+                            {isCurrentWeek ? t("currentWeek") : t("nextWeek")}
                           </span>
                         </span>
                       </span>
@@ -328,7 +326,7 @@ export const PlanWeekView = ({
                 >
                   <Menu.Items
                     static
-                    className="z-10 mx-3 origin-top absolute right-0 left-0 mt-1 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-200 focus:outline-none"
+                    className="z-10 mx-3 origin-top absolute right-0 mt-1 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-200 focus:outline-none"
                   >
                     <div className="py-1">
                       <Menu.Item>
@@ -348,10 +346,10 @@ export const PlanWeekView = ({
                                     ? "bg-gray-100 text-gray-900"
                                     : "text-gray-700"
                                 } 
-                                block px-4 py-2 text-sm
+                                block px-4 py-2 text-sm whitespace-nowrap
                               `}
                           >
-                            {t("planCurrentWeek")}
+                            {t("currentWeek")}
                           </a>
                         )}
                       </Menu.Item>
@@ -372,10 +370,10 @@ export const PlanWeekView = ({
                                   ? "bg-gray-100 text-gray-900"
                                   : "text-gray-700"
                               } 
-                              block px-4 py-2 text-sm
+                              block px-4 py-2 text-sm whitespace-nowrap
                             `}
                           >
-                            {t("planNextWeek")}
+                            {t("nextWeek")}
                           </a>
                         )}
                       </Menu.Item>
@@ -385,8 +383,6 @@ export const PlanWeekView = ({
               </>
             )}
           </Menu>
-
-          <span className="flex-1" />
         </div>
       </div>
       <ul className="relative z-0 divide-y divide-gray-200 border-b border-gray-200 overflow-y-scroll">
