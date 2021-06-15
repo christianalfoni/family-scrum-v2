@@ -19,49 +19,49 @@ export type User = {
 
 export type VersionContext =
   | {
-    state: "PENDING";
-  }
+      state: "PENDING";
+    }
   | {
-    state: "RECENT";
-    version: string;
-  }
+      state: "RECENT";
+      version: string;
+    }
   | {
-    state: "EXPIRED";
-    version: string;
-    newVersion: string;
-  };
+      state: "EXPIRED";
+      version: string;
+      newVersion: string;
+    };
 
 export type Context =
   | {
-    state: "VERIFYING_AUTHENTICATION";
-  }
+      state: "VERIFYING_AUTHENTICATION";
+    }
   | {
-    state: "SIGNING_IN";
-  }
+      state: "SIGNING_IN";
+    }
   | {
-    state: "NO_FAMILY";
-  }
+      state: "NO_FAMILY";
+    }
   | {
-    state: "CREATING_FAMILY";
-  }
+      state: "CREATING_FAMILY";
+    }
   | {
-    state: "JOINING_FAMILY";
-  }
+      state: "JOINING_FAMILY";
+    }
   | {
-    state: "SIGNED_IN";
-    user: User;
-    version: VersionContext;
-  }
+      state: "SIGNED_IN";
+      user: User;
+      version: VersionContext;
+    }
   | {
-    state: "SIGNED_OUT";
-  }
+      state: "SIGNED_OUT";
+    }
   | {
-    state: "ERROR";
-    error: string;
-  }
+      state: "ERROR";
+      error: string;
+    }
   | {
-    state: "UPDATING_VERSION";
-  };
+      state: "UPDATING_VERSION";
+    };
 
 type TransientContext = {
   state: "CHECKING_VERSION";
@@ -69,11 +69,11 @@ type TransientContext = {
 
 export type UIEvent =
   | {
-    type: "SIGN_IN";
-  }
+      type: "SIGN_IN";
+    }
   | {
-    type: "UPDATE";
-  };
+      type: "UPDATE";
+    };
 
 export type Event =
   | UIEvent

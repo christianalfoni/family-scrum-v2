@@ -2,7 +2,6 @@ import firebase from "firebase/app";
 import { events } from "react-states";
 import {
   BarcodeDTO,
-  CalendarEventDTO,
   FamilyDTO,
   GroceryDTO,
   Storage,
@@ -23,6 +22,7 @@ const GROCERIES_COLLECTION = "groceries";
 const TODOS_COLLECTION = "todos";
 const EVENTS_COLLECTION = "events";
 const BARCODES_COLLECTION = "barcodes";
+const CHECKLIST_ITEMS_COLLECTION = "checkListItems";
 
 const WEEKS_COLLECTION = "weeks";
 const WEEKS_TODOS_COLLECTION = "todos";
@@ -37,10 +37,6 @@ export const createStorage = (app: firebase.app.App): Storage => {
   let todos: {
     [todoId: string]: TodoDTO;
   } = {};
-
-  let calendarEvents: {
-    [eventId: string]: CalendarEventDTO;
-  };
 
   let weeks: {
     [weekId: string]: WeekDTO;
@@ -152,7 +148,9 @@ export const createStorage = (app: firebase.app.App): Storage => {
 
       const groceriesCollection = familyDocRef.collection(GROCERIES_COLLECTION);
       const todosCollection = familyDocRef.collection(TODOS_COLLECTION);
-      const eventsCollection = familyDocRef.collection(EVENTS_COLLECTION);
+      const checkListItemsCollection = familyDocRef.collection(
+        CHECKLIST_ITEMS_COLLECTION
+      );
       const barcodesCollection = familyDocRef.collection(BARCODES_COLLECTION);
 
       familyDocRef.onSnapshot((snapshot) => {
@@ -177,27 +175,58 @@ export const createStorage = (app: firebase.app.App): Storage => {
         }
       );
 
+      let hasLoadedInitialTodos = false;
+
       onSnapshot(
         todosCollection,
         () => todos,
         (updatedTodos) => {
           todos = updatedTodos;
+
           this.events.emit({
             type: "STORAGE:TODOS_UPDATE",
             todos: updatedTodos,
           });
-        }
-      );
 
-      onSnapshot(
-        eventsCollection,
-        () => calendarEvents,
-        (updatedEvents) => {
-          calendarEvents = updatedEvents;
-          this.events.emit({
-            type: "STORAGE:EVENTS_UPDATE",
-            events: updatedEvents,
-          });
+          if (!hasLoadedInitialTodos) {
+            hasLoadedInitialTodos = true;
+            checkListItemsCollection.onSnapshot((snapshot) => {
+              snapshot.docChanges().forEach((docChange) => {
+                const data = docChange.doc.data();
+
+                switch (docChange.type) {
+                  case "added": {
+                    const todo = todos[data.todoId];
+                    const checkListItem = {
+                      ...data,
+                      id: docChange.doc.id,
+                    };
+                    todos = {
+                      ...todos,
+                      [data.todoId]: {
+                        ...todo,
+                        checkList: todo.checkList
+                          ? [...todo.checkList, checkListItem]
+                          : [checkListItem],
+                      },
+                    };
+                    break;
+                  }
+                  case "modified": {
+                    break;
+                  }
+                  case "removed": {
+                    break;
+                  }
+                }
+              });
+
+              this.events.emit({
+                type: "STORAGE:TODOS_UPDATE",
+                todos: updatedTodos,
+              });
+            });
+          }
         }
       );
 

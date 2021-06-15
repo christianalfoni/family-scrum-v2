@@ -1,5 +1,4 @@
 import { match } from "react-states";
-import { useTranslations } from "next-intl";
 import { useDasbhoard } from "../features/DashboardFeature";
 import { GroceriesView } from "./GroceriesView";
 import { GroceriesShoppingView } from "./GroceriesShoppingView";
