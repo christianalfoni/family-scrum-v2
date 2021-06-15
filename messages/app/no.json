@@ -1,14 +1,19 @@
 {
   "AddTodoView": {
-    "addTodo": "Nytt Gjøremål",
-    "setDate": "Sett Dato",
-    "save": "Lagre"
+    "addTodo": "Nytt gjøremål",
+    "setDate": "Sett dato",
+    "setTime": "Sett tid",
+    "addCheckList": "Legg til sjekkliste",
+    "save": "Lagre",
+    "title": "Tittel",
+    "add": "Legg til"
   },
   "DashboardView": {
     "goShopping": "Handleliste",
     "groceries": "Matvarer",
     "todos": "Gjøremål",
     "events": "Hendelser",
+    "planWeek": "Planlegg uka",
     "monday": "Mandag",
     "tuesday": "Tirsdag",
     "wednesday": "Onsdag",
@@ -34,5 +39,11 @@
   },
   "GroceriesShoppingView": {
     "shoppingList": "Handleliste"
+  },
+  "TodosView": {
+    "todos": "Gjøremål",
+    "title": "Tittel",
+    "add": "Legg til",
+    "addNewItem": "Add new item"
   }
 }

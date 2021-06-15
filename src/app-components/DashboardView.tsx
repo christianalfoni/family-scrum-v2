@@ -1,5 +1,6 @@
 import {
   CalendarIcon,
+  ChatAlt2Icon,
   CheckCircleIcon,
   CollectionIcon,
   PlusIcon,
@@ -107,6 +108,14 @@ export const DashboardContentSkeleton = () => {
         >
           {t("todos")}
         </MenuCard>
+        <MenuCard
+          disabled
+          Icon={ChatAlt2Icon}
+          onClick={() => {}}
+          color="bg-blue-500"
+        >
+          {t("planWeek")}
+        </MenuCard>
       </ul>
       <div className="h-2/4">
         <Swiper
@@ -136,16 +145,11 @@ export const DashboardContentSkeleton = () => {
               {(t(weekdays[index]) as string).substr(0, 2)}
             </div>
           ))}
-          <div
-            className={`text-gray-500 flex items-center mx-2 w-6 h-6 text-center text-xs`}
-          >
-            <CalendarIcon className="w-4 h-4" />
-          </div>
         </div>
         <button
           type="button"
           disabled
-          className="z-10 fixed right-3 bottom-14 h-12 w-12 rounded-full inline-flex items-center justify-center px-3 py-2 border border-gray-300 shadow-lg text-sm font-medium  text-gray-500 bg-gray-50 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+          className="z-10 fixed right-6 bottom-14 h-14 w-14 rounded-full inline-flex items-center justify-center px-3 py-2 border border-gray-300 shadow-lg text-sm font-medium  text-gray-500 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
         >
           <PlusIcon className="w-8 h-8" />
         </button>
@@ -158,12 +162,11 @@ export const DashboardView = () => {
   const [dashboard, send] = useDasbhoard("LOADED");
   const t = useTranslations("DashboardView");
   const intl = useIntl();
-  const { groceries, family, currentWeek, todos, events } = dashboard;
+  const { groceries, family, currentWeek, todos } = dashboard;
   const currentDayIndex = getCurrentDayIndex();
   const currentWeekDate = getFirstDateOfCurrentWeek();
   const [slideIndex, setSlideIndex] = useState(currentDayIndex);
   const todosByWeekday = dashboardSelectors.todosByWeekday(currentWeek);
-  const sortedEvents = dashboardSelectors.sortedEvents(events);
   const [controlledSwiper, setControlledSwiper] =
     useState<SwiperCore | null>(null);
   const shopCount = groceriesShoppingSelectors.shopCount(groceries);
@@ -206,13 +209,27 @@ export const DashboardView = () => {
             send({
               type: "VIEW_SELECTED",
               view: {
-                state: "PLAN_NEXT_WEEK",
+                state: "TODOS",
               },
             });
           }}
           color="bg-blue-500"
         >
           {t("todos")}
+        </MenuCard>
+        <MenuCard
+          Icon={ChatAlt2Icon}
+          onClick={() => {
+            send({
+              type: "VIEW_SELECTED",
+              view: {
+                state: "PLAN_NEXT_WEEK",
+              },
+            });
+          }}
+          color="bg-green-500"
+        >
+          {t("planWeek")}
         </MenuCard>
       </ul>
       <div className="h-2/4">
@@ -225,10 +242,6 @@ export const DashboardView = () => {
           initialSlide={slideIndex}
         >
           {todosByWeekday.map((weekdayTodos, index) => {
-            const todaysEvents = sortedEvents.filter((event) =>
-              isSameDay(event.date, addDays(currentWeekDate, index))
-            );
-
             return (
               <SwiperSlide key={index}>
                 <WeekdaySlideContent
@@ -240,29 +253,6 @@ export const DashboardView = () => {
                 >
                   {
                     <ul className="mt-2 ">
-                      {todaysEvents.map((event) => (
-                        <li
-                          key={event.id}
-                          className="py-2 flex justify-between items-center"
-                        >
-                          <div className="flex items-center space-x-2">
-                            <div className="flex flex-shrink-0 -space-x-1">
-                              {event.userIds.map((userId) => (
-                                <img
-                                  key={userId}
-                                  className="max-w-none h-6 w-6 rounded-full ring-2 ring-white"
-                                  src={family.users[userId].avatar!}
-                                  alt={family.users[userId].name}
-                                />
-                              ))}
-                            </div>
-
-                            <p className="ml-4 text-sm font-medium text-gray-900">
-                              {event.description}
-                            </p>
-                          </div>
-                        </li>
-                      ))}
                       {Object.keys(weekdayTodos)
                         .filter((todoId) => todoId in todos)
                         .map((todoId) => (
@@ -293,42 +283,6 @@ export const DashboardView = () => {
               </SwiperSlide>
             );
           })}
-          <SwiperSlide>
-            <div className="px-6">
-              <h1 className="text-xl">{t("events")}</h1>
-              <ul>
-                {sortedEvents.map((event) => (
-                  <li
-                    key={event.id}
-                    className="py-3 flex justify-between items-center"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <span className="text-xs leading-5 font-medium text-gray-500">
-                        {intl.formatDateTime(event.date, {
-                          day: "numeric",
-                          month: "long",
-                        })}
-                      </span>
-                      <div className="flex flex-shrink-0 -space-x-1">
-                        {event.userIds.map((userId) => (
-                          <img
-                            key={userId}
-                            className="max-w-none h-6 w-6 rounded-full ring-2 ring-white"
-                            src={family.users[userId].avatar!}
-                            alt={family.users[userId].name}
-                          />
-                        ))}
-                      </div>
-
-                      <p className="ml-4 text-sm font-medium text-gray-900">
-                        {event.description}
-                      </p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </SwiperSlide>
         </Swiper>
         <div className="absolute bottom-4 left-0 right-0 flex justify-center">
           {weekdays.map((weekday, index) => (
@@ -348,34 +302,20 @@ export const DashboardView = () => {
               {(t(weekdays[index]) as string).substr(0, 2)}
             </div>
           ))}
-          <div
-            onClick={() => {
-              if (controlledSwiper) {
-                controlledSwiper.slideTo(7);
-              }
-            }}
-            className={`${
-              7 === slideIndex ? "text-gray-700" : "text-gray-500"
-            } flex items-center mx-2 w-6 h-6 text-center text-xs`}
-          >
-            <CalendarIcon className="w-4 h-4" />
-          </div>
         </div>
         <button
           type="button"
+          onClick={() => {
+            send({
+              type: "VIEW_SELECTED",
+              view: {
+                state: "ADD_TODO",
+              },
+            });
+          }}
           className="z-50 fixed right-6 bottom-14 h-14 w-14 rounded-full inline-flex items-center justify-center px-3 py-2 border border-gray-300 shadow-lg text-sm font-medium  text-gray-500 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
         >
-          <PlusIcon
-            className="w-8 h-8"
-            onClick={() => {
-              send({
-                type: "VIEW_SELECTED",
-                view: {
-                  state: "ADD_TODO",
-                },
-              });
-            }}
-          />
+          <PlusIcon className="w-8 h-8" />
         </button>
       </div>
     </>

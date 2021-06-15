@@ -10,6 +10,19 @@ export type FamilyDTO = {
   };
 };
 
+export type CheckListItemDTO =
+  | {
+      id: string;
+      title: string;
+      completed: false;
+    }
+  | {
+      id: string;
+      title: string;
+      completed: true;
+      completedByUserId: string;
+    };
+
 export type BarcodeDTO = {
   id: string;
   created: number;
@@ -34,15 +47,9 @@ export type TodoDTO = {
   created: number;
   modified: number;
   description: string;
-};
-
-export type CalendarEventDTO = {
-  id: string;
-  created: number;
-  modified: number;
-  description: string;
-  date: number;
-  userIds: string[];
+  date?: number;
+  time?: string;
+  checkList?: CheckListItemDTO[];
 };
 
 // Each user has an array representing each day of the week,
@@ -97,19 +104,6 @@ export type StorageEvent =
       error: string;
     }
   | {
-      type: "STORAGE:EVENTS_UPDATE";
-      events: {
-        [eventId: string]: CalendarEventDTO;
-      };
-    }
-  | {
-      type: "STORAGE:ADD_EVENT_ERROR";
-      error: string;
-      description: string;
-      date: number;
-      userId: string;
-    }
-  | {
       type: "STORAGE:TODOS_UPDATE";
       todos: {
         [todoId: string]: TodoDTO;
@@ -157,17 +151,6 @@ export type StorageEvent =
       error: string;
     }
   | {
-      type: "STORAGE:ARCHIVE_EVENT_ERROR";
-      id: string;
-      error: string;
-    }
-  | {
-      type: "STORAGE:TOGGLE_EVENT_PARTICIPATION_ERROR";
-      eventId: string;
-      userId: string;
-      error: string;
-    }
-  | {
       type: "STORAGE:SET_WEEK_TODO_ACTIVITY_ERROR";
       weekId: string;
       todoId: string;
@@ -178,6 +161,22 @@ export type StorageEvent =
       type: "STORAGE:ADD_IMAGE_TO_GROCERY_ERROR";
       groceryId: string;
       error: string;
+    }
+  | {
+      type: "STORAGE:TOGGLE_CHECKLIST_ITEM_ERROR";
+      itemId: string;
+      error: string;
+    }
+  | {
+      type: "STORAGE:DELETE_CHECKLIST_ITEM_ERROR";
+      itemId: string;
+      error: string;
+    }
+  | {
+      type: "STORAGE:ADD_CHECKLIST_ITEM_ERROR";
+      title: string;
+      todoId: string;
+      error: string;
     };
 
 export interface Storage {
@@ -186,7 +185,6 @@ export interface Storage {
    *
    * @fires STORAGE:GROCERIES_UPDATE
    * @fires STORAGE:TODOS_UPDATE
-   * @fires STORAGE:EVENTS_UPDATE
    * @fires STORAGE:BARCODES_UPDATE
    * @fires STORAGE:FETCH_FAMILY_DATA_SUCCESS
    * @fires STORAGE:FETCH_FAMILY_DATA_ERROR
@@ -209,17 +207,14 @@ export interface Storage {
    * @fires STORAGE:TODOS_UPDATE
    * @fires STORAGE:ADD_TODO_ERROR
    */
-  addTodo(familyId: string, description: string): void;
-  /**
-   *
-   * @fires STORAGE:EVENTS_UPDATE
-   * @fires STORAGE:ADD_EVENT_ERROR
-   */
-  addEvent(
+  addTodo(
     familyId: string,
-    userId: string,
     description: string,
-    date: number
+    metadata?: {
+      date?: number;
+      time?: string;
+      checkList?: string[];
+    }
   ): void;
   /**
    *
@@ -253,22 +248,6 @@ export interface Storage {
   archiveTodo(familyId: string, id: string): void;
   /**
    *
-   * @fires STORAGE:EVENTS_UPDATE
-   * @fires STORAGE:ARCHIVE_EVENT_ERROR
-   */
-  archiveEvent(familyId: string, id: string): void;
-  /**
-   *
-   * @fires STORAGE:EVENTS_UPDATE
-   * @fires STORAGE:TOGGLE_EVENT_PARTICIPATION_ERROR
-   */
-  toggleEventParticipation(
-    familyId: string,
-    eventId: string,
-    userId: string
-  ): void;
-  /**
-   *
    * @fires STORAGE:SET_WEEK_TASK_ACTIVITY_ERROR
    */
   setWeekTaskActivity(options: {
@@ -296,4 +275,19 @@ export interface Storage {
    * @fires STORAGE:ADD_IMAGE_TO_GROCERY_ERROR
    */
   addImageToGrocery(familyId: string, groceryId: string, src: string): void;
+  /**
+   * @fires STORAGE:TODOS_UPDATE
+   * @fires STORAGE:TOGGLE_CHECKLIST_ITEM_ERROR
+   */
+  toggleCheckListItem(familyId: string, userId: string, itemId: string): void;
+  /**
+   * @fires STORAGE:TODOS_UPDATE
+   * @fires STORAGE:DELETE_CHECKLIST_ITEM_ERROR
+   */
+  deleteChecklistItem(familyId: string, itemId: string): void;
+  /**
+   * @fires STORAGE:TODOS_UPDATE
+   * @fires STORAGE:ADD_CHECKLIST_ITEM_ERROR
+   */
+  addChecklistItem(familyId: string, todoId: string, title: string): void;
 }

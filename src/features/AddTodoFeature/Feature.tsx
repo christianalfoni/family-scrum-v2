@@ -32,7 +32,7 @@ type ChecklistContext =
     }
   | {
       state: "ACTIVE";
-      items: Array<{ title: string; completed: boolean }>;
+      items: string[];
     };
 
 type BaseContext = {
@@ -52,16 +52,13 @@ type Context = BaseContext &
       }
   );
 
-type TransientContext =
-  | {
-      state: "ADDING_TODO";
-      description: string;
-    }
-  | {
-      state: "ADDING_EVENT";
-      description: string;
-      date: number;
-    };
+type TransientContext = {
+  state: "ADDING_TODO";
+  description: string;
+  date?: number;
+  time?: string;
+  checkList?: string[];
+};
 
 type UIEvent =
   | {
@@ -87,7 +84,11 @@ type UIEvent =
     }
   | {
       type: "CHECKLIST_ITEM_ADDED";
-      description: string;
+      title: string;
+    }
+  | {
+      type: "CHECKLIST_ITEM_REMOVED";
+      index: number;
     }
   | {
       type: "ADD_TODO";
@@ -102,6 +103,7 @@ const DESCRIPTION_CHANGED = (
   context: Context
 ): Context => ({
   ...context,
+  description,
   state: description ? "VALID" : "INVALID",
 });
 
@@ -132,26 +134,112 @@ const DATE_CHANGED = (
       : context.date,
 });
 
+const TIME_TOGGLED = (_: any, context: Context): Context => ({
+  ...context,
+  time:
+    context.time.state === "ACTIVE"
+      ? {
+          state: "INACTIVE",
+        }
+      : {
+          state: "ACTIVE",
+          time: "10:00",
+        },
+});
+
+const TIME_CHANGED = (
+  { time }: { time: string },
+  context: Context
+): Context => ({
+  ...context,
+  time:
+    context.time.state === "ACTIVE"
+      ? {
+          ...context.time,
+          time,
+        }
+      : context.time,
+});
+
+const CHECKLIST_TOGGLED = (_: any, context: Context): Context => ({
+  ...context,
+  checkList:
+    context.checkList.state === "ACTIVE"
+      ? {
+          state: "INACTIVE",
+        }
+      : {
+          state: "ACTIVE",
+          items: [],
+        },
+});
+
+const CHECKLIST_ITEM_ADDED = (
+  { title }: { title: string },
+  context: Context
+): Context => ({
+  ...context,
+  checkList:
+    context.checkList.state === "ACTIVE"
+      ? {
+          state: "ACTIVE",
+          items: [...context.checkList.items, title],
+        }
+      : context.checkList,
+});
+
+const CHECKLIST_ITEM_REMOVED = (
+  { index }: { index: number },
+  context: Context
+): Context => ({
+  ...context,
+  checkList:
+    context.checkList.state === "ACTIVE"
+      ? {
+          state: "ACTIVE",
+          items: [
+            ...context.checkList.items.slice(0, index),
+            ...context.checkList.items.slice(index + 1),
+          ],
+        }
+      : context.checkList,
+});
+
 const reducer = createReducer<Context, Event, TransientContext>(
   {
     INVALID: {
       DESCRIPTION_CHANGED,
       DATE_TOGGLED,
       DATE_CHANGED,
+      TIME_TOGGLED,
+      TIME_CHANGED,
+      CHECKLIST_TOGGLED,
+      CHECKLIST_ITEM_ADDED,
+      CHECKLIST_ITEM_REMOVED,
     },
     VALID: {
       DESCRIPTION_CHANGED,
       DATE_TOGGLED,
       DATE_CHANGED,
+      TIME_TOGGLED,
+      TIME_CHANGED,
+      CHECKLIST_TOGGLED,
+      CHECKLIST_ITEM_ADDED,
+      CHECKLIST_ITEM_REMOVED,
       ADD_TODO: (_, context) => ({
         state: "ADDING_TODO",
         description: context.description,
+        checkList:
+          context.checkList.state === "ACTIVE"
+            ? context.checkList.items
+            : undefined,
+        date: context.date.state === "ACTIVE" ? context.date.date : undefined,
+        time: context.time.state === "ACTIVE" ? context.time.time : undefined,
       }),
     },
   },
   {
     ADDING_TODO: (_, prevContext) => prevContext,
-    ADDING_EVENT: (_, prevContext) => prevContext,
   }
 );
 
@@ -189,12 +277,17 @@ export const Feature = ({
 
   const [context, send] = feature;
 
-  useEnterEffect(context, "ADDING_TODO", ({ description }) => {
-    storage.addTodo(familyId, description);
-  });
-  useEnterEffect(context, "ADDING_EVENT", ({ description, date }) => {
-    storage.addEvent(familyId, userId, description, date);
-  });
+  useEnterEffect(
+    context,
+    "ADDING_TODO",
+    ({ description, date, time, checkList }) => {
+      storage.addTodo(familyId, description, {
+        date,
+        time,
+        checkList,
+      });
+    }
+  );
 
   return (
     <featureContext.Provider value={feature}>

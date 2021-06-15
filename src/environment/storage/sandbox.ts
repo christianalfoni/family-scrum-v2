@@ -5,7 +5,7 @@ import {
   WeekDTO,
   TodoDTO,
   FamilyDTO,
-  CalendarEventDTO,
+  CheckListItemDTO,
   WeekTodoActivity,
   BarcodeDTO,
 } from ".";
@@ -62,19 +62,6 @@ export const createStorage = (): Storage => {
     },
   };
 
-  let events: {
-    [eventId: string]: CalendarEventDTO;
-  } = {
-    event_0: {
-      id: "event_0",
-      created: Date.now(),
-      modified: Date.now(),
-      description: "Go on a trip",
-      date: 1624128658456,
-      userIds: ["user_1", "user_2"],
-    },
-  };
-
   let todos: {
     [todoId: string]: TodoDTO;
   } = {
@@ -89,6 +76,27 @@ export const createStorage = (): Storage => {
       created: Date.now(),
       modified: Date.now(),
       description: "Do something else",
+      date: Date.now(),
+      time: "13:00",
+    },
+    todo_2: {
+      id: "todo_2",
+      created: Date.now(),
+      modified: Date.now(),
+      description: "Do some listing",
+      checkList: [
+        {
+          id: "checklist_item_0",
+          completed: false,
+          title: "Do this",
+        },
+        {
+          id: "checklist_item_1",
+          completed: true,
+          title: "Do that",
+          completedByUserId: "user_1",
+        },
+      ],
     },
   };
 
@@ -168,34 +176,20 @@ export const createStorage = (): Storage => {
         groceries,
       });
     },
-    addEvent(_, userId, description, date) {
-      const id = `event_${Object.keys(events).length}`;
-      const event: CalendarEventDTO = {
-        id,
-        created: Date.now(),
-        modified: Date.now(),
-        date,
-        description,
-        userIds: [userId],
-      };
-
-      events = {
-        ...events,
-        [id]: event,
-      };
-
-      this.events.emit({
-        type: "STORAGE:EVENTS_UPDATE",
-        events,
-      });
-    },
-    addTodo(_, description) {
+    addTodo(_, description, metadata = {}) {
       const id = `todo_${Object.keys(todos).length}`;
       const todo: TodoDTO = {
         id,
         description,
         created: Date.now(),
         modified: Date.now(),
+        checkList: metadata.checkList?.map((title, index) => ({
+          id: `CHECKLIST_ITEM_${index}`,
+          title,
+          completed: false,
+        })),
+        date: metadata.date,
+        time: metadata.time,
       };
 
       todos = {
@@ -238,10 +232,6 @@ export const createStorage = (): Storage => {
         type: "STORAGE:TODOS_UPDATE",
         todos,
       });
-      this.events.emit({
-        type: "STORAGE:EVENTS_UPDATE",
-        events,
-      });
     },
     archiveTodo(_, id) {
       todos = {
@@ -253,36 +243,6 @@ export const createStorage = (): Storage => {
       this.events.emit({
         type: "STORAGE:TODOS_UPDATE",
         todos,
-      });
-    },
-    async archiveEvent(_, id) {
-      events = {
-        ...events,
-      };
-
-      delete events[id];
-
-      this.events.emit({
-        type: "STORAGE:EVENTS_UPDATE",
-        events,
-      });
-    },
-    toggleEventParticipation(_, eventId, userId) {
-      events = {
-        ...events,
-        [eventId]: {
-          ...events[eventId],
-          userIds: events[eventId].userIds.includes(userId)
-            ? events[eventId].userIds.filter(
-                (existingUserId) => existingUserId !== userId
-              )
-            : events[eventId].userIds.concat(userId),
-        },
-      };
-
-      this.events.emit({
-        type: "STORAGE:EVENTS_UPDATE",
-        events,
       });
     },
     increaseGroceryShopCount(_, id) {
@@ -412,6 +372,87 @@ export const createStorage = (): Storage => {
       this.events.emit({
         type: "STORAGE:GROCERIES_UPDATE",
         groceries,
+      });
+    },
+    toggleCheckListItem(familyId, userId, itemId) {
+      let matchingTodoId!: string;
+      for (let todoId in todos) {
+        const todo = todos[todoId];
+        if (todo.checkList) {
+          const item = todo.checkList.find((item) => item.id === itemId);
+
+          if (item) {
+            matchingTodoId = todoId;
+            todo.checkList = todo.checkList.map((item) =>
+              item.id === itemId
+                ? {
+                    ...item,
+                    completed: !item.completed,
+                    completedByUserId: userId,
+                  }
+                : item
+            );
+          }
+        }
+      }
+      todos = {
+        ...todos,
+        [matchingTodoId]: {
+          ...todos[matchingTodoId],
+        },
+      };
+
+      this.events.emit({
+        type: "STORAGE:TODOS_UPDATE",
+        todos,
+      });
+    },
+    deleteChecklistItem(familyId, itemId) {
+      let matchingTodoId!: string;
+      for (let todoId in todos) {
+        const todo = todos[todoId];
+        if (todo.checkList) {
+          const item = todo.checkList.find((item) => item.id === itemId);
+
+          if (item) {
+            matchingTodoId = todoId;
+            todo.checkList = todo.checkList.filter(
+              (item) => item.id !== itemId
+            );
+          }
+        }
+      }
+      todos = {
+        ...todos,
+        [matchingTodoId]: {
+          ...todos[matchingTodoId],
+        },
+      };
+
+      this.events.emit({
+        type: "STORAGE:TODOS_UPDATE",
+        todos,
+      });
+    },
+    addChecklistItem(familyId, todoId, title) {
+      todos = {
+        ...todos,
+        [todoId]: {
+          ...todos[todoId],
+          checkList: [
+            ...todos[todoId].checkList!,
+            {
+              id: `CHECKLIST_ITEM_${todos[todoId].checkList!.length}`,
+              completed: false,
+              title,
+            },
+          ],
+        },
+      };
+
+      this.events.emit({
+        type: "STORAGE:TODOS_UPDATE",
+        todos,
       });
     },
   };

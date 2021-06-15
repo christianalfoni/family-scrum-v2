@@ -11,7 +11,6 @@ import {
 import { useEnvironment } from "../../environment";
 import {
   BarcodeDTO,
-  CalendarEventDTO,
   FamilyDTO,
   GroceryDTO,
   StorageEvent,
@@ -40,8 +39,6 @@ export type Groceries = {
 
 export type Todo = TodoDTO;
 
-export type CalendarEvent = CalendarEventDTO;
-
 export type ViewContext =
   | {
       state: "WEEKDAYS";
@@ -69,10 +66,6 @@ export type Todos = {
   [todoId: string]: Todo;
 };
 
-export type CalendarEvents = {
-  [eventId: string]: CalendarEvent;
-};
-
 export type Week = WeekDTO;
 
 export type WeekdayTodos = {
@@ -91,7 +84,6 @@ type Context =
       user: User;
       groceries?: Groceries;
       todos?: Todos;
-      events?: CalendarEvents;
       previousWeek?: Week;
       currentWeek?: Week;
       nextWeek?: Week;
@@ -103,7 +95,6 @@ type Context =
       family: Family;
       groceries: Groceries;
       todos: Todos;
-      events: CalendarEvents;
       previousWeek: Week;
       currentWeek: Week;
       nextWeek: Week;
@@ -143,7 +134,6 @@ const evaluateLoadedContext = (
     context.currentWeek &&
     context.nextWeek &&
     context.previousWeek &&
-    context.events &&
     context.groceries &&
     context.todos &&
     context.barcodes &&
@@ -156,7 +146,6 @@ const evaluateLoadedContext = (
       },
       barcodes: context.barcodes,
       currentWeek: context.currentWeek,
-      events: context.events,
       family: context.family,
       groceries: context.groceries,
       nextWeek: context.nextWeek,
@@ -227,11 +216,6 @@ const reducer = createReducer<Context, Event>({
         ...context,
         todos,
       }),
-    "STORAGE:EVENTS_UPDATE": ({ events }, context) =>
-      evaluateLoadedContext({
-        ...context,
-        events,
-      }),
     "STORAGE:BARCODES_UPDATE": ({ barcodes }, context) =>
       evaluateLoadedContext({
         ...context,
@@ -274,16 +258,6 @@ const reducer = createReducer<Context, Event>({
           : context.view,
       todos,
     }),
-    "STORAGE:EVENTS_UPDATE": ({ events }, context) => ({
-      ...context,
-      view:
-        context.view.state === "ADD_TODO"
-          ? {
-              state: "WEEKDAYS",
-            }
-          : context.view,
-      events,
-    }),
     VIEW_SELECTED: ({ view }, context) => ({
       ...context,
       view,
@@ -324,16 +298,6 @@ export const selectors = {
 
     return todosByWeekday;
   },
-  sortedEvents: (events: CalendarEvents) =>
-    Object.values(events).sort((a, b) => {
-      if (a.date > b.date) {
-        return 1;
-      } else if (a.date < b.date) {
-        return -1;
-      }
-
-      return 0;
-    }),
   sortedTodos: (todos: Todos) =>
     Object.values(todos).sort((a, b) => {
       if (a.created < b.created) {

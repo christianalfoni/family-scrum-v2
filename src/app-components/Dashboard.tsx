@@ -8,10 +8,12 @@ import { DashboardView, DashboardContentSkeleton } from "./DashboardView";
 import { GroceriesFeature } from "../features/GroceriesFeature";
 import { GroceriesShoppingFeature } from "../features/GroceriesShoppingFeature";
 import { PlanWeekView } from "./PlanWeekView";
+import { TodosView } from "./TodosView";
 import { PlanWeekFeature } from "../features/PlanWeekFeature";
 import { AddTodoFeature } from "../features/AddTodoFeature";
 import { AddTodoView } from "./AddTodoView";
 import { CaptureFeature } from "../features/CaptureFeature";
+import { TodosFeature } from "../features/TodosFeature";
 
 export const Dashboard = () => {
   const [dashboard, send] = useDasbhoard();
@@ -30,7 +32,6 @@ export const Dashboard = () => {
           currentWeek,
           nextWeek,
           previousWeek,
-          events,
           user,
         }) => {
           return match(view, {
@@ -66,64 +67,61 @@ export const Dashboard = () => {
             ),
             WEEKDAYS: () => <DashboardView />,
             TODOS: () => (
-              <PlanWeekFeature user={user} weekId={currentWeek.id}>
-              <PlanWeekView
-                user={user}
-                events={events}
-                todos={todos}
-                family={family}
-                previousWeek={previousWeek}
-                week={currentWeek}
-                onBackClick={() =>
-                  send({
-                    type: "VIEW_SELECTED",
-                    view: {
-                      state: "WEEKDAYS",
-                    },
-                  })
-                }
-              />
-            </PlanWeekFeature>
+              <TodosFeature user={user}>
+                <TodosView
+                  todos={todos}
+                  onBackClick={() =>
+                    send({
+                      type: "VIEW_SELECTED",
+                      view: {
+                        state: "WEEKDAYS",
+                      },
+                    })
+                  }
+                />
+              </TodosFeature>
             ),
             PLAN_CURRENT_WEEK: () => (
-              <PlanWeekFeature user={user} weekId={currentWeek.id}>
-                <PlanWeekView
-                  user={user}
-                  events={events}
-                  todos={todos}
-                  family={family}
-                  previousWeek={previousWeek}
-                  week={currentWeek}
-                  onBackClick={() =>
-                    send({
-                      type: "VIEW_SELECTED",
-                      view: {
-                        state: "WEEKDAYS",
-                      },
-                    })
-                  }
-                />
-              </PlanWeekFeature>
+              <TodosFeature user={user}>
+                <PlanWeekFeature user={user} weekId={currentWeek.id}>
+                  <PlanWeekView
+                    user={user}
+                    todos={todos}
+                    family={family}
+                    previousWeek={previousWeek}
+                    week={currentWeek}
+                    onBackClick={() =>
+                      send({
+                        type: "VIEW_SELECTED",
+                        view: {
+                          state: "WEEKDAYS",
+                        },
+                      })
+                    }
+                  />
+                </PlanWeekFeature>
+              </TodosFeature>
             ),
             PLAN_NEXT_WEEK: () => (
-              <PlanWeekFeature user={user} weekId={nextWeek.id}>
-                <PlanWeekView
-                  user={user}
-                  events={events}
-                  todos={todos}
-                  family={family}
-                  previousWeek={currentWeek}
-                  week={nextWeek}
-                  onBackClick={() =>
-                    send({
-                      type: "VIEW_SELECTED",
-                      view: {
-                        state: "WEEKDAYS",
-                      },
-                    })
-                  }
-                />
-              </PlanWeekFeature>
+              <TodosFeature user={user}>
+                <PlanWeekFeature user={user} weekId={nextWeek.id}>
+                  <PlanWeekView
+                    user={user}
+                    todos={todos}
+                    family={family}
+                    previousWeek={currentWeek}
+                    week={nextWeek}
+                    onBackClick={() =>
+                      send({
+                        type: "VIEW_SELECTED",
+                        view: {
+                          state: "WEEKDAYS",
+                        },
+                      })
+                    }
+                  />
+                </PlanWeekFeature>
+              </TodosFeature>
             ),
             ADD_TODO: () => (
               <AddTodoFeature familyId={family.id} userId={user.id}>

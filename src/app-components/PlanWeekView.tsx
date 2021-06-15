@@ -3,25 +3,24 @@ import { usePlanWeek } from "../features/PlanWeekFeature";
 import { useTranslations, useIntl } from "next-intl";
 import { Menu, Transition } from "@headlessui/react";
 import {
-  ArchiveIcon,
   CalendarIcon,
   CheckCircleIcon,
   ChevronLeftIcon,
-  DotsVerticalIcon,
+  ClockIcon,
   SelectorIcon,
 } from "@heroicons/react/outline";
 import {
-  CalendarEvents,
   Family,
   Todo,
   Todos,
   User,
   Week,
-  CalendarEvent,
 } from "../features/DashboardFeature/Feature";
 import { getCurrentWeekId, weekdays } from "../utils";
 import { WeekTodoActivity } from "../environment/storage";
 import { dashboardSelectors, useDasbhoard } from "../features/DashboardFeature";
+import { useTodos } from "../features/TodosFeature";
+import { TodoItem } from "../common-components/TodoItem";
 
 const Confirmed = () => (
   <div className="absolute z-10 top-0 left-0 bottom-0 right-0 flex items-center justify-center bg-white">
@@ -46,7 +45,7 @@ const Confirmed = () => (
   </div>
 );
 
-const TodoItem = React.memo(
+const PlanTodoItem = React.memo(
   ({
     todo,
     userIds,
@@ -56,6 +55,9 @@ const TodoItem = React.memo(
     user,
     archiveTodo,
     toggleWeekday,
+    toggleItemCompleted,
+    deleteItem,
+    addItem,
   }: {
     todo: Todo;
     userIds: string[];
@@ -70,33 +72,18 @@ const TodoItem = React.memo(
       userId: string;
       weekdayIndex: number;
     }) => void;
+    toggleItemCompleted: (id: string) => void;
+    deleteItem: (itemId: string) => void;
+    addItem: (todoId: string, title: string) => void;
   }) => {
-    const [archiving, setArchiving] = React.useState(false);
-
-    React.useEffect(() => {
-      if (archiving) {
-        const id = setTimeout(() => {
-          archiveTodo(todo.id);
-        }, 1500);
-
-        return () => clearTimeout(id);
-      }
-    }, [archiving]);
-
     return (
-      <li key={todo.id} className="relative pl-4 pr-6 py-5 ">
-        {archiving ? <Confirmed /> : null}
-        <div className="flex items-center">
-          <span className="block">
-            <h2 className="font-medium">{todo.description}</h2>
-          </span>
-          <CheckCircleIcon
-            className="absolute top-2 right-2 text-gray-500 w-6 h-6"
-            onClick={() => {
-              setArchiving(true);
-            }}
-          />
-        </div>
+      <TodoItem
+        todo={todo}
+        deleteItem={deleteItem}
+        addItem={addItem}
+        toggleItemCompleted={toggleItemCompleted}
+        archiveTodo={archiveTodo}
+      >
         {userIds.map((userId) => {
           const weekActivity: WeekTodoActivity = week.todos[todo.id]?.[
             userId
@@ -149,71 +136,7 @@ const TodoItem = React.memo(
             </div>
           );
         })}
-      </li>
-    );
-  }
-);
-
-const CalendarEventItem = React.memo(
-  ({
-    event,
-    onClick,
-    family,
-    archiveEvent,
-  }: {
-    event: CalendarEvent;
-    onClick: () => void;
-    archiveEvent: (id: string) => void;
-    family: Family;
-  }) => {
-    const intl = useIntl();
-
-    const [archiving, setArchiving] = React.useState(false);
-
-    React.useEffect(() => {
-      if (archiving) {
-        const id = setTimeout(() => {
-          archiveEvent(event.id);
-        }, 1500);
-
-        return () => clearTimeout(id);
-      }
-    }, [archiving]);
-
-    return (
-      <li className="relative pl-4 pr-6 py-5" onClick={onClick}>
-        {archiving ? <Confirmed /> : null}
-        <div className="flex items-center">
-          <span className="block">
-            <span className="flex items-center">
-              <CalendarIcon className="text-red-600 w-4 h-4" />
-              <h4 className="text-gray-500 text-sm ml-1 mr-2">
-                {intl.formatDateTime(event.date, {
-                  day: "numeric",
-                  month: "long",
-                })}
-              </h4>
-              <div className="flex flex-shrink-0 -space-x-1">
-                {event.userIds.map((userId) => (
-                  <img
-                    key={userId}
-                    className="max-w-none h-6 w-6 rounded-full ring-2 ring-white"
-                    src={family.users[userId].avatar!}
-                    alt={family.users[userId].name}
-                  />
-                ))}
-              </div>
-            </span>
-            <h2 className="font-medium">{event.description}</h2>
-          </span>
-          <CheckCircleIcon
-            className="absolute top-2 right-2 text-gray-500 w-6 h-6"
-            onClick={() => {
-              setArchiving(true);
-            }}
-          />
-        </div>
-      </li>
+      </TodoItem>
     );
   }
 );
@@ -222,7 +145,6 @@ export const PlanWeekView = ({
   user,
   family,
   todos,
-  events,
   week,
   previousWeek,
   onBackClick,
@@ -230,16 +152,15 @@ export const PlanWeekView = ({
   user: User;
   family: Family;
   week: Week;
-  events: CalendarEvents;
   previousWeek: Week;
   todos: Todos;
   onBackClick: () => void;
 }) => {
   const [, sendDashboard] = useDasbhoard("LOADED");
   const [, send] = usePlanWeek();
+  const [, sendTodos] = useTodos();
   const t = useTranslations("PlanWeekView");
   const sortedTodos = dashboardSelectors.sortedTodos(todos);
-  const eventsList = dashboardSelectors.sortedEvents(events);
   const sortedUserIds = React.useMemo(
     () =>
       Object.keys(family.users).sort((a) => {
@@ -252,9 +173,28 @@ export const PlanWeekView = ({
     [family]
   );
   const archiveTodo = React.useCallback((todoId: string) => {
-    send({
+    sendTodos({
       type: "ARCHIVE_TODO",
       todoId,
+    });
+  }, []);
+  const toggleItemCompleted = React.useCallback((itemId: string) => {
+    sendTodos({
+      type: "TOGGLE_CHECKLIST_ITEM",
+      itemId,
+    });
+  }, []);
+  const deleteItem = React.useCallback((itemId: string) => {
+    sendTodos({
+      type: "DELETE_CHECKLIST_ITEM",
+      itemId,
+    });
+  }, []);
+  const addItem = React.useCallback((todoId: string, title: string) => {
+    sendTodos({
+      type: "ADD_CHECKLIST_ITEM",
+      todoId,
+      title,
     });
   }, []);
   const toggleWeekday = React.useCallback(
@@ -294,7 +234,7 @@ export const PlanWeekView = ({
             </button>
           </div>
 
-          <Menu as="div" className="relative ml-auto text-left">
+          <Menu as="div" className="relative flex-2 text-left">
             {({ open }) => (
               <>
                 <div>
@@ -302,7 +242,7 @@ export const PlanWeekView = ({
                     <span className="flex w-full justify-between items-center">
                       <span className="flex min-w-0 items-center justify-between space-x-3">
                         <span className="flex-1 flex flex-col min-w-0">
-                          <span className="text-gray-900 text-md font-medium truncate">
+                          <span className="text-gray-900 text-lg font-medium truncate">
                             {isCurrentWeek ? t("currentWeek") : t("nextWeek")}
                           </span>
                         </span>
@@ -383,11 +323,12 @@ export const PlanWeekView = ({
               </>
             )}
           </Menu>
+          <span className="flex-1" />
         </div>
       </div>
       <ul className="relative z-0 divide-y divide-gray-200 border-b border-gray-200 overflow-y-scroll">
         {sortedTodos.map((todo) => (
-          <TodoItem
+          <PlanTodoItem
             key={todo.id}
             todo={todo}
             archiveTodo={archiveTodo}
@@ -397,25 +338,9 @@ export const PlanWeekView = ({
             user={user}
             userIds={sortedUserIds}
             week={week}
-          />
-        ))}
-        {eventsList.map((calendarEvent) => (
-          <CalendarEventItem
-            key={calendarEvent.id}
-            event={calendarEvent}
-            family={family}
-            onClick={() => {
-              send({
-                type: "TOGGLE_EVENT",
-                eventId: calendarEvent.id,
-              });
-            }}
-            archiveEvent={(id) => {
-              send({
-                type: "ARCHIVE_EVENT",
-                eventId: id,
-              });
-            }}
+            addItem={addItem}
+            deleteItem={deleteItem}
+            toggleItemCompleted={toggleItemCompleted}
           />
         ))}
       </ul>

@@ -1,13 +1,18 @@
 {
   "AddTodoView": {
-    "addTodo": "Add Todo",
-    "setDate": "Set Date",
-    "save": "Save"
+    "addTodo": "Add todo",
+    "setDate": "Set date",
+    "setTime": "Set time",
+    "addCheckList": "Add checklist",
+    "save": "Save",
+    "title": "Title",
+    "add": "Add"
   },
   "DashboardView": {
     "goShopping": "Shopping list",
     "groceries": "Groceries",
     "todos": "Todos",
+    "planWeek": "Plan week",
     "events": "Events",
     "monday": "Monday",
     "tuesday": "Tuesday",
@@ -34,5 +39,11 @@
   },
   "GroceriesShoppingView": {
     "shoppingList": "Shopping list"
+  },
+  "TodosView": {
+    "todos": "Todos",
+    "title": "Title",
+    "add": "Add",
+    "addNewItem": "Add new item"
   }
 }
