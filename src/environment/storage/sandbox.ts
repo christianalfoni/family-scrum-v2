@@ -84,19 +84,23 @@ export const createStorage = (): Storage => {
       created: Date.now(),
       modified: Date.now(),
       description: "Do some listing",
-      checkList: [
-        {
+      checkList: {
+        checklist_item_0: {
           id: "checklist_item_0",
           completed: false,
           title: "Do this",
+          created: Date.now(),
+          modified: Date.now(),
         },
-        {
+        checklist_item_1: {
           id: "checklist_item_1",
           completed: true,
           title: "Do that",
           completedByUserId: "user_1",
+          created: Date.now(),
+          modified: Date.now(),
         },
-      ],
+      },
     },
   };
 
@@ -183,11 +187,18 @@ export const createStorage = (): Storage => {
         description,
         created: Date.now(),
         modified: Date.now(),
-        checkList: metadata.checkList?.map((title, index) => ({
-          id: `CHECKLIST_ITEM_${index}`,
-          title,
-          completed: false,
-        })),
+        checkList: metadata.checkList?.reduce((aggr, title, index) => {
+          const id = `CHECKLIST_ITEM_${index}`;
+          aggr[id] = {
+            id,
+            title,
+            completed: false,
+            created: Date.now(),
+            modified: Date.now(),
+          };
+
+          return aggr;
+        }, {} as any),
         date: metadata.date,
         time: metadata.time,
       };
@@ -378,21 +389,21 @@ export const createStorage = (): Storage => {
       let matchingTodoId!: string;
       for (let todoId in todos) {
         const todo = todos[todoId];
-        if (todo.checkList) {
-          const item = todo.checkList.find((item) => item.id === itemId);
-
-          if (item) {
-            matchingTodoId = todoId;
-            todo.checkList = todo.checkList.map((item) =>
-              item.id === itemId
-                ? {
-                    ...item,
-                    completed: !item.completed,
-                    completedByUserId: userId,
-                  }
-                : item
-            );
-          }
+        if (todo.checkList && itemId in todo.checkList) {
+          const completed = todo.checkList[itemId].completed;
+          todo.checkList = {
+            ...todo.checkList,
+            [itemId]: completed
+              ? {
+                  ...todo.checkList[itemId],
+                  completed: false,
+                }
+              : {
+                  ...todo.checkList[itemId],
+                  completed: true,
+                  completedByUserId: userId,
+                },
+          };
         }
       }
       todos = {
@@ -411,15 +422,8 @@ export const createStorage = (): Storage => {
       let matchingTodoId!: string;
       for (let todoId in todos) {
         const todo = todos[todoId];
-        if (todo.checkList) {
-          const item = todo.checkList.find((item) => item.id === itemId);
-
-          if (item) {
-            matchingTodoId = todoId;
-            todo.checkList = todo.checkList.filter(
-              (item) => item.id !== itemId
-            );
-          }
+        if (todo.checkList && itemId in todo.checkList) {
+          delete todo.checkList[itemId];
         }
       }
       todos = {
@@ -435,18 +439,23 @@ export const createStorage = (): Storage => {
       });
     },
     addChecklistItem(familyId, todoId, title) {
+      const itemId = `CHECKLIST_ITEM_${
+        Object.keys(todos[todoId].checkList!).length
+      }`;
       todos = {
         ...todos,
         [todoId]: {
           ...todos[todoId],
-          checkList: [
+          checkList: {
             ...todos[todoId].checkList!,
-            {
-              id: `CHECKLIST_ITEM_${todos[todoId].checkList!.length}`,
+            [itemId]: {
+              id: itemId,
               completed: false,
               title,
+              created: Date.now(),
+              modified: Date.now(),
             },
-          ],
+          },
         },
       };
 

@@ -1,3 +1,4 @@
+import { differenceInDays } from "date-fns";
 import { useReducer } from "react";
 import {
   createContext,
@@ -8,7 +9,8 @@ import {
 import { useDevtools } from "react-states/devtools";
 import { useEnvironment } from "../../environment";
 import { StorageEvent } from "../../environment/storage";
-import { User } from "../DashboardFeature";
+import { getDateFromWeekId, isWithinWeek } from "../../utils";
+import { Todo, Todos, User, Week } from "../DashboardFeature";
 
 type Context = {
   state: "PLANNING";
@@ -54,6 +56,61 @@ const reducer = createReducer<Context, Event, TransientContext>(
 );
 
 export const useFeature = createHook(featureContext);
+
+export const selectors = {
+  todosByType(
+    todos: Todos,
+    previousWeek: Week
+  ): {
+    previousWeek: Todo[];
+    eventsThisWeek: Todo[];
+    thisWeek: Todo[];
+    laterEvents: Todo[];
+  } {
+    const todosInPreviousWeek = Object.keys(previousWeek.todos).filter(
+      (todoId) => {
+        for (let userId in previousWeek.todos[todoId]) {
+          if (previousWeek.todos[todoId][userId].includes(true)) {
+            return true;
+          }
+        }
+
+        return false;
+      }
+    );
+
+    return Object.values(todos).reduce(
+      (aggr, todo) => {
+        if (todosInPreviousWeek.includes(todo.id)) {
+          aggr.previousWeek.push(todo);
+
+          return aggr;
+        }
+        if (
+          todo.date &&
+          isWithinWeek(todo.date, getDateFromWeekId(previousWeek.id))
+        ) {
+          aggr.eventsThisWeek.push(todo);
+          return aggr;
+        }
+
+        if (todo.date) {
+          aggr.laterEvents.push(todo);
+        }
+
+        aggr.thisWeek.push(todo);
+
+        return aggr;
+      },
+      {
+        previousWeek: [] as Todo[],
+        eventsThisWeek: [] as Todo[],
+        laterEvents: [] as Todo[],
+        thisWeek: [] as Todo[],
+      }
+    );
+  },
+};
 
 export const Feature = ({
   user,

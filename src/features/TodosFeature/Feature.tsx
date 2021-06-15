@@ -8,6 +8,7 @@ import {
 import { useDevtools } from "react-states/devtools";
 import { useEnvironment } from "../../environment";
 import { StorageEvent } from "../../environment/storage";
+import { Todo } from "../DashboardFeature";
 import { User } from "../SessionFeature";
 
 type Context = {
@@ -87,6 +88,23 @@ const reducer = createReducer<Context, Event, TransientContext>(
 );
 
 export const useFeature = createHook(featureContext);
+
+export const selectors = {
+  checkListItems(todo: Todo) {
+    return todo.checkList
+      ? Object.values(todo.checkList).sort((a, b) => {
+          if (a.created > b.created) {
+            return 1;
+          }
+          if (a.created < b.created) {
+            return -1;
+          }
+
+          return 0;
+        })
+      : [];
+  },
+};
 
 export const Feature = ({
   user,

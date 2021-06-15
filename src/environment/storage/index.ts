@@ -10,18 +10,20 @@ export type FamilyDTO = {
   };
 };
 
-export type CheckListItemDTO =
+export type CheckListItemDTO = {
+  id: string;
+  title: string;
+  created: number;
+  modified: number;
+} & (
   | {
-      id: string;
-      title: string;
       completed: false;
     }
   | {
-      id: string;
-      title: string;
       completed: true;
       completedByUserId: string;
-    };
+    }
+);
 
 export type BarcodeDTO = {
   id: string;
@@ -49,7 +51,9 @@ export type TodoDTO = {
   description: string;
   date?: number;
   time?: string;
-  checkList?: CheckListItemDTO[];
+  checkList?: {
+    [itemId: string]: CheckListItemDTO;
+  };
 };
 
 // Each user has an array representing each day of the week,

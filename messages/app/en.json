@@ -34,8 +34,14 @@
   },
   "PlanWeekView": {
     "archive": "Archive",
+    "planNextWeek": "Plan next week",
+    "planCurrentWeek": "Plan current week",
     "nextWeek": "Next week",
-    "currentWeek": "Current week"
+    "currentWeek": "Current week",
+    "typePreviousWeek": "What you did previous week",
+    "typeEventsThisWeek": "Events this week",
+    "typeThisWeek": "What needs to be done",
+    "typeLaterEvents": "Things happening"
   },
   "GroceriesShoppingView": {
     "shoppingList": "Shopping list"

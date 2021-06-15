@@ -11,6 +11,7 @@ import {
   PlusIcon,
 } from "@heroicons/react/outline";
 import { Todo } from "../features/DashboardFeature/Feature";
+import { todosSelectors } from "../features/TodosFeature";
 
 const Confirmed = () => (
   <div className="absolute z-10 top-0 left-0 bottom-0 right-0 flex items-center justify-center bg-white">
@@ -57,6 +58,7 @@ export const TodoItem = React.memo(
     const [newItemTitle, setNewItemTitle] = React.useState("");
     const [showAddNewItem, setShowNewItem] = React.useState(false);
     const intl = useIntl();
+    const checkListItems = todosSelectors.checkListItems(todo);
 
     React.useEffect(() => {
       if (archiving) {
@@ -101,7 +103,7 @@ export const TodoItem = React.memo(
             }}
           />
         </div>
-        {todo.checkList ? (
+        {checkListItems.length ? (
           <div className=" my-2 text-sm text-gray-500 border border-gray-200 p-2 rounded-md bg-gray-50">
             <div
               className="flex items-center"
@@ -110,8 +112,8 @@ export const TodoItem = React.memo(
               }}
             >
               <ClipboardCheckIcon className="w-4 h-4 mr-1" />
-              {todo.checkList.filter((item) => item.completed).length} /{" "}
-              {todo.checkList.length}
+              {checkListItems.filter((item) => item.completed).length} /{" "}
+              {checkListItems.length}
               {expandCheckList ? (
                 <ChevronDownIcon className="w-4 h-4 ml-auto" />
               ) : (
@@ -120,7 +122,7 @@ export const TodoItem = React.memo(
             </div>
             {expandCheckList ? (
               <ul className="mt-2">
-                {todo.checkList.map((item) => (
+                {checkListItems.map((item) => (
                   <li
                     key={item.id}
                     className="flex items-center text-lg py-1 px-1"

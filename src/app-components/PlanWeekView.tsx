@@ -1,5 +1,5 @@
 import * as React from "react";
-import { usePlanWeek } from "../features/PlanWeekFeature";
+import { planWeekSelectors, usePlanWeek } from "../features/PlanWeekFeature";
 import { useTranslations, useIntl } from "next-intl";
 import { Menu, Transition } from "@headlessui/react";
 import {
@@ -160,7 +160,7 @@ export const PlanWeekView = ({
   const [, send] = usePlanWeek();
   const [, sendTodos] = useTodos();
   const t = useTranslations("PlanWeekView");
-  const sortedTodos = dashboardSelectors.sortedTodos(todos);
+  const sortedTodos = planWeekSelectors.todosByType(todos, previousWeek);
   const sortedUserIds = React.useMemo(
     () =>
       Object.keys(family.users).sort((a) => {
@@ -243,7 +243,9 @@ export const PlanWeekView = ({
                       <span className="flex min-w-0 items-center justify-between space-x-3">
                         <span className="flex-1 flex flex-col min-w-0">
                           <span className="text-gray-900 text-lg font-medium truncate">
-                            {isCurrentWeek ? t("currentWeek") : t("nextWeek")}
+                            {isCurrentWeek
+                              ? t("planCurrentWeek")
+                              : t("planNextWeek")}
                           </span>
                         </span>
                       </span>
@@ -289,7 +291,7 @@ export const PlanWeekView = ({
                                 block px-4 py-2 text-sm whitespace-nowrap
                               `}
                           >
-                            {t("currentWeek")}
+                            {t("planCurrentWeek")}
                           </a>
                         )}
                       </Menu.Item>
@@ -313,7 +315,7 @@ export const PlanWeekView = ({
                               block px-4 py-2 text-sm whitespace-nowrap
                             `}
                           >
-                            {t("nextWeek")}
+                            {t("planNextWeek")}
                           </a>
                         )}
                       </Menu.Item>
@@ -327,22 +329,98 @@ export const PlanWeekView = ({
         </div>
       </div>
       <ul className="relative z-0 divide-y divide-gray-200 border-b border-gray-200 overflow-y-scroll">
-        {sortedTodos.map((todo) => (
-          <PlanTodoItem
-            key={todo.id}
-            todo={todo}
-            archiveTodo={archiveTodo}
-            family={family}
-            previousWeek={previousWeek}
-            toggleWeekday={toggleWeekday}
-            user={user}
-            userIds={sortedUserIds}
-            week={week}
-            addItem={addItem}
-            deleteItem={deleteItem}
-            toggleItemCompleted={toggleItemCompleted}
-          />
-        ))}
+        {sortedTodos.previousWeek.length ? (
+          <>
+            <li className="p-2 bg-gray-50 text-gray-500">
+              {t("typePreviousWeek")}
+            </li>
+            {sortedTodos.previousWeek.map((todo) => (
+              <PlanTodoItem
+                key={todo.id}
+                todo={todo}
+                archiveTodo={archiveTodo}
+                family={family}
+                previousWeek={previousWeek}
+                toggleWeekday={toggleWeekday}
+                user={user}
+                userIds={sortedUserIds}
+                week={week}
+                addItem={addItem}
+                deleteItem={deleteItem}
+                toggleItemCompleted={toggleItemCompleted}
+              />
+            ))}
+          </>
+        ) : null}
+        {sortedTodos.eventsThisWeek.length ? (
+          <>
+            <li className="p-2 bg-gray-50 text-gray-500">
+              {t("typeEventsThisWeek")}
+            </li>
+            {sortedTodos.eventsThisWeek.map((todo) => (
+              <PlanTodoItem
+                key={todo.id}
+                todo={todo}
+                archiveTodo={archiveTodo}
+                family={family}
+                previousWeek={previousWeek}
+                toggleWeekday={toggleWeekday}
+                user={user}
+                userIds={sortedUserIds}
+                week={week}
+                addItem={addItem}
+                deleteItem={deleteItem}
+                toggleItemCompleted={toggleItemCompleted}
+              />
+            ))}
+          </>
+        ) : null}
+        {sortedTodos.thisWeek.length ? (
+          <>
+            <li className="p-2 bg-gray-50 text-gray-500">
+              {t("typeThisWeek")}
+            </li>
+            {sortedTodos.thisWeek.map((todo) => (
+              <PlanTodoItem
+                key={todo.id}
+                todo={todo}
+                archiveTodo={archiveTodo}
+                family={family}
+                previousWeek={previousWeek}
+                toggleWeekday={toggleWeekday}
+                user={user}
+                userIds={sortedUserIds}
+                week={week}
+                addItem={addItem}
+                deleteItem={deleteItem}
+                toggleItemCompleted={toggleItemCompleted}
+              />
+            ))}
+          </>
+        ) : null}
+        {sortedTodos.laterEvents.length ? (
+          <>
+            <li className="p-2 bg-gray-50 text-gray-500">
+              {t("typeLaterEvents")}
+            </li>
+            {sortedTodos.laterEvents.map((todo) => (
+              <PlanTodoItem
+                key={todo.id}
+                todo={todo}
+                archiveTodo={archiveTodo}
+                family={family}
+                previousWeek={previousWeek}
+                toggleWeekday={toggleWeekday}
+                user={user}
+                userIds={sortedUserIds}
+                week={week}
+                addItem={addItem}
+                deleteItem={deleteItem}
+                toggleItemCompleted={toggleItemCompleted}
+              />
+            ))}
+          </>
+        ) : null}
       </ul>
     </div>
   );

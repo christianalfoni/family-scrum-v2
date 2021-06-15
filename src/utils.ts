@@ -1,4 +1,12 @@
-import { setDay, format, subDays, addDays, getDay, parse } from "date-fns";
+import {
+  setDay,
+  format,
+  subDays,
+  addDays,
+  getDay,
+  parse,
+  differenceInDays,
+} from "date-fns";
 
 export const getFirstDateOfPreviousWeek = () =>
   setDay(subDays(new Date(), 7), 1, { weekStartsOn: 1 });
@@ -47,6 +55,19 @@ export const getDaysOfNextWeek = () => {
     .map((_, index) =>
       format(addDays(getFirstDateOfNextWeek(), index), "yyyyMMdd")
     );
+};
+
+export const isWithinWeek = (dateA: Date | number, dateB: Date | number) => {
+  const diff = differenceInDays(dateA, dateB) - 7;
+
+  return diff >= 0 && diff < 7;
+};
+export const getDateFromWeekId = (weekId: string) => {
+  const year = Number(weekId.substr(0, 4));
+  const month = Number(weekId.substr(4, 2));
+  const day = Number(weekId.substr(6, 2));
+
+  return new Date(year, month - 1, day);
 };
 
 export const stringToColor = (str: string) => {
