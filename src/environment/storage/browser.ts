@@ -280,9 +280,9 @@ export const createStorage = (app: firebase.app.App): Storage => {
           created: Date.now(),
           modified: Date.now(),
           description,
-          checkList: hasCheckList ? true : undefined,
           date: metadata?.date,
           time: metadata?.time,
+          ...(hasCheckList ? { checkList: true } : undefined),
         },
       };
 
@@ -346,7 +346,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
           created: firebase.firestore.FieldValue.serverTimestamp(),
           modified: firebase.firestore.FieldValue.serverTimestamp(),
           description,
-          checkList: hasCheckList ? true : undefined,
+          ...(hasCheckList ? { checkList: true } : undefined),
           date: metadata?.date,
           time: metadata?.time,
         })
