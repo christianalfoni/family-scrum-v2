@@ -11,6 +11,7 @@ import {
 import { useEnvironment } from "../../environment";
 import {
   BarcodeDTO,
+  CheckListItemDTO,
   FamilyDTO,
   GroceryDTO,
   StorageEvent,
@@ -38,6 +39,14 @@ export type Groceries = {
 };
 
 export type Todo = TodoDTO;
+
+export type CheckListItem = CheckListItemDTO;
+
+export type CheckListItemsByTodoId = {
+  [todoId: string]: {
+    [itemId: string]: CheckListItem;
+  };
+};
 
 export type ViewContext =
   | {
@@ -89,6 +98,7 @@ type Context =
       nextWeek?: Week;
       family?: Family;
       barcodes?: Barcodes;
+      checkListItemsByTodoId?: CheckListItemsByTodoId;
     }
   | {
       state: "LOADED";
@@ -101,6 +111,7 @@ type Context =
       view: ViewContext;
       user: User;
       barcodes: Barcodes;
+      checkListItemsByTodoId: CheckListItemsByTodoId;
     }
   | {
       state: "ERROR";
@@ -137,7 +148,8 @@ const evaluateLoadedContext = (
     context.groceries &&
     context.todos &&
     context.barcodes &&
-    context.family
+    context.family &&
+    context.checkListItemsByTodoId
   ) {
     return {
       state: "LOADED",
@@ -152,6 +164,7 @@ const evaluateLoadedContext = (
       previousWeek: context.previousWeek,
       todos: context.todos,
       user: context.user,
+      checkListItemsByTodoId: context.checkListItemsByTodoId,
     };
   }
 
@@ -221,6 +234,11 @@ const reducer = createReducer<Context, Event>({
         ...context,
         barcodes,
       }),
+    "STORAGE:CHECKLIST_ITEMS_UPDATE": ({ checkListItemsByTodoId }, context) =>
+      evaluateLoadedContext({
+        ...context,
+        checkListItemsByTodoId,
+      }),
     "STORAGE:FETCH_WEEKS_ERROR": ({ error }) => ({
       state: "ERROR",
       error,
@@ -257,6 +275,13 @@ const reducer = createReducer<Context, Event>({
             }
           : context.view,
       todos,
+    }),
+    "STORAGE:CHECKLIST_ITEMS_UPDATE": (
+      { checkListItemsByTodoId },
+      context
+    ) => ({
+      ...context,
+      checkListItemsByTodoId,
     }),
     VIEW_SELECTED: ({ view }, context) => ({
       ...context,

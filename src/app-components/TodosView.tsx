@@ -1,16 +1,21 @@
 import * as React from "react";
 import { useTranslations } from "next-intl";
 import { ChevronLeftIcon } from "@heroicons/react/outline";
-import { Todos } from "../features/DashboardFeature/Feature";
+import {
+  CheckListItemsByTodoId,
+  Todos,
+} from "../features/DashboardFeature/Feature";
 import { dashboardSelectors } from "../features/DashboardFeature";
 import { useTodos } from "../features/TodosFeature";
 import { TodoItem } from "../common-components/TodoItem";
 
 export const TodosView = ({
   todos,
+  checkListItemsByTodoId,
   onBackClick,
 }: {
   todos: Todos;
+  checkListItemsByTodoId: CheckListItemsByTodoId;
   onBackClick: () => void;
 }) => {
   const [, send] = useTodos();
@@ -64,6 +69,7 @@ export const TodosView = ({
             key={todo.id}
             todo={todo}
             archiveTodo={archiveTodo}
+            checkListItems={checkListItemsByTodoId[todo.id]}
             toggleItemCompleted={toggleItemCompleted}
             deleteItem={deleteItem}
             addItem={addItem}

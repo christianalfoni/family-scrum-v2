@@ -10,7 +10,7 @@ import {
   TrashIcon,
   PlusIcon,
 } from "@heroicons/react/outline";
-import { Todo } from "../features/DashboardFeature/Feature";
+import { CheckListItem, Todo } from "../features/DashboardFeature/Feature";
 import { todosSelectors } from "../features/TodosFeature";
 
 const Confirmed = () => (
@@ -43,6 +43,7 @@ export const TodoItem = React.memo(
     toggleItemCompleted,
     deleteItem,
     addItem,
+    checkListItems,
     children,
   }: {
     todo: Todo;
@@ -50,6 +51,9 @@ export const TodoItem = React.memo(
     toggleItemCompleted: (id: string) => void;
     deleteItem: (itemId: string) => void;
     addItem: (todoId: string, title: string) => void;
+    checkListItems: {
+      [itemId: string]: CheckListItem;
+    };
     children?: React.ReactNode;
   }) => {
     const t = useTranslations("TodosView");
@@ -58,7 +62,9 @@ export const TodoItem = React.memo(
     const [newItemTitle, setNewItemTitle] = React.useState("");
     const [showAddNewItem, setShowNewItem] = React.useState(false);
     const intl = useIntl();
-    const checkListItems = todosSelectors.checkListItems(todo);
+    const sortedCheckListItems = checkListItems
+      ? todosSelectors.sortedCheckListItems(checkListItems)
+      : [];
 
     React.useEffect(() => {
       if (archiving) {
@@ -103,7 +109,7 @@ export const TodoItem = React.memo(
             }}
           />
         </div>
-        {checkListItems.length ? (
+        {todo.checkList ? (
           <div className=" my-2 text-sm text-gray-500 border border-gray-200 p-2 rounded-md bg-gray-50">
             <div
               className="flex items-center"
@@ -112,8 +118,9 @@ export const TodoItem = React.memo(
               }}
             >
               <ClipboardCheckIcon className="w-4 h-4 mr-1" />
-              {checkListItems.filter((item) => item.completed).length} /{" "}
-              {checkListItems.length}
+              {
+                sortedCheckListItems.filter((item) => item.completed).length
+              } / {sortedCheckListItems.length}
               {expandCheckList ? (
                 <ChevronDownIcon className="w-4 h-4 ml-auto" />
               ) : (
@@ -122,7 +129,7 @@ export const TodoItem = React.memo(
             </div>
             {expandCheckList ? (
               <ul className="mt-2">
-                {checkListItems.map((item) => (
+                {sortedCheckListItems.map((item) => (
                   <li
                     key={item.id}
                     className="flex items-center text-lg py-1 px-1"

@@ -10,6 +10,8 @@ import {
   SelectorIcon,
 } from "@heroicons/react/outline";
 import {
+  CheckListItem,
+  CheckListItemsByTodoId,
   Family,
   Todo,
   Todos,
@@ -58,6 +60,7 @@ const PlanTodoItem = React.memo(
     toggleItemCompleted,
     deleteItem,
     addItem,
+    checkListItems,
   }: {
     todo: Todo;
     userIds: string[];
@@ -75,11 +78,15 @@ const PlanTodoItem = React.memo(
     toggleItemCompleted: (id: string) => void;
     deleteItem: (itemId: string) => void;
     addItem: (todoId: string, title: string) => void;
+    checkListItems: {
+      [itemId: string]: CheckListItem;
+    };
   }) => {
     return (
       <TodoItem
         todo={todo}
         deleteItem={deleteItem}
+        checkListItems={checkListItems}
         addItem={addItem}
         toggleItemCompleted={toggleItemCompleted}
         archiveTodo={archiveTodo}
@@ -148,6 +155,7 @@ export const PlanWeekView = ({
   week,
   previousWeek,
   onBackClick,
+  checkListItemsByTodoId,
 }: {
   user: User;
   family: Family;
@@ -155,6 +163,7 @@ export const PlanWeekView = ({
   previousWeek: Week;
   todos: Todos;
   onBackClick: () => void;
+  checkListItemsByTodoId: CheckListItemsByTodoId;
 }) => {
   const [, sendDashboard] = useDasbhoard("LOADED");
   const [, send] = usePlanWeek();
@@ -337,6 +346,7 @@ export const PlanWeekView = ({
             {sortedTodos.previousWeek.map((todo) => (
               <PlanTodoItem
                 key={todo.id}
+                checkListItems={checkListItemsByTodoId[todo.id]}
                 todo={todo}
                 archiveTodo={archiveTodo}
                 family={family}
@@ -360,6 +370,7 @@ export const PlanWeekView = ({
             {sortedTodos.eventsThisWeek.map((todo) => (
               <PlanTodoItem
                 key={todo.id}
+                checkListItems={checkListItemsByTodoId[todo.id]}
                 todo={todo}
                 archiveTodo={archiveTodo}
                 family={family}
@@ -383,6 +394,7 @@ export const PlanWeekView = ({
             {sortedTodos.thisWeek.map((todo) => (
               <PlanTodoItem
                 key={todo.id}
+                checkListItems={checkListItemsByTodoId[todo.id]}
                 todo={todo}
                 archiveTodo={archiveTodo}
                 family={family}
@@ -406,6 +418,7 @@ export const PlanWeekView = ({
             {sortedTodos.laterEvents.map((todo) => (
               <PlanTodoItem
                 key={todo.id}
+                checkListItems={checkListItemsByTodoId[todo.id]}
                 todo={todo}
                 archiveTodo={archiveTodo}
                 family={family}

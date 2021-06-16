@@ -15,6 +15,7 @@ import {
   getPreviousWeekId,
 } from "../../utils";
 import { randomWait } from "../utils";
+import { createCheckListItemsByTodoId } from "./utils";
 
 export const createStorage = (): Storage => {
   const family: FamilyDTO = {
@@ -62,6 +63,28 @@ export const createStorage = (): Storage => {
     },
   };
 
+  let checkListItems: {
+    [itemId: string]: CheckListItemDTO;
+  } = {
+    checklist_item_0: {
+      id: "checklist_item_0",
+      todoId: "todo_2",
+      completed: false,
+      title: "Do this",
+      created: Date.now(),
+      modified: Date.now(),
+    },
+    checklist_item_1: {
+      id: "checklist_item_1",
+      todoId: "todo_2",
+      completed: true,
+      title: "Do that",
+      completedByUserId: "user_1",
+      created: Date.now(),
+      modified: Date.now(),
+    },
+  };
+
   let todos: {
     [todoId: string]: TodoDTO;
   } = {
@@ -84,23 +107,7 @@ export const createStorage = (): Storage => {
       created: Date.now(),
       modified: Date.now(),
       description: "Do some listing",
-      checkList: {
-        checklist_item_0: {
-          id: "checklist_item_0",
-          completed: false,
-          title: "Do this",
-          created: Date.now(),
-          modified: Date.now(),
-        },
-        checklist_item_1: {
-          id: "checklist_item_1",
-          completed: true,
-          title: "Do that",
-          completedByUserId: "user_1",
-          created: Date.now(),
-          modified: Date.now(),
-        },
-      },
+      checkList: true,
     },
   };
 
@@ -242,6 +249,10 @@ export const createStorage = (): Storage => {
       this.events.emit({
         type: "STORAGE:TODOS_UPDATE",
         todos,
+      });
+      this.events.emit({
+        type: "STORAGE:CHECKLIST_ITEMS_UPDATE",
+        checkListItemsByTodoId: createCheckListItemsByTodoId(checkListItems),
       });
     },
     archiveTodo(_, id) {
@@ -386,82 +397,59 @@ export const createStorage = (): Storage => {
       });
     },
     toggleCheckListItem(familyId, userId, itemId) {
-      let matchingTodoId!: string;
-      for (let todoId in todos) {
-        const todo = todos[todoId];
-        if (todo.checkList && itemId in todo.checkList) {
-          const completed = todo.checkList[itemId].completed;
-          todo.checkList = {
-            ...todo.checkList,
-            [itemId]: completed
-              ? {
-                  ...todo.checkList[itemId],
-                  completed: false,
-                }
-              : {
-                  ...todo.checkList[itemId],
-                  completed: true,
-                  completedByUserId: userId,
-                },
-          };
-        }
-      }
-      todos = {
-        ...todos,
-        [matchingTodoId]: {
-          ...todos[matchingTodoId],
-        },
+      const checkListItem = checkListItems[itemId];
+
+      checkListItems = {
+        ...checkListItems,
+        [itemId]: checkListItem.completed
+          ? {
+              ...checkListItem,
+              completed: false,
+            }
+          : {
+              ...checkListItem,
+              completed: true,
+              completedByUserId: userId,
+            },
       };
 
       this.events.emit({
-        type: "STORAGE:TODOS_UPDATE",
-        todos,
+        type: "STORAGE:CHECKLIST_ITEMS_UPDATE",
+        checkListItemsByTodoId: createCheckListItemsByTodoId(checkListItems),
       });
     },
     deleteChecklistItem(familyId, itemId) {
-      let matchingTodoId!: string;
-      for (let todoId in todos) {
-        const todo = todos[todoId];
-        if (todo.checkList && itemId in todo.checkList) {
-          delete todo.checkList[itemId];
-        }
-      }
-      todos = {
-        ...todos,
-        [matchingTodoId]: {
-          ...todos[matchingTodoId],
-        },
+      checkListItems = {
+        ...checkListItems,
       };
 
+      delete checkListItems[itemId];
+
       this.events.emit({
-        type: "STORAGE:TODOS_UPDATE",
-        todos,
+        type: "STORAGE:CHECKLIST_ITEMS_UPDATE",
+        checkListItemsByTodoId: createCheckListItemsByTodoId(checkListItems),
       });
     },
     addChecklistItem(familyId, todoId, title) {
       const itemId = `CHECKLIST_ITEM_${
         Object.keys(todos[todoId].checkList!).length
       }`;
-      todos = {
-        ...todos,
-        [todoId]: {
-          ...todos[todoId],
-          checkList: {
-            ...todos[todoId].checkList!,
-            [itemId]: {
-              id: itemId,
-              completed: false,
-              title,
-              created: Date.now(),
-              modified: Date.now(),
-            },
-          },
+
+      checkListItems = {
+        ...checkListItems,
+        [itemId]: {
+          id: itemId,
+          todoId,
+          completed: false,
+          title,
+          created: Date.now(),
+          modified: Date.now(),
         },
       };
 
       this.events.emit({
-        type: "STORAGE:TODOS_UPDATE",
-        todos,
+        type: "STORAGE:CHECKLIST_ITEMS_UPDATE",
+        checkListItemsByTodoId: createCheckListItemsByTodoId(checkListItems),
       });
     },
   };

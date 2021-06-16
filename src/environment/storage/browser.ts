@@ -17,6 +17,7 @@ import {
 } from "../../utils";
 import debounce from "lodash.debounce";
 import { StorageEvent } from "./";
+import { createCheckListItemsByTodoId } from "./utils";
 
 const FAMILY_DATA_COLLECTION = "familyData";
 const GROCERIES_COLLECTION = "groceries";
@@ -36,6 +37,10 @@ export const createStorage = (app: firebase.app.App): Storage => {
 
   let todos: {
     [todoId: string]: TodoDTO;
+  } = {};
+
+  let checkListItems: {
+    [itemId: string]: CheckListItemDTO;
   } = {};
 
   let weeks: {
@@ -175,8 +180,6 @@ export const createStorage = (app: firebase.app.App): Storage => {
         }
       );
 
-      let hasLoadedInitialTodos = false;
-
       onSnapshot(
         todosCollection,
         () => todos,
@@ -187,83 +190,6 @@ export const createStorage = (app: firebase.app.App): Storage => {
             type: "STORAGE:TODOS_UPDATE",
             todos: updatedTodos,
           });
-
-          if (!hasLoadedInitialTodos) {
-            hasLoadedInitialTodos = true;
-            checkListItemsCollection.onSnapshot((snapshot) => {
-              snapshot.docChanges().forEach((docChange) => {
-                const data = docChange.doc.data({
-                  serverTimestamps: "estimate",
-                });
-
-                switch (docChange.type) {
-                  case "added": {
-                    const todo = todos[data.todoId];
-                    const checkListItem = {
-                      ...data,
-                      id: docChange.doc.id,
-                    };
-                    todos = {
-                      ...todos,
-                      [data.todoId]: {
-                        ...todo,
-                        checkList: {
-                          ...todo.checkList,
-                          [checkListItem.id]: {
-                            ...checkListItem,
-                            created: data.created.toMillis(),
-                            modified: data.modified.toMillis(),
-                          },
-                        },
-                      },
-                    };
-                    break;
-                  }
-                  case "modified": {
-                    const todo = todos[data.todoId];
-                    const checkListItem = todo.checkList![docChange.doc.id];
-
-                    todos = {
-                      ...todos,
-                      [data.todoId]: {
-                        ...todo,
-                        checkList: {
-                          ...todo.checkList,
-                          [checkListItem.id]: {
-                            ...checkListItem,
-                            modified: data.modified.toMillis(),
-                          },
-                        },
-                      },
-                    };
-                    break;
-                  }
-                  case "removed": {
-                    const todo = todos[data.todoId];
-
-                    todos = {
-                      ...todos,
-                      [data.todoId]: {
-                        ...todo,
-                        checkList: {
-                          ...todo.checkList,
-                        },
-                      },
-                    };
-
-                    delete todos[data.todoId].checkList![docChange.doc.id];
-
-                    break;
-                  }
-                }
-              });
-
-              this.events.emit({
-                type: "STORAGE:TODOS_UPDATE",
-                todos: updatedTodos,
-              });
-            });
-          }
         }
       );
 
@@ -275,6 +201,19 @@ export const createStorage = (app: firebase.app.App): Storage => {
           this.events.emit({
             type: "STORAGE:BARCODES_UPDATE",
             barcodes: updatedBarcodes,
+          });
+        }
+      );
+
+      onSnapshot(
+        checkListItemsCollection,
+        () => checkListItems,
+        (updatedCheckListItems) => {
+          checkListItems = updatedCheckListItems;
+          this.events.emit({
+            type: "STORAGE:CHECKLIST_ITEMS_UPDATE",
+            checkListItemsByTodoId:
+              createCheckListItemsByTodoId(checkListItems),
           });
         }
       );
@@ -326,21 +265,22 @@ export const createStorage = (app: firebase.app.App): Storage => {
         .collection(FAMILY_DATA_COLLECTION)
         .doc(familyId)
         .collection(TODOS_COLLECTION);
-      const checkListCollection = app
+      const checkListItemsCollection = app
         .firestore()
+        .collection(FAMILY_DATA_COLLECTION)
+        .doc(familyId)
         .collection(CHECKLIST_ITEMS_COLLECTION);
-
-      const doc = todosCollection.doc();
-      const checkList = metadata?.checkList ?? [];
+      const todoDoc = todosCollection.doc();
+      const hasCheckList = Boolean(metadata?.checkList);
 
       todos = {
         ...todos,
-        [doc.id]: {
-          id: doc.id,
+        [todoDoc.id]: {
+          id: todoDoc.id,
           created: Date.now(),
           modified: Date.now(),
           description,
-          checkList: checkList.length ? {} : undefined,
+          checkList: hasCheckList ? true : undefined,
           date: metadata?.date,
           time: metadata?.time,
         },
@@ -351,11 +291,64 @@ export const createStorage = (app: firebase.app.App): Storage => {
         todos,
       });
 
-      doc
+      if (hasCheckList) {
+        const checkList = metadata?.checkList!;
+        const checkListItemDocs = checkList.map(() =>
+          checkListItemsCollection.doc()
+        );
+
+        const newCheckListItems = checkListItemDocs.reduce<{
+          [itemId: string]: CheckListItemDTO;
+        }>((aggr, itemDoc, index) => {
+          aggr[itemDoc.id] = {
+            id: itemDoc.id,
+            completed: false,
+            created: Date.now(),
+            modified: Date.now(),
+            title: checkList[index],
+            todoId: todoDoc.id,
+          };
+          return aggr;
+        }, {});
+
+        checkListItems = {
+          ...checkListItems,
+          ...newCheckListItems,
+        };
+
+        this.events.emit({
+          type: "STORAGE:CHECKLIST_ITEMS_UPDATE",
+          checkListItemsByTodoId: createCheckListItemsByTodoId(checkListItems),
+        });
+
+        checkListItemDocs.forEach((doc, index) =>
+          doc
+            .set({
+              todoId: todoDoc.id,
+              title: checkList[index],
+              completed: false,
+              created: firebase.firestore.FieldValue.serverTimestamp(),
+              modified: firebase.firestore.FieldValue.serverTimestamp(),
+            })
+            .catch((error) => {
+              this.events.emit({
+                type: "STORAGE:ADD_CHECKLIST_ITEM_ERROR",
+                title: checkList[index],
+                todoId: todoDoc.id,
+                error: error.message,
+              });
+            })
+        );
+      }
+
+      todoDoc
         .set({
           created: firebase.firestore.FieldValue.serverTimestamp(),
           modified: firebase.firestore.FieldValue.serverTimestamp(),
           description,
+          checkList: hasCheckList ? true : undefined,
+          date: metadata?.date,
+          time: metadata?.time,
         })
         .catch((error) => {
           this.events.emit({
@@ -805,8 +798,124 @@ export const createStorage = (app: firebase.app.App): Storage => {
           });
         });
     },
-    addChecklistItem() {},
-    deleteChecklistItem() {},
-    toggleCheckListItem() {},
+    addChecklistItem(familyId, todoId, title) {
+      const doc = app
+        .firestore()
+        .collection(FAMILY_DATA_COLLECTION)
+        .doc(familyId)
+        .collection(CHECKLIST_ITEMS_COLLECTION)
+        .doc();
+
+      checkListItems = {
+        ...checkListItems,
+        [doc.id]: {
+          id: doc.id,
+          completed: false,
+          created: Date.now(),
+          modified: Date.now(),
+          title,
+          todoId,
+        },
+      };
+
+      this.events.emit({
+        type: "STORAGE:CHECKLIST_ITEMS_UPDATE",
+        checkListItemsByTodoId: createCheckListItemsByTodoId(checkListItems),
+      });
+
+      doc
+        .set({
+          completed: false,
+          created: firebase.firestore.FieldValue.serverTimestamp(),
+          modified: firebase.firestore.FieldValue.serverTimestamp(),
+          title,
+          todoId,
+        })
+        .catch((error) => {
+          this.events.emit({
+            type: "STORAGE:ADD_CHECKLIST_ITEM_ERROR",
+            title,
+            todoId,
+            error: error.message,
+          });
+        });
+    },
+    deleteChecklistItem(familyId, itemId) {
+      const doc = app
+        .firestore()
+        .collection(FAMILY_DATA_COLLECTION)
+        .doc(familyId)
+        .collection(CHECKLIST_ITEMS_COLLECTION)
+        .doc(itemId);
+
+      checkListItems = {
+        ...checkListItems,
+      };
+
+      delete checkListItems[itemId];
+
+      this.events.emit({
+        type: "STORAGE:CHECKLIST_ITEMS_UPDATE",
+        checkListItemsByTodoId: createCheckListItemsByTodoId(checkListItems),
+      });
+
+      doc.delete().catch((error) => {
+        this.events.emit({
+          type: "STORAGE:DELETE_CHECKLIST_ITEM_ERROR",
+          itemId,
+          error: error.message,
+        });
+      });
+    },
+    toggleCheckListItem(familyId, userId, itemId) {
+      const doc = app
+        .firestore()
+        .collection(FAMILY_DATA_COLLECTION)
+        .doc(familyId)
+        .collection(CHECKLIST_ITEMS_COLLECTION)
+        .doc(itemId);
+
+      const checkListItem = checkListItems[itemId];
+
+      checkListItems = {
+        ...checkListItems,
+        [itemId]: checkListItem.completed
+          ? {
+              ...checkListItem,
+              completed: false,
+            }
+          : {
+              ...checkListItem,
+              completed: true,
+              completedByUserId: userId,
+            },
+      };
+
+      this.events.emit({
+        type: "STORAGE:CHECKLIST_ITEMS_UPDATE",
+        checkListItemsByTodoId: createCheckListItemsByTodoId(checkListItems),
+      });
+
+      doc
+        .update(
+          checkListItem.completed
+            ? {
+                completed: false,
+                modified: firebase.firestore.FieldValue.serverTimestamp(),
+              }
+            : {
+                completed: true,
+                modified: firebase.firestore.FieldValue.serverTimestamp(),
+                completedByUserId: userId,
+              }
+        )
+        .catch((error) => {
+          this.events.emit({
+            type: "STORAGE:TOGGLE_CHECKLIST_ITEM_ERROR",
+            itemId,
+            error: error.message,
+          });
+        });
+    },
   };
 };

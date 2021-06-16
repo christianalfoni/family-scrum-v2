@@ -32,6 +32,7 @@ export const Dashboard = () => {
           nextWeek,
           previousWeek,
           user,
+          checkListItemsByTodoId,
         }) => {
           return match(view, {
             GROCERIES_SHOPPING: () => (
@@ -69,6 +70,7 @@ export const Dashboard = () => {
               <TodosFeature user={user}>
                 <TodosView
                   todos={todos}
+                  checkListItemsByTodoId={checkListItemsByTodoId}
                   onBackClick={() =>
                     send({
                       type: "VIEW_SELECTED",
@@ -86,6 +88,7 @@ export const Dashboard = () => {
                   <PlanWeekView
                     user={user}
                     todos={todos}
+                    checkListItemsByTodoId={checkListItemsByTodoId}
                     family={family}
                     previousWeek={previousWeek}
                     week={currentWeek}
@@ -107,6 +110,7 @@ export const Dashboard = () => {
                   <PlanWeekView
                     user={user}
                     todos={todos}
+                    checkListItemsByTodoId={checkListItemsByTodoId}
                     family={family}
                     previousWeek={currentWeek}
                     week={nextWeek}

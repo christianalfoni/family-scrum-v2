@@ -12,6 +12,7 @@ export type FamilyDTO = {
 
 export type CheckListItemDTO = {
   id: string;
+  todoId: string;
   title: string;
   created: number;
   modified: number;
@@ -51,9 +52,7 @@ export type TodoDTO = {
   description: string;
   date?: number;
   time?: string;
-  checkList?: {
-    [itemId: string]: CheckListItemDTO;
-  };
+  checkList?: boolean;
 };
 
 // Each user has an array representing each day of the week,
@@ -181,6 +180,14 @@ export type StorageEvent =
       title: string;
       todoId: string;
       error: string;
+    }
+  | {
+      type: "STORAGE:CHECKLIST_ITEMS_UPDATE";
+      checkListItemsByTodoId: {
+        [todoId: string]: {
+          [itemId: string]: CheckListItemDTO;
+        };
+      };
     };
 
 export interface Storage {
