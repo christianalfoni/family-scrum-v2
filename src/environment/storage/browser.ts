@@ -347,8 +347,8 @@ export const createStorage = (app: firebase.app.App): Storage => {
           modified: firebase.firestore.FieldValue.serverTimestamp(),
           description,
           ...(hasCheckList ? { checkList: true } : undefined),
-          date: metadata?.date,
-          time: metadata?.time,
+          ...(metadata?.date ? { date: metadata?.date } : undefined),
+          ...(metadata?.time ? { time: metadata?.time } : undefined),
         })
         .catch((error) => {
           this.events.emit({
