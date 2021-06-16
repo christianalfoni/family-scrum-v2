@@ -340,7 +340,8 @@ export const PlanWeekView = ({
       <ul className="relative z-0 divide-y divide-gray-200 border-b border-gray-200 overflow-y-scroll">
         {sortedTodos.previousWeek.length ? (
           <>
-            <li className="p-2 bg-gray-50 text-gray-500">
+            <li className="p-2 bg-green-500 text-white font-bold text-sm flex items-center">
+              <CheckCircleIcon className="w-4 h-4 mr-2" />{" "}
               {t("typePreviousWeek")}
             </li>
             {sortedTodos.previousWeek.map((todo) => (
@@ -364,7 +365,8 @@ export const PlanWeekView = ({
         ) : null}
         {sortedTodos.eventsThisWeek.length ? (
           <>
-            <li className="p-2 bg-gray-50 text-gray-500">
+            <li className="p-2 bg-red-500 text-white font-bold text-sm flex items-center">
+              <CalendarIcon className="w-4 h-4 mr-2" />{" "}
               {t("typeEventsThisWeek")}
             </li>
             {sortedTodos.eventsThisWeek.map((todo) => (
@@ -388,8 +390,8 @@ export const PlanWeekView = ({
         ) : null}
         {sortedTodos.thisWeek.length ? (
           <>
-            <li className="p-2 bg-gray-50 text-gray-500">
-              {t("typeThisWeek")}
+            <li className="p-2 bg-yellow-500 text-white font-bold text-sm flex items-center">
+              <CheckCircleIcon className="w-4 h-4 mr-2" /> {t("typeThisWeek")}
             </li>
             {sortedTodos.thisWeek.map((todo) => (
               <PlanTodoItem
@@ -412,8 +414,8 @@ export const PlanWeekView = ({
         ) : null}
         {sortedTodos.laterEvents.length ? (
           <>
-            <li className="p-2 bg-gray-50 text-gray-500">
-              {t("typeLaterEvents")}
+            <li className="p-2 bg-blue-500 text-white font-bold text-sm flex items-center">
+              <CalendarIcon className="w-4 h-4 mr-2" /> {t("typeLaterEvents")}
             </li>
             {sortedTodos.laterEvents.map((todo) => (
               <PlanTodoItem

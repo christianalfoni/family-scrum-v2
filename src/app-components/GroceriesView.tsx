@@ -96,8 +96,26 @@ const CaptureModal = () => {
 export const GroceriesView = ({ onBackClick }: { onBackClick: () => void }) => {
   const [dashboardFeature] = useDasbhoard("LOADED");
   const [groceriesFeature, send] = useGroceries();
+  const inputRef = React.useRef<HTMLInputElement>(null);
   const t = useTranslations("GroceriesView");
   const { groceries, barcodes } = dashboardFeature;
+  const inputValue = match(groceriesFeature, {
+    FILTERED: ({ input }) => input,
+    UNFILTERED: () => "",
+  });
+  const onGroceryClick = React.useCallback(
+    (id: string) => {
+      send({
+        type: "INCREASE_SHOP_COUNT",
+        id,
+      });
+
+      if (inputValue) {
+        inputRef.current!.focus()
+      }
+    },
+    [Boolean(inputValue)]
+  );
 
   return (
     <div className="bg-white flex flex-col h-screen">
@@ -126,11 +144,9 @@ export const GroceriesView = ({ onBackClick }: { onBackClick: () => void }) => {
             </div>
             <input
               id="search"
+              ref={inputRef}
               name="search"
-              value={match(groceriesFeature, {
-                FILTERED: ({ input }) => input,
-                UNFILTERED: () => "",
-              })}
+              value={inputValue}
               onChange={(event) => {
                 send({
                   type: "GROCERY_INPUT_CHANGED",
@@ -165,7 +181,11 @@ export const GroceriesView = ({ onBackClick }: { onBackClick: () => void }) => {
           </button>
         </span>
       </div>
-      <GroceriesList groceries={groceries} barcodes={barcodes} />
+      <GroceriesList
+        groceries={groceries}
+        barcodes={barcodes}
+        onGroceryClick={onGroceryClick}
+      />
       <CaptureModal />
     </div>
   );

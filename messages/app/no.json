@@ -38,10 +38,10 @@
     "planCurrentWeek": "Planlegg denne uka",
     "nextWeek": "Neste uke",
     "currentWeek": "Denne uka",
-    "typePreviousWeek": "Hva ble gjort forrige uke",
-    "typeEventsThisWeek": "Hendelser denne uka",
-    "typeThisWeek": "Hva kan gjøres denne uka",
-    "typeLaterEvents": "Ting som skjer"
+    "typePreviousWeek": "Hvordan gikk planen?",
+    "typeEventsThisWeek": "Hendelser",
+    "typeThisWeek": "Hva kan gjøres",
+    "typeLaterEvents": "Fremtidige hendelser"
   },
   "GroceriesShoppingView": {
     "shoppingList": "Handleliste"

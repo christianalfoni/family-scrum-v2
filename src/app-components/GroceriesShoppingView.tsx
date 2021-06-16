@@ -51,9 +51,6 @@ export const GroceriesShoppingView = ({
           <span className="flex-1" />
           <button
             onClick={() => {
-              send({
-                type: "TOGGLE_NO_SLEEP",
-              });
               match(groceriesShopping, {
                 LIST: () => {
                   preventScreenSleep.enable();
@@ -61,6 +58,9 @@ export const GroceriesShoppingView = ({
                 NO_SLEEP: () => {
                   preventScreenSleep.disable();
                 },
+              });
+              send({
+                type: "TOGGLE_NO_SLEEP",
               });
             }}
             className="mx-auto inline-flex items-center justify-center border border-transparent text-sm font-medium rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"

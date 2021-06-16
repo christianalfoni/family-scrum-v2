@@ -365,6 +365,11 @@ export const createStorage = (app: firebase.app.App): Storage => {
         .doc(familyId)
         .collection(TODOS_COLLECTION)
         .doc(id);
+      const checkListItemsCollection = app
+        .firestore()
+        .collection(FAMILY_DATA_COLLECTION)
+        .doc(familyId)
+        .collection(CHECKLIST_ITEMS_COLLECTION);
 
       todos = {
         ...todos,
@@ -377,13 +382,31 @@ export const createStorage = (app: firebase.app.App): Storage => {
         todos,
       });
 
-      todoDocRef.delete().catch((error) => {
-        this.events.emit({
-          type: "STORAGE:ARCHIVE_TODO_ERROR",
-          id,
-          error: error.message,
+      const checkListItemsToDelete = Object.values(checkListItems).filter(
+        (checkListItem) => checkListItem.todoId === id
+      );
+
+      Promise.all(
+        checkListItemsToDelete.map((checkListItem) =>
+          checkListItemsCollection.doc(checkListItem.id).delete()
+        )
+      )
+        .then(() => {
+          todoDocRef.delete().catch((error) => {
+            this.events.emit({
+              type: "STORAGE:ARCHIVE_TODO_ERROR",
+              id,
+              error: error.message,
+            });
+          });
+        })
+        .catch((error) => {
+          this.events.emit({
+            type: "STORAGE:ARCHIVE_TODO_ERROR",
+            error: error.message,
+            id,
+          });
         });
-      });
     },
     deleteGrocery(familyId, id) {
       const groceryDocRef = app

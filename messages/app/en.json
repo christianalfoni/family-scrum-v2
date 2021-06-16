@@ -38,10 +38,10 @@
     "planCurrentWeek": "Plan current week",
     "nextWeek": "Next week",
     "currentWeek": "Current week",
-    "typePreviousWeek": "What you did previous week",
-    "typeEventsThisWeek": "Events this week",
-    "typeThisWeek": "What needs to be done",
-    "typeLaterEvents": "Things happening"
+    "typePreviousWeek": "How the plan go?",
+    "typeEventsThisWeek": "Events happening",
+    "typeThisWeek": "What to do",
+    "typeLaterEvents": "Future events"
   },
   "GroceriesShoppingView": {
     "shoppingList": "Shopping list"

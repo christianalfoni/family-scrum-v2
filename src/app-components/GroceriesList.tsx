@@ -16,9 +16,11 @@ import { useCapture } from "../features/CaptureFeature";
 export const GroceriesList = ({
   groceries,
   barcodes,
+  onGroceryClick,
 }: {
   groceries: Groceries;
   barcodes: Barcodes;
+  onGroceryClick: (id: string) => void;
 }) => {
   const [now] = React.useState(Date.now());
   const [, sendCapture] = useCapture();
@@ -42,12 +44,7 @@ export const GroceriesList = ({
         return (
           <li
             key={grocery.id}
-            onClick={() => {
-              send({
-                type: "INCREASE_SHOP_COUNT",
-                id: grocery.id,
-              });
-            }}
+            onClick={() => onGroceryClick(grocery.id)}
             className="relative pl-4 pr-6 py-5 hover:bg-gray-50 sm:py-6 sm:pl-6 lg:pl-8 xl:pl-6"
           >
             <div className="flex items-center">

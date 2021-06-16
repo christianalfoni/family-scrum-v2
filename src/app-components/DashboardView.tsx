@@ -167,6 +167,7 @@ export const DashboardView = () => {
   const currentWeekDate = getFirstDateOfCurrentWeek();
   const [slideIndex, setSlideIndex] = useState(currentDayIndex);
   const todosByWeekday = dashboardSelectors.todosByWeekday(currentWeek);
+  const eventsByWeekday = dashboardSelectors.eventsByWeekday(todos);
   const [controlledSwiper, setControlledSwiper] =
     useState<SwiperCore | null>(null);
   const shopCount = groceriesShoppingSelectors.shopCount(groceries);
@@ -253,6 +254,27 @@ export const DashboardView = () => {
                 >
                   {
                     <ul className="mt-2 ">
+                      {eventsByWeekday[index].map((todo) => (
+                        <li
+                          key={todo.id}
+                          className="py-2 flex justify-between items-center"
+                        >
+                          <div className="flex items-center space-x-2">
+                            <div className="flex flex-shrink-0 -space-x-1">
+                              <CalendarIcon className="w-4 h-4 text-red-500" />
+                            </div>
+                            {todo.time ? (
+                              <span className="text-sm text-gray-500">
+                                {todo.time}
+                              </span>
+                            ) : null}
+
+                            <p className="ml-4 text-sm font-medium text-gray-900">
+                              {todo.description}
+                            </p>
+                          </div>
+                        </li>
+                      ))}
                       {Object.keys(weekdayTodos)
                         .filter((todoId) => todoId in todos)
                         .map((todoId) => (

@@ -21,6 +21,8 @@ import {
 import { useSession, User } from "../SessionFeature";
 import { useDevtools } from "react-states/devtools";
 import { AuthenticationEvent } from "../../environment/authentication";
+import { getDateFromWeekId, mod } from "../../utils";
+import { differenceInDays, getDay, isThisWeek } from "date-fns";
 
 export type Barcodes = {
   [barcodeId: string]: BarcodeDTO;
@@ -322,6 +324,41 @@ export const selectors = {
     }
 
     return todosByWeekday;
+  },
+  eventsByWeekday: (todos: Todos) => {
+    const eventsByWeekday: [
+      Todo[],
+      Todo[],
+      Todo[],
+      Todo[],
+      Todo[],
+      Todo[],
+      Todo[]
+    ] = [[], [], [], [], [], [], []];
+
+    Object.values(todos).forEach((todo) => {
+      if (
+        todo.date &&
+        isThisWeek(todo.date, {
+          weekStartsOn: 1,
+        })
+      ) {
+        eventsByWeekday[mod(getDay(todo.date) - 1, 7)].push(todo);
+      }
+    });
+
+    return eventsByWeekday.map((weekDay) =>
+      weekDay.sort((a, b) => {
+        if (a.date! > b.date!) {
+          return 1;
+        }
+        if (a.date! < b.date!) {
+          return -1;
+        }
+
+        return 0;
+      })
+    );
   },
   sortedTodos: (todos: Todos) =>
     Object.values(todos).sort((a, b) => {

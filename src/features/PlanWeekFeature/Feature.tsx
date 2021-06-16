@@ -79,7 +79,7 @@ export const selectors = {
       }
     );
 
-    return Object.values(todos).reduce(
+    const result = Object.values(todos).reduce(
       (aggr, todo) => {
         if (todosInPreviousWeek.includes(todo.id)) {
           aggr.previousWeek.push(todo);
@@ -96,10 +96,10 @@ export const selectors = {
 
         if (todo.date) {
           aggr.laterEvents.push(todo);
+          return aggr;
         }
 
         aggr.thisWeek.push(todo);
-
         return aggr;
       },
       {
@@ -109,6 +109,32 @@ export const selectors = {
         thisWeek: [] as Todo[],
       }
     );
+
+    result.eventsThisWeek.sort((a, b) => {
+      if (a.date! > b.date!) {
+        return 1;
+      }
+
+      if (a.date! < b.date!) {
+        return -1;
+      }
+
+      return 0;
+    });
+
+    result.laterEvents.sort((a, b) => {
+      if (a.date! > b.date!) {
+        return 1;
+      }
+
+      if (a.date! < b.date!) {
+        return -1;
+      }
+
+      return 0;
+    });
+
+    return result;
   },
 };
 
