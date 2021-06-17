@@ -37,14 +37,14 @@ export const createStorage = (): Storage => {
   let barcodes: {
     [barcodeId: string]: BarcodeDTO;
   } = {
-    "123": {
-      id: "123",
+    "1234567890": {
+      id: "1234567890",
       created: Date.now(),
       modified: Date.now(),
       groceryId: null,
     },
-    "456": {
-      id: "456",
+    "09877654321": {
+      id: "09877654321",
       created: Date.now(),
       modified: Date.now(),
       groceryId: "grocery_0",

@@ -5,6 +5,7 @@ import {
   CameraIcon,
   DotsVerticalIcon,
   QrcodeIcon,
+  TrashIcon,
 } from "@heroicons/react/outline";
 
 import { Groceries, Barcodes } from "../features/DashboardFeature/Feature";
@@ -103,7 +104,7 @@ export const GroceriesList = ({
                     >
                       <Menu.Items
                         static
-                        className="z-10 mx-3 origin-top-right absolute right-10 top-3 w-48 mt-1 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-200 focus:outline-none"
+                        className="z-10 mx-8 origin-top-right absolute right-10 top-3 w-56 mt-1 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-200 focus:outline-none"
                       >
                         <div className="py-1">
                           <Menu.Item>
@@ -169,10 +170,14 @@ export const GroceriesList = ({
                                           ? "bg-gray-100 text-gray-900"
                                           : "text-gray-700"
                                       }
-                                 block px-4 py-2 text-sm`}
+                                  px-4 py-2 text-sm flex items-center`}
                                     >
-                                      {t("unlinkBarcode")}{" "}
-                                      {barcodeId.substr(0, 4)}...
+                                      <QrcodeIcon className="w-4 h-4 mr-2" />{" "}
+                                      {t("unlinkBarcode")} ...
+                                      {barcodeId.substr(
+                                        barcodeId.length - 5,
+                                        4
+                                      )}
                                     </a>
                                   )}
                                 </Menu.Item>
@@ -199,10 +204,11 @@ export const GroceriesList = ({
                                         ? "bg-gray-100 text-gray-900"
                                         : "text-gray-700"
                                     }
-                                 block px-4 py-2 text-sm`}
+                                  px-4 py-2 text-sm flex items-center`}
                                   >
-                                    {t("linkBarcode")} {barcodeId.substr(0, 4)}
-                                    ...
+                                    <QrcodeIcon className="w-4 h-4 mr-2" />{" "}
+                                    {t("linkBarcode")} ...
+                                    {barcodeId.substr(barcodeId.length - 5, 4)}
                                   </a>
                                 )}
                               </Menu.Item>
@@ -224,8 +230,9 @@ export const GroceriesList = ({
                                     ? "bg-gray-100 text-gray-900"
                                     : "text-gray-700"
                                 }
-                                    block px-4 py-2 text-sm`}
+                                    px-4 py-2 text-sm flex items-center`}
                               >
+                                <TrashIcon className="w-4 h-4 mr-2" />{" "}
                                 {t("delete")}
                               </a>
                             )}
