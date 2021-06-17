@@ -2,7 +2,7 @@ import React from "react";
 import { useTranslations } from "next-intl";
 import { Week, dashboardSelectors } from "../features/DashboardFeature";
 import { Family, Todos } from "../features/DashboardFeature/Feature";
-import { getCurrentDayIndex, weekdays } from "../utils";
+import { getDayIndex, weekdays } from "../utils";
 
 const Weekday = React.memo(
   ({
@@ -20,9 +20,7 @@ const Weekday = React.memo(
       <div className="flex items-center">
         <div
           className={`${
-            weekdays[getCurrentDayIndex()] === weekday
-              ? "bg-red-500"
-              : "bg-gray-200"
+            weekdays[getDayIndex()] === weekday ? "bg-red-500" : "bg-gray-200"
           } flex-shrink-0 w-2.5 h-2.5 rounded-full`}
           aria-hidden="true"
         />
