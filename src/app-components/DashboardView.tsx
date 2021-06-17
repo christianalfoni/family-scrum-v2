@@ -11,11 +11,7 @@ import React, { useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import SwiperCore, { Controller } from "swiper";
 import { dashboardSelectors, useDasbhoard } from "../features/DashboardFeature";
-import {
-  getCurrentDayIndex,
-  getFirstDateOfCurrentWeek,
-  weekdays,
-} from "../utils";
+import { getDayIndex, getFirstDateOfCurrentWeek, weekdays } from "../utils";
 import { groceriesShoppingSelectors } from "../features/GroceriesShoppingFeature";
 import { addDays, format, isSameDay } from "date-fns";
 
@@ -80,6 +76,7 @@ const WeekdaySlideContent = ({
 
 export const DashboardContentSkeleton = () => {
   const t = useTranslations("DashboardView");
+  const tCommon = useTranslations("common");
 
   return (
     <>
@@ -142,7 +139,7 @@ export const DashboardContentSkeleton = () => {
               key={weekday}
               className="text-gray-500 flex items-center mx-2 w-6 h-6 text-center text-xs"
             >
-              {(t(weekdays[index]) as string).substr(0, 2)}
+              {(tCommon(weekdays[index]) as string).substr(0, 2)}
             </div>
           ))}
         </div>
@@ -161,9 +158,10 @@ export const DashboardContentSkeleton = () => {
 export const DashboardView = () => {
   const [dashboard, send] = useDasbhoard("LOADED");
   const t = useTranslations("DashboardView");
+  const tCommon = useTranslations("common");
   const intl = useIntl();
   const { groceries, family, currentWeek, todos } = dashboard;
-  const currentDayIndex = getCurrentDayIndex();
+  const currentDayIndex = getDayIndex();
   const currentWeekDate = getFirstDateOfCurrentWeek();
   const [slideIndex, setSlideIndex] = useState(currentDayIndex);
   const todosByWeekday = dashboardSelectors.todosByWeekday(currentWeek);
@@ -246,7 +244,7 @@ export const DashboardView = () => {
             return (
               <SwiperSlide key={index}>
                 <WeekdaySlideContent
-                  title={`${t(weekdays[index])}`}
+                  title={`${tCommon(weekdays[index])}`}
                   date={intl.formatDateTime(addDays(currentWeekDate, index), {
                     day: "numeric",
                     month: "long",
@@ -321,7 +319,7 @@ export const DashboardView = () => {
                 index === slideIndex ? "font-bold" : ""
               } flex items-center mx-2 w-6 h-6 text-center text-xs`}
             >
-              {(t(weekdays[index]) as string).substr(0, 2)}
+              {(tCommon(weekdays[index]) as string).substr(0, 2)}
             </div>
           ))}
         </div>

@@ -58,7 +58,7 @@ export const getDaysOfNextWeek = () => {
 };
 
 export const isWithinWeek = (dateA: Date | number, dateB: Date | number) => {
-  const diff = differenceInDays(dateA, dateB) - 7;
+  const diff = differenceInDays(dateA, dateB);
 
   return diff >= 0 && diff < 7;
 };
@@ -106,8 +106,17 @@ export const mod = (n: number, m: number) => {
   return ((n % m) + m) % m;
 };
 
-export const getCurrentDayIndex = () => {
-  return mod(new Date().getDay() - 1, 7);
+export const getDayIndex = (date: Date | number = new Date()) => {
+  return mod(
+    typeof date === "number" ? new Date(date).getDay() : date.getDay() - 1,
+    7
+  );
+};
+
+export const getDayName = (date: Date | number = new Date()) => {
+  return weekdays[
+    getDayIndex(typeof date === "number" ? new Date(date) : date)
+  ];
 };
 
 export const getWeekdayIndexes = (dates: string[], weekDates: string[]) => {

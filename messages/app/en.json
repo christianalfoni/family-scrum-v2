@@ -1,4 +1,13 @@
 {
+  "common": {
+    "monday": "Monday",
+    "tuesday": "Tuesday",
+    "wednesday": "Wednesday",
+    "thursday": "Thursday",
+    "friday": "Friday",
+    "saturday": "Saturday",
+    "sunday": "Sunday"
+  },
   "AddTodoView": {
     "addTodo": "Add todo",
     "setDate": "Set date",
@@ -13,14 +22,7 @@
     "groceries": "Groceries",
     "todos": "Todos",
     "planWeek": "Plan week",
-    "events": "Events",
-    "monday": "Monday",
-    "tuesday": "Tuesday",
-    "wednesday": "Wednesday",
-    "thursday": "Thursday",
-    "friday": "Friday",
-    "saturday": "Saturday",
-    "sunday": "Sunday"
+    "events": "Events"
   },
   "GroceriesView": {
     "groceries": "Groceries",

@@ -169,7 +169,11 @@ export const PlanWeekView = ({
   const [, send] = usePlanWeek();
   const [, sendTodos] = useTodos();
   const t = useTranslations("PlanWeekView");
-  const sortedTodos = planWeekSelectors.todosByType(todos, previousWeek);
+  const sortedTodos = planWeekSelectors.todosByType(
+    todos,
+    previousWeek,
+    week.id
+  );
   const sortedUserIds = React.useMemo(
     () =>
       Object.keys(family.users).sort((a) => {

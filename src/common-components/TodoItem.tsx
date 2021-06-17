@@ -12,6 +12,7 @@ import {
 } from "@heroicons/react/outline";
 import { CheckListItem, Todo } from "../features/DashboardFeature/Feature";
 import { todosSelectors } from "../features/TodosFeature";
+import { getDayIndex, getDayName } from "../utils";
 
 const Confirmed = () => (
   <div className="absolute z-10 top-0 left-0 bottom-0 right-0 flex items-center justify-center bg-white">
@@ -57,6 +58,7 @@ export const TodoItem = React.memo(
     children?: React.ReactNode;
   }) => {
     const t = useTranslations("TodosView");
+    const tCommon = useTranslations("common");
     const [archiving, setArchiving] = React.useState(false);
     const [expandCheckList, setExpandCheckList] = React.useState(false);
     const [newItemTitle, setNewItemTitle] = React.useState("");
@@ -84,6 +86,7 @@ export const TodoItem = React.memo(
             {todo.date ? (
               <span className="flex items-center text-sm mr-3">
                 <CalendarIcon className="w-4 h-4 mr-1" />
+                {tCommon(getDayName(todo.date))} -{" "}
                 {intl.formatDateTime(todo.date, {
                   day: "numeric",
                   month: "long",

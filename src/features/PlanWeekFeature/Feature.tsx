@@ -1,4 +1,4 @@
-import { differenceInDays } from "date-fns";
+import { addDays, differenceInDays } from "date-fns";
 import { useReducer } from "react";
 import {
   createContext,
@@ -60,7 +60,8 @@ export const useFeature = createHook(featureContext);
 export const selectors = {
   todosByType(
     todos: Todos,
-    previousWeek: Week
+    previousWeek: Week,
+    currentWeekId: string
   ): {
     previousWeek: Todo[];
     eventsThisWeek: Todo[];
@@ -78,7 +79,7 @@ export const selectors = {
         return false;
       }
     );
-
+    const currentWeekDate = getDateFromWeekId(currentWeekId);
     const result = Object.values(todos).reduce(
       (aggr, todo) => {
         if (todosInPreviousWeek.includes(todo.id)) {
@@ -86,20 +87,21 @@ export const selectors = {
 
           return aggr;
         }
-        if (
-          todo.date &&
-          isWithinWeek(todo.date, getDateFromWeekId(previousWeek.id))
-        ) {
+        if (todo.date && isWithinWeek(todo.date, currentWeekDate)) {
           aggr.eventsThisWeek.push(todo);
           return aggr;
         }
 
-        if (todo.date) {
+        if (todo.date && differenceInDays(todo.date, currentWeekDate) > 7) {
           aggr.laterEvents.push(todo);
           return aggr;
         }
 
-        aggr.thisWeek.push(todo);
+        if (!todo.date) {
+          aggr.thisWeek.push(todo);
+          return aggr;
+        }
+
         return aggr;
       },
       {

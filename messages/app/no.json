@@ -1,4 +1,13 @@
 {
+  "common": {
+    "monday": "Mandag",
+    "tuesday": "Tirsdag",
+    "wednesday": "Onsdag",
+    "thursday": "Torsdag",
+    "friday": "Fredag",
+    "saturday": "Lørdag",
+    "sunday": "Søndag"
+  },
   "AddTodoView": {
     "addTodo": "Nytt gjøremål",
     "setDate": "Sett dato",
@@ -13,14 +22,7 @@
     "groceries": "Matvarer",
     "todos": "Gjøremål",
     "events": "Hendelser",
-    "planWeek": "Planlegg uka",
-    "monday": "Mandag",
-    "tuesday": "Tirsdag",
-    "wednesday": "Onsdag",
-    "thursday": "Torsdag",
-    "friday": "Fredag",
-    "saturday": "Lørdag",
-    "sunday": "Søndag"
+    "planWeek": "Planlegg uka"
   },
   "GroceriesView": {
     "groceries": "Matvarer",
