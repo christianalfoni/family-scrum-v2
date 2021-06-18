@@ -1,7 +1,6 @@
 import { createContext, useContext } from "react";
 import { Authentication } from "./authentication";
 import { Capture } from "./capture";
-import { PreventScreenSleep } from "./preventScreenSleep";
 import { Storage } from "./storage";
 import { Version } from "./version";
 import { Visibility } from "./visibility";
@@ -9,7 +8,6 @@ import { Visibility } from "./visibility";
 export interface Environment {
   authentication: Authentication;
   storage: Storage;
-  preventScreenSleep: PreventScreenSleep;
   version: Version;
   visibility: Visibility;
   capture: Capture;

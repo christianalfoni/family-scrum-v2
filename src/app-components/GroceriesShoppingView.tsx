@@ -11,19 +11,27 @@ import { LightBulbIcon as SolidLightBulbIcon } from "@heroicons/react/solid";
 import { useTranslations } from "next-intl";
 import { match } from "react-states";
 import { useEnvironment } from "../environment";
+import { mp4 } from "../video";
 
 export const GroceriesShoppingView = ({
   onBackClick,
 }: {
   onBackClick: () => void;
 }) => {
-  const { preventScreenSleep } = useEnvironment();
   const [dashboardFeature] = useDasbhoard("LOADED");
   const t = useTranslations("GroceriesShoppingView");
   const [groceriesShopping, send] = useGroceriesShopping();
+  const videoRef = React.useRef<HTMLVideoElement>(null);
   const groceriesToShop = groceriesShoppingSelectors.groceriesToShop(
     dashboardFeature.groceries
   );
+  const videoUpdateCallback = React.useCallback(() => {
+    const video = videoRef.current!;
+
+    if (video.currentTime > 0.5) {
+      video.currentTime = 0;
+    }
+  }, []);
 
   useEffect(() => {
     if (!groceriesToShop.length) {
@@ -49,29 +57,43 @@ export const GroceriesShoppingView = ({
           </div>
           <h1 className="flex-2 text-lg font-medium">{t("shoppingList")}</h1>
           <span className="flex-1" />
-          <button
-            onClick={() => {
-              match(groceriesShopping, {
-                LIST: () => {
-                  preventScreenSleep.enable();
-                },
-                NO_SLEEP: () => {
-                  preventScreenSleep.disable();
-                },
-              });
-              send({
-                type: "TOGGLE_NO_SLEEP",
-              });
-            }}
-            className="mx-auto inline-flex items-center justify-center border border-transparent text-sm font-medium rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-          >
+          <div className="relative mx-auto inline-flex items-center justify-center border border-transparent text-sm font-medium rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
             {match(groceriesShopping, {
               LIST: () => <LightBulbIcon className="w-6 h-6" />,
               NO_SLEEP: () => (
                 <SolidLightBulbIcon className="w-6 h-6 text-yellow-500" />
               ),
             })}
-          </button>
+            <video
+              ref={videoRef}
+              className="absolute left-0 right-0 bottom-0 top-0 opacity-0"
+              onClick={() => {
+                {
+                  const video = videoRef.current!;
+                  match(groceriesShopping, {
+                    LIST: () => {
+                      video.play();
+                      video.addEventListener("timeupdate", videoUpdateCallback);
+                    },
+                    NO_SLEEP: () => {
+                      videoRef.current?.pause();
+                      video.removeEventListener(
+                        "timeupdate",
+                        videoUpdateCallback
+                      );
+                    },
+                  });
+                }
+
+                send({
+                  type: "TOGGLE_NO_SLEEP",
+                });
+              }}
+              src={mp4}
+              playsInline
+              disablePictureInPicture
+            ></video>
+          </div>
         </div>
       </div>
       <ul className="relative z-0 divide-y divide-gray-200 border-b border-gray-200 overflow-y-scroll">

@@ -12,7 +12,7 @@ import {
 } from "@heroicons/react/outline";
 import { CheckListItem, Todo } from "../features/DashboardFeature/Feature";
 import { todosSelectors } from "../features/TodosFeature";
-import { getDayIndex, getDayName } from "../utils";
+import { getDayName } from "../utils";
 
 const Confirmed = () => (
   <div className="absolute z-10 top-0 left-0 bottom-0 right-0 flex items-center justify-center bg-white">
