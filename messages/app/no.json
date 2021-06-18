@@ -22,7 +22,7 @@
     "groceries": "Matvarer",
     "todos": "Gjøremål",
     "events": "Hendelser",
-    "planWeek": "Planlegg uka"
+    "planNextWeek": "Plan neste uke"
   },
   "GroceriesView": {
     "groceries": "Matvarer",
@@ -36,10 +36,8 @@
   },
   "PlanWeekView": {
     "archive": "Arkiver",
-    "planNextWeek": "Planlegg next uke",
-    "planCurrentWeek": "Planlegg denne uka",
+    "planNextWeek": "Planlegg neste uke",
     "nextWeek": "Neste uke",
-    "currentWeek": "Denne uka",
     "typePreviousWeek": "Hvordan gikk planen?",
     "typeEventsThisWeek": "Hendelser",
     "typeThisWeek": "Hva kan gjøres",

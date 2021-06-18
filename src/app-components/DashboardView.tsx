@@ -111,7 +111,7 @@ export const DashboardContentSkeleton = () => {
           onClick={() => {}}
           color="bg-blue-500"
         >
-          {t("planWeek")}
+          {t("planNextWeek")}
         </MenuCard>
       </ul>
       <div className="h-2/4">
@@ -228,7 +228,7 @@ export const DashboardView = () => {
           }}
           color="bg-green-500"
         >
-          {t("planWeek")}
+          {t("planNextWeek")}
         </MenuCard>
       </ul>
       <div className="h-2/4">

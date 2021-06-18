@@ -21,7 +21,7 @@
     "goShopping": "Shopping list",
     "groceries": "Groceries",
     "todos": "Todos",
-    "planWeek": "Plan week",
+    "planNextWeek": "Plan next week",
     "events": "Events"
   },
   "GroceriesView": {
@@ -37,9 +37,7 @@
   "PlanWeekView": {
     "archive": "Archive",
     "planNextWeek": "Plan next week",
-    "planCurrentWeek": "Plan current week",
     "nextWeek": "Next week",
-    "currentWeek": "Current week",
     "typePreviousWeek": "How the plan go?",
     "typeEventsThisWeek": "Events happening",
     "typeThisWeek": "What to do",
