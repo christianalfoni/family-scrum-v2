@@ -21,8 +21,8 @@ import {
 import { useSession, User } from "../SessionFeature";
 import { useDevtools } from "react-states/devtools";
 import { AuthenticationEvent } from "../../environment/authentication";
-import { getDateFromWeekId, mod } from "../../utils";
-import { differenceInDays, getDay, isThisWeek } from "date-fns";
+import { mod } from "../../utils";
+import { getDay, isThisWeek } from "date-fns";
 
 export type Barcodes = {
   [barcodeId: string]: BarcodeDTO;
@@ -61,7 +61,7 @@ export type ViewContext =
       state: "GROCERIES";
     }
   | {
-      state: "TODOS";
+      state: "CHECKLISTS";
     }
   | {
       state: "PLAN_CURRENT_WEEK";

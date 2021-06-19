@@ -7,12 +7,12 @@ import { DashboardView, DashboardContentSkeleton } from "./DashboardView";
 import { GroceriesFeature } from "../features/GroceriesFeature";
 import { GroceriesShoppingFeature } from "../features/GroceriesShoppingFeature";
 import { PlanWeekView } from "./PlanWeekView";
-import { TodosView } from "./TodosView";
+import { CheckListsView } from "./CheckListsView";
 import { PlanWeekFeature } from "../features/PlanWeekFeature";
 import { AddTodoFeature } from "../features/AddTodoFeature";
 import { AddTodoView } from "./AddTodoView";
 import { CaptureFeature } from "../features/CaptureFeature";
-import { TodosFeature } from "../features/TodosFeature";
+import { CheckListFeature } from "../features/CheckListFeature";
 
 export const Dashboard = () => {
   const [dashboard, send] = useDasbhoard();
@@ -66,9 +66,9 @@ export const Dashboard = () => {
               </GroceriesFeature>
             ),
             WEEKDAYS: () => <DashboardView />,
-            TODOS: () => (
-              <TodosFeature user={user}>
-                <TodosView
+            CHECKLISTS: () => (
+              <CheckListFeature user={user}>
+                <CheckListsView
                   todos={todos}
                   checkListItemsByTodoId={checkListItemsByTodoId}
                   onBackClick={() =>
@@ -80,10 +80,10 @@ export const Dashboard = () => {
                     })
                   }
                 />
-              </TodosFeature>
+              </CheckListFeature>
             ),
             PLAN_CURRENT_WEEK: () => (
-              <TodosFeature user={user}>
+              <CheckListFeature user={user}>
                 <PlanWeekFeature user={user} weekId={currentWeek.id}>
                   <PlanWeekView
                     user={user}
@@ -102,10 +102,10 @@ export const Dashboard = () => {
                     }
                   />
                 </PlanWeekFeature>
-              </TodosFeature>
+              </CheckListFeature>
             ),
             PLAN_NEXT_WEEK: () => (
-              <TodosFeature user={user}>
+              <CheckListFeature user={user}>
                 <PlanWeekFeature user={user} weekId={nextWeek.id}>
                   <PlanWeekView
                     user={user}
@@ -124,7 +124,7 @@ export const Dashboard = () => {
                     }
                   />
                 </PlanWeekFeature>
-              </TodosFeature>
+              </CheckListFeature>
             ),
             ADD_TODO: () => (
               <AddTodoFeature familyId={family.id} userId={user.id}>

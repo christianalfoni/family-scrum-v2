@@ -2,6 +2,7 @@ import {
   CalendarIcon,
   ChatAlt2Icon,
   CheckCircleIcon,
+  ClipboardCheckIcon,
   CollectionIcon,
   PlusIcon,
   ShoppingCartIcon,
@@ -14,6 +15,7 @@ import { dashboardSelectors, useDasbhoard } from "../features/DashboardFeature";
 import { getDayIndex, getFirstDateOfCurrentWeek, weekdays } from "../utils";
 import { groceriesShoppingSelectors } from "../features/GroceriesShoppingFeature";
 import { addDays, format, isSameDay } from "date-fns";
+import { checkListSelectors } from "../features/CheckListFeature";
 
 SwiperCore.use([Controller]);
 
@@ -80,15 +82,18 @@ export const DashboardContentSkeleton = () => {
 
   return (
     <>
-      <ul className="flex flex-col p-6">
-        <MenuCard
-          disabled
-          Icon={ShoppingCartIcon}
-          onClick={() => {}}
-          color="bg-red-500"
-        >
-          {t("goShopping")} (0)
-        </MenuCard>
+      <div className="flex p-6 items-center">
+        <button className="p-2 border-2 border-gray-300 rounded flex text-gray-500 text-sm flex-1 mr-1 items-center">
+          <ShoppingCartIcon className="w-6 h-6 mr-1" /> {t("goShopping")}{" "}
+          <span className="ml-auto">0</span>
+        </button>
+        <button className="p-2 border-2 border-gray-300 rounded flex text-gray-500 text-sm flex-1 ml-1 items-center">
+          <ClipboardCheckIcon className="w-6 h-6 mr-1" /> {t("checkLists")}{" "}
+          <span className="ml-auto">0</span>
+        </button>
+      </div>
+
+      <ul className="flex flex-col px-6">
         <MenuCard
           disabled
           Icon={CollectionIcon}
@@ -97,14 +102,7 @@ export const DashboardContentSkeleton = () => {
         >
           {t("groceries")}
         </MenuCard>
-        <MenuCard
-          disabled
-          Icon={CheckCircleIcon}
-          onClick={() => {}}
-          color="bg-blue-500"
-        >
-          {t("todos")}
-        </MenuCard>
+
         <MenuCard
           disabled
           Icon={ChatAlt2Icon}
@@ -169,12 +167,12 @@ export const DashboardView = () => {
   const [controlledSwiper, setControlledSwiper] =
     useState<SwiperCore | null>(null);
   const shopCount = groceriesShoppingSelectors.shopCount(groceries);
+  const checkLists = checkListSelectors.checkLists(todos);
 
   return (
     <>
-      <ul className="flex flex-col p-6">
-        <MenuCard
-          Icon={ShoppingCartIcon}
+      <div className="flex p-6 items-center">
+        <button
           disabled={!shopCount}
           onClick={() => {
             send({
@@ -184,10 +182,45 @@ export const DashboardView = () => {
               },
             });
           }}
-          color="bg-red-500"
+          className={`${
+            shopCount
+              ? "border-red-500 bg-white text-black"
+              : "border-gray-300 text-gray-400"
+          } p-2 border-2  rounded flex  text-sm flex-1 mr-1 items-center`}
         >
-          {t("goShopping")} ({shopCount})
-        </MenuCard>
+          <ShoppingCartIcon
+            className={`${
+              shopCount ? "text-red-500" : "text-gray-400"
+            } w-6 h-6 mr-1`}
+          />{" "}
+          {t("goShopping")}{" "}
+          <span className="ml-auto text-gray-400">{shopCount}</span>
+        </button>
+        <button
+          onClick={() => {
+            send({
+              type: "VIEW_SELECTED",
+              view: {
+                state: "CHECKLISTS",
+              },
+            });
+          }}
+          className={`${
+            checkLists.length
+              ? "border-blue-500 bg-white text-black"
+              : "border-gray-300 text-gray-400"
+          } p-2 border-2  rounded flex  text-sm flex-1 ml-1 items-center`}
+        >
+          <ClipboardCheckIcon
+            className={`${
+              shopCount ? "text-blue-500" : "text-gray-400"
+            } w-6 h-6 mr-1`}
+          />{" "}
+          {t("checkLists")}
+          <span className="ml-auto text-gray-400">{checkLists.length}</span>
+        </button>
+      </div>
+      <ul className="flex flex-col px-6">
         <MenuCard
           Icon={CollectionIcon}
           onClick={() => {
@@ -201,20 +234,6 @@ export const DashboardView = () => {
           color="bg-yellow-500"
         >
           {t("groceries")}
-        </MenuCard>
-        <MenuCard
-          Icon={CheckCircleIcon}
-          onClick={() => {
-            send({
-              type: "VIEW_SELECTED",
-              view: {
-                state: "TODOS",
-              },
-            });
-          }}
-          color="bg-blue-500"
-        >
-          {t("todos")}
         </MenuCard>
         <MenuCard
           Icon={ChatAlt2Icon}

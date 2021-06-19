@@ -9,7 +9,7 @@ import { useDevtools } from "react-states/devtools";
 import { useEnvironment } from "../../environment";
 import { StorageEvent } from "../../environment/storage";
 import { Todo } from "../DashboardFeature";
-import { CheckListItem } from "../DashboardFeature/Feature";
+import { CheckListItem, Todos } from "../DashboardFeature/Feature";
 import { User } from "../SessionFeature";
 
 type Context = {
@@ -103,6 +103,8 @@ export const selectors = {
       return 0;
     });
   },
+  checkLists: (todos: Todos) =>
+    Object.values(todos).filter((todo) => Boolean(todo.checkList)),
 };
 
 export const Feature = ({

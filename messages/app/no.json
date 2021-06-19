@@ -19,6 +19,7 @@
   },
   "DashboardView": {
     "goShopping": "Handleliste",
+    "checkLists": "Sjekklister",
     "groceries": "Matvarer",
     "todos": "Gjøremål",
     "events": "Hendelser",
@@ -46,8 +47,8 @@
   "GroceriesShoppingView": {
     "shoppingList": "Handleliste"
   },
-  "TodosView": {
-    "todos": "Gjøremål",
+  "CheckListsView": {
+    "checkLists": "Sjekklister",
     "title": "Tittel",
     "add": "Legg til",
     "addNewItem": "Add new item"

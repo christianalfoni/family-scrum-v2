@@ -21,7 +21,7 @@ import {
 import { getCurrentWeekId, weekdays } from "../utils";
 import { WeekTodoActivity } from "../environment/storage";
 import { dashboardSelectors, useDasbhoard } from "../features/DashboardFeature";
-import { useTodos } from "../features/TodosFeature";
+import { useCheckLists } from "../features/CheckListFeature";
 import { TodoItem } from "../common-components/TodoItem";
 
 const Confirmed = () => (
@@ -167,7 +167,7 @@ export const PlanWeekView = ({
 }) => {
   const [, sendDashboard] = useDasbhoard("LOADED");
   const [, send] = usePlanWeek();
-  const [, sendTodos] = useTodos();
+  const [, sendTodos] = useCheckLists();
   const t = useTranslations("PlanWeekView");
   const sortedTodos = planWeekSelectors.todosByType(
     todos,

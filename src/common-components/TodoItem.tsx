@@ -11,7 +11,7 @@ import {
   PlusIcon,
 } from "@heroicons/react/outline";
 import { CheckListItem, Todo } from "../features/DashboardFeature/Feature";
-import { todosSelectors } from "../features/TodosFeature";
+import { checkListSelectors } from "../features/CheckListFeature";
 import { getDayName } from "../utils";
 
 const Confirmed = () => (
@@ -57,7 +57,7 @@ export const TodoItem = React.memo(
     };
     children?: React.ReactNode;
   }) => {
-    const t = useTranslations("TodosView");
+    const t = useTranslations("CheckListsView");
     const tCommon = useTranslations("common");
     const [archiving, setArchiving] = React.useState(false);
     const [expandCheckList, setExpandCheckList] = React.useState(false);
@@ -65,7 +65,7 @@ export const TodoItem = React.memo(
     const [showAddNewItem, setShowNewItem] = React.useState(false);
     const intl = useIntl();
     const sortedCheckListItems = checkListItems
-      ? todosSelectors.sortedCheckListItems(checkListItems)
+      ? checkListSelectors.sortedCheckListItems(checkListItems)
       : [];
 
     React.useEffect(() => {

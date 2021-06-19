@@ -19,6 +19,7 @@
   },
   "DashboardView": {
     "goShopping": "Shopping list",
+    "checkLists": "Checklists",
     "groceries": "Groceries",
     "todos": "Todos",
     "planNextWeek": "Plan next week",
@@ -46,8 +47,8 @@
   "GroceriesShoppingView": {
     "shoppingList": "Shopping list"
   },
-  "TodosView": {
-    "todos": "Todos",
+  "CheckListsView": {
+    "checkLists": "Checklists",
     "title": "Title",
     "add": "Add",
     "addNewItem": "Add new item"

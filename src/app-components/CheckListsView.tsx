@@ -6,10 +6,13 @@ import {
   Todos,
 } from "../features/DashboardFeature/Feature";
 import { dashboardSelectors } from "../features/DashboardFeature";
-import { useTodos } from "../features/TodosFeature";
+import {
+  checkListSelectors,
+  useCheckLists,
+} from "../features/CheckListFeature";
 import { TodoItem } from "../common-components/TodoItem";
 
-export const TodosView = ({
+export const CheckListsView = ({
   todos,
   checkListItemsByTodoId,
   onBackClick,
@@ -18,9 +21,9 @@ export const TodosView = ({
   checkListItemsByTodoId: CheckListItemsByTodoId;
   onBackClick: () => void;
 }) => {
-  const [, send] = useTodos();
-  const t = useTranslations("TodosView");
-  const sortedTodos = dashboardSelectors.sortedTodos(todos);
+  const [, send] = useCheckLists();
+  const t = useTranslations("CheckListsView");
+  const checkLists = checkListSelectors.checkLists(todos);
   const archiveTodo = React.useCallback((todoId: string) => {
     send({
       type: "ARCHIVE_TODO",
@@ -59,12 +62,12 @@ export const TodosView = ({
               <ChevronLeftIcon className="h-6 w-6" aria-hidden="true" />
             </button>
           </div>
-          <h1 className="flex-2 text-lg font-medium">{t("todos")}</h1>
+          <h1 className="flex-2 text-lg font-medium">{t("checkLists")}</h1>
           <span className="flex-1" />
         </div>
       </div>
       <ul className="relative z-0 divide-y divide-gray-200 border-b border-gray-200 overflow-y-scroll">
-        {sortedTodos.map((todo) => (
+        {checkLists.map((todo) => (
           <TodoItem
             key={todo.id}
             todo={todo}
