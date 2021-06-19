@@ -9,7 +9,9 @@ module.exports = {
       "./src/common-components/**/*.{js,ts,jsx,tsx}",
     ],
     options: {
-      safelist: []
+      safelist: [
+        
+      ]
     }
   },
   darkMode: false, // or 'media' or 'class'

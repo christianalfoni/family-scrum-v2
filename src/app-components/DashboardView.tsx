@@ -93,7 +93,7 @@ export const DashboardContentSkeleton = () => {
         </button>
       </div>
 
-      <ul className="flex flex-col px-6">
+      <ul className="flex flex-col px-6 mb-2">
         <MenuCard
           disabled
           Icon={CollectionIcon}
@@ -190,7 +190,7 @@ export const DashboardView = () => {
         >
           <ShoppingCartIcon
             className={`${
-              shopCount ? "text-red-500" : "text-gray-400"
+              shopCount ? "text-gray-500" : "text-gray-400"
             } w-6 h-6 mr-1`}
           />{" "}
           {t("goShopping")}{" "}
@@ -213,14 +213,14 @@ export const DashboardView = () => {
         >
           <ClipboardCheckIcon
             className={`${
-              shopCount ? "text-blue-500" : "text-gray-400"
+              shopCount ? "text-gray-500" : "text-gray-400"
             } w-6 h-6 mr-1`}
           />{" "}
           {t("checkLists")}
           <span className="ml-auto text-gray-400">{checkLists.length}</span>
         </button>
       </div>
-      <ul className="flex flex-col px-6">
+      <ul className="flex flex-col px-6 mb-2">
         <MenuCard
           Icon={CollectionIcon}
           onClick={() => {
