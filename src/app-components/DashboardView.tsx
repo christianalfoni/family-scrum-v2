@@ -83,13 +83,17 @@ export const DashboardContentSkeleton = () => {
   return (
     <>
       <div className="flex p-6 items-center">
-        <button className="p-2 border-2 border-gray-300 rounded flex text-gray-500 text-sm flex-1 mr-1 items-center">
-          <ShoppingCartIcon className="w-6 h-6 mr-1" /> {t("goShopping")}{" "}
-          <span className="ml-auto">0</span>
+        <button className="border-gray-100 text-gray-400 border rounded flex  text-sm flex-1 mr-1 items-center shadow-sm`">
+          <span className="h-10 w-10 rounded-l mr-2 flex items-center justify-center">
+            <ShoppingCartIcon className="text-gray-400 w-5 h-5" />
+          </span>{" "}
+          {t("goShopping")}
         </button>
-        <button className="p-2 border-2 border-gray-300 rounded flex text-gray-500 text-sm flex-1 ml-1 items-center">
-          <ClipboardCheckIcon className="w-6 h-6 mr-1" /> {t("checkLists")}{" "}
-          <span className="ml-auto">0</span>
+        <button className="border-gray-100 text-gray-400 border rounded flex  text-sm flex-1 mr-1 items-center shadow-sm`">
+          <span className="h-10 w-10 rounded-l mr-2 flex items-center justify-center">
+            <ClipboardCheckIcon className="text-gray-400 w-5 h-5" />
+          </span>{" "}
+          {t("checkLists")}
         </button>
       </div>
 
@@ -184,19 +188,30 @@ export const DashboardView = () => {
           }}
           className={`${
             shopCount
-              ? "border-red-500 bg-white text-black"
-              : "border-gray-300 text-gray-400"
-          } p-2 border-2  rounded flex  text-sm flex-1 mr-1 items-center`}
+              ? "border-gray-200 bg-white text-black"
+              : "border-gray-100 text-gray-400"
+          }  border rounded flex  text-sm flex-1 mr-1 items-center shadow-sm`}
         >
-          <ShoppingCartIcon
+          <span
             className={`${
-              shopCount ? "text-gray-500" : "text-gray-400"
-            } w-6 h-6 mr-1`}
-          />{" "}
-          {t("goShopping")}{" "}
-          <span className="ml-auto text-gray-400">{shopCount}</span>
+              shopCount ? "bg-red-500" : ""
+            } h-10 w-10 rounded-l mr-2 flex items-center justify-center relative`}
+          >
+            <ShoppingCartIcon
+              className={`${
+                shopCount ? "text-white" : "text-gray-400"
+              } w-5 h-5`}
+            />
+            {shopCount ? (
+              <span className="absolute -top-2 -right-2 text-xs text-gray-800 w-5 h-5 border border-red-500 rounded-full bg-white flex items-center justify-center">
+                {shopCount}
+              </span>
+            ) : null}
+          </span>{" "}
+          {t("goShopping")}
         </button>
         <button
+          disabled={!shopCount}
           onClick={() => {
             send({
               type: "VIEW_SELECTED",
@@ -206,18 +221,28 @@ export const DashboardView = () => {
             });
           }}
           className={`${
-            checkLists.length
-              ? "border-blue-500 bg-white text-black"
-              : "border-gray-300 text-gray-400"
-          } p-2 border-2  rounded flex  text-sm flex-1 ml-1 items-center`}
+            shopCount
+              ? "border-gray-200 bg-white text-black"
+              : "border-gray-100 text-gray-400"
+          }  border rounded flex  text-sm flex-1 mr-1 items-center shadow-sm`}
         >
-          <ClipboardCheckIcon
+          <span
             className={`${
-              shopCount ? "text-gray-500" : "text-gray-400"
-            } w-6 h-6 mr-1`}
-          />{" "}
+              checkLists.length ? "bg-blue-500" : ""
+            } h-10 w-10 rounded-l mr-2 flex items-center justify-center relative`}
+          >
+            <ClipboardCheckIcon
+              className={`${
+                checkLists.length ? "text-white" : "text-gray-400"
+              } w-5 h-5`}
+            />
+            {checkLists.length ? (
+              <span className="absolute -top-2 -right-2 text-xs text-gray-800 w-5 h-5 border border-blue-500 rounded-full bg-white flex items-center justify-center">
+                {checkLists.length}
+              </span>
+            ) : null}
+          </span>{" "}
           {t("checkLists")}
-          <span className="ml-auto text-gray-400">{checkLists.length}</span>
         </button>
       </div>
       <ul className="flex flex-col px-6 mb-2">
@@ -241,7 +266,7 @@ export const DashboardView = () => {
             send({
               type: "VIEW_SELECTED",
               view: {
-                state: "PLAN_NEXT_WEEK",
+                state: "PLAN_NEXT_WEEK_DINNERS",
               },
             });
           }}

@@ -7,7 +7,11 @@ import {
   CheckCircleIcon,
   ChevronLeftIcon,
   ClockIcon,
+  HeartIcon,
+  PencilIcon,
+  ReplyIcon,
   SelectorIcon,
+  UserAddIcon,
 } from "@heroicons/react/outline";
 import {
   CheckListItem,
@@ -148,7 +152,7 @@ const PlanTodoItem = React.memo(
   }
 );
 
-export const PlanWeekView = ({
+export const PlanNextWeekDinners = ({
   user,
   family,
   todos,
@@ -246,113 +250,41 @@ export const PlanWeekView = ({
             </button>
           </div>
 
-          <span className="text-gray-900 text-lg font-medium truncate">
-            {t("planNextWeek")}
-          </span>
+          <div className="flex shadow-sm  flex-2">
+            <button
+              type="button"
+              className="flex-1 relative inline-flex items-center px-4 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-900 hover:bg-gray-50 focus:z-10 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600"
+            >
+              <HeartIcon
+                className="mr-1 h-5 w-5 text-red-400"
+                aria-hidden="true"
+              />
+              <span>{t("dinners")}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                sendDashboard({
+                  type: "VIEW_SELECTED",
+                  view: {
+                    state: "PLAN_NEXT_WEEK_TODOS",
+                  },
+                });
+              }}
+              className="flex-1 inline-flex -ml-px relative items-center px-4 py-2 rounded-r-md border border-gray-300 bg-gray-50 text-sm font-medium text-gray-900 hover:bg-gray-50 focus:z-10 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600"
+            >
+              <CheckCircleIcon
+                className="mr-1 h-5 w-5 text-gray-400"
+                aria-hidden="true"
+              />
+              <span>{t("todos")}</span>
+            </button>
+          </div>
 
           <span className="flex-1" />
         </div>
       </div>
-      <ul className="relative z-0 divide-y divide-gray-200 border-b border-gray-200 overflow-y-scroll">
-        {sortedTodos.previousWeek.length ? (
-          <>
-            <li className="p-2 bg-green-500 text-white font-bold text-sm flex items-center">
-              <CheckCircleIcon className="w-4 h-4 mr-2" />{" "}
-              {t("typePreviousWeek")}
-            </li>
-            {sortedTodos.previousWeek.map((todo) => (
-              <PlanTodoItem
-                key={todo.id}
-                checkListItems={checkListItemsByTodoId[todo.id]}
-                todo={todo}
-                archiveTodo={archiveTodo}
-                family={family}
-                previousWeek={previousWeek}
-                toggleWeekday={toggleWeekday}
-                user={user}
-                userIds={sortedUserIds}
-                week={week}
-                addItem={addItem}
-                deleteItem={deleteItem}
-                toggleItemCompleted={toggleItemCompleted}
-              />
-            ))}
-          </>
-        ) : null}
-        {sortedTodos.eventsThisWeek.length ? (
-          <>
-            <li className="p-2 bg-red-500 text-white font-bold text-sm flex items-center">
-              <CalendarIcon className="w-4 h-4 mr-2" />{" "}
-              {t("typeEventsThisWeek")}
-            </li>
-            {sortedTodos.eventsThisWeek.map((todo) => (
-              <PlanTodoItem
-                key={todo.id}
-                checkListItems={checkListItemsByTodoId[todo.id]}
-                todo={todo}
-                archiveTodo={archiveTodo}
-                family={family}
-                previousWeek={previousWeek}
-                toggleWeekday={toggleWeekday}
-                user={user}
-                userIds={sortedUserIds}
-                week={week}
-                addItem={addItem}
-                deleteItem={deleteItem}
-                toggleItemCompleted={toggleItemCompleted}
-              />
-            ))}
-          </>
-        ) : null}
-        {sortedTodos.thisWeek.length ? (
-          <>
-            <li className="p-2 bg-yellow-500 text-white font-bold text-sm flex items-center">
-              <CheckCircleIcon className="w-4 h-4 mr-2" /> {t("typeThisWeek")}
-            </li>
-            {sortedTodos.thisWeek.map((todo) => (
-              <PlanTodoItem
-                key={todo.id}
-                checkListItems={checkListItemsByTodoId[todo.id]}
-                todo={todo}
-                archiveTodo={archiveTodo}
-                family={family}
-                previousWeek={previousWeek}
-                toggleWeekday={toggleWeekday}
-                user={user}
-                userIds={sortedUserIds}
-                week={week}
-                addItem={addItem}
-                deleteItem={deleteItem}
-                toggleItemCompleted={toggleItemCompleted}
-              />
-            ))}
-          </>
-        ) : null}
-        {sortedTodos.laterEvents.length ? (
-          <>
-            <li className="p-2 bg-blue-500 text-white font-bold text-sm flex items-center">
-              <CalendarIcon className="w-4 h-4 mr-2" /> {t("typeLaterEvents")}
-            </li>
-            {sortedTodos.laterEvents.map((todo) => (
-              <PlanTodoItem
-                key={todo.id}
-                checkListItems={checkListItemsByTodoId[todo.id]}
-                todo={todo}
-                archiveTodo={archiveTodo}
-                family={family}
-                previousWeek={previousWeek}
-                toggleWeekday={toggleWeekday}
-                user={user}
-                userIds={sortedUserIds}
-                week={week}
-                addItem={addItem}
-                deleteItem={deleteItem}
-                toggleItemCompleted={toggleItemCompleted}
-              />
-            ))}
-          </>
-        ) : null}
-      </ul>
+      <ul className="relative z-0 divide-y divide-gray-200 border-b border-gray-200 overflow-y-scroll"></ul>
     </div>
   );
 };

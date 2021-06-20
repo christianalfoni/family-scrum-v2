@@ -64,10 +64,10 @@ export type ViewContext =
       state: "CHECKLISTS";
     }
   | {
-      state: "PLAN_CURRENT_WEEK";
+      state: "PLAN_NEXT_WEEK_DINNERS";
     }
   | {
-      state: "PLAN_NEXT_WEEK";
+      state: "PLAN_NEXT_WEEK_TODOS";
     }
   | {
       state: "ADD_TODO";

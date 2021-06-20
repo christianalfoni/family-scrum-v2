@@ -42,7 +42,9 @@
     "typePreviousWeek": "Hvordan gikk planen?",
     "typeEventsThisWeek": "Hendelser",
     "typeThisWeek": "Hva kan gjøres",
-    "typeLaterEvents": "Fremtidige hendelser"
+    "typeLaterEvents": "Fremtidige hendelser",
+    "dinners": "Middager",
+    "todos": "Gjøremål"
   },
   "GroceriesShoppingView": {
     "shoppingList": "Handleliste"

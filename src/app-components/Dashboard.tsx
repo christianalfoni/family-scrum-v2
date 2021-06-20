@@ -6,7 +6,8 @@ import { DashboardView, DashboardContentSkeleton } from "./DashboardView";
 
 import { GroceriesFeature } from "../features/GroceriesFeature";
 import { GroceriesShoppingFeature } from "../features/GroceriesShoppingFeature";
-import { PlanWeekView } from "./PlanWeekView";
+import { PlanNextWeekTodos } from "./PlanNextWeekTodos";
+import { PlanNextWeekDinners } from "./PlanNextWeekDinners";
 import { CheckListsView } from "./CheckListsView";
 import { PlanWeekFeature } from "../features/PlanWeekFeature";
 import { AddTodoFeature } from "../features/AddTodoFeature";
@@ -82,16 +83,16 @@ export const Dashboard = () => {
                 />
               </CheckListFeature>
             ),
-            PLAN_CURRENT_WEEK: () => (
+            PLAN_NEXT_WEEK_DINNERS: () => (
               <CheckListFeature user={user}>
-                <PlanWeekFeature user={user} weekId={currentWeek.id}>
-                  <PlanWeekView
+                <PlanWeekFeature user={user} weekId={nextWeek.id}>
+                  <PlanNextWeekDinners
                     user={user}
                     todos={todos}
                     checkListItemsByTodoId={checkListItemsByTodoId}
                     family={family}
-                    previousWeek={previousWeek}
-                    week={currentWeek}
+                    previousWeek={currentWeek}
+                    week={nextWeek}
                     onBackClick={() =>
                       send({
                         type: "VIEW_SELECTED",
@@ -104,10 +105,10 @@ export const Dashboard = () => {
                 </PlanWeekFeature>
               </CheckListFeature>
             ),
-            PLAN_NEXT_WEEK: () => (
+            PLAN_NEXT_WEEK_TODOS: () => (
               <CheckListFeature user={user}>
                 <PlanWeekFeature user={user} weekId={nextWeek.id}>
-                  <PlanWeekView
+                  <PlanNextWeekTodos
                     user={user}
                     todos={todos}
                     checkListItemsByTodoId={checkListItemsByTodoId}

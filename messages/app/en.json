@@ -42,7 +42,9 @@
     "typePreviousWeek": "How the plan go?",
     "typeEventsThisWeek": "Events happening",
     "typeThisWeek": "What to do",
-    "typeLaterEvents": "Future events"
+    "typeLaterEvents": "Future events",
+    "dinners": "Dinners",
+    "todos": "Todos"
   },
   "GroceriesShoppingView": {
     "shoppingList": "Shopping list"
