@@ -31,7 +31,7 @@ export const Dashboard = () => {
           todos,
           currentWeek,
           nextWeek,
-          previousWeek,
+          dinners,
           user,
           checkListItemsByTodoId,
         }) => {
@@ -87,12 +87,7 @@ export const Dashboard = () => {
               <CheckListFeature user={user}>
                 <PlanWeekFeature user={user} weekId={nextWeek.id}>
                   <PlanNextWeekDinners
-                    user={user}
-                    todos={todos}
-                    checkListItemsByTodoId={checkListItemsByTodoId}
-                    family={family}
-                    previousWeek={currentWeek}
-                    week={nextWeek}
+                    dinners={dinners}
                     onBackClick={() =>
                       send({
                         type: "VIEW_SELECTED",

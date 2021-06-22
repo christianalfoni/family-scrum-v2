@@ -26,6 +26,15 @@ export type CheckListItemDTO = {
     }
 );
 
+export type DinnerDTO = {
+  id: string;
+  name: string;
+  description: string;
+  preparationCheckList: string[];
+  groceries: string[];
+  directions: string[];
+};
+
 export type BarcodeDTO = {
   id: string;
   created: number;
@@ -113,6 +122,12 @@ export type StorageEvent =
       };
     }
   | {
+      type: "STORAGE:DINNERS_UPDATE";
+      dinners: {
+        [dinnerId: string]: DinnerDTO;
+      };
+    }
+  | {
       type: "STORAGE:ADD_TODO_ERROR";
       error: string;
       description: string;
@@ -197,7 +212,8 @@ export interface Storage {
    * @fires STORAGE:GROCERIES_UPDATE
    * @fires STORAGE:TODOS_UPDATE
    * @fires STORAGE:BARCODES_UPDATE
-   * @fires STORAGE:FETCH_FAMILY_DATA_SUCCESS
+   * @fires STORAGE:CHECKLIST_ITEMS_UPDATE
+   * @fires STORAGE:DINNERS_UPDATE
    * @fires STORAGE:FETCH_FAMILY_DATA_ERROR
    */
   fetchFamilyData(familyId: string): void;

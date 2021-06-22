@@ -54,5 +54,24 @@
     "title": "Title",
     "add": "Add",
     "addNewItem": "Add new item"
+  },
+  "dinners": {
+    "dinner_1": {
+      "title": "Some awesome dinner",
+      "description": "This dinner is really awesome",
+      "preparationList": {
+        "0": "Do this",
+        "1": "Do that"
+      },
+      "directions": {
+        "0": "Bring it all together"
+      },
+      "ingredients": {
+        "0": "milk"
+      }
+    }
+  },
+  "ingredients": {
+    "milk": "Milk"
   }
 }

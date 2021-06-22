@@ -12,6 +12,7 @@ import { useEnvironment } from "../../environment";
 import {
   BarcodeDTO,
   CheckListItemDTO,
+  DinnerDTO,
   FamilyDTO,
   GroceryDTO,
   StorageEvent,
@@ -34,10 +35,16 @@ export type Family = FamilyDTO;
 
 export type { User } from "../SessionFeature";
 
+export type Dinner = DinnerDTO;
+
 export type Grocery = GroceryDTO;
 
 export type Groceries = {
   [groceryId: string]: Grocery;
+};
+
+export type Dinners = {
+  [dinnerId: string]: Dinner;
 };
 
 export type Todo = TodoDTO;
@@ -98,6 +105,7 @@ type Context =
       previousWeek?: Week;
       currentWeek?: Week;
       nextWeek?: Week;
+      dinners?: Dinners;
       family?: Family;
       barcodes?: Barcodes;
       checkListItemsByTodoId?: CheckListItemsByTodoId;
@@ -114,6 +122,7 @@ type Context =
       user: User;
       barcodes: Barcodes;
       checkListItemsByTodoId: CheckListItemsByTodoId;
+      dinners: Dinners;
     }
   | {
       state: "ERROR";
@@ -151,7 +160,8 @@ const evaluateLoadedContext = (
     context.todos &&
     context.barcodes &&
     context.family &&
-    context.checkListItemsByTodoId
+    context.checkListItemsByTodoId &&
+    context.dinners
   ) {
     return {
       state: "LOADED",
@@ -167,6 +177,7 @@ const evaluateLoadedContext = (
       todos: context.todos,
       user: context.user,
       checkListItemsByTodoId: context.checkListItemsByTodoId,
+      dinners: context.dinners,
     };
   }
 
@@ -241,6 +252,11 @@ const reducer = createReducer<Context, Event>({
         ...context,
         checkListItemsByTodoId,
       }),
+    "STORAGE:DINNERS_UPDATE": ({ dinners }, context) =>
+      evaluateLoadedContext({
+        ...context,
+        dinners,
+      }),
     "STORAGE:FETCH_WEEKS_ERROR": ({ error }) => ({
       state: "ERROR",
       error,
@@ -258,6 +274,10 @@ const reducer = createReducer<Context, Event>({
     "STORAGE:BARCODES_UPDATE": ({ barcodes }, context) => ({
       ...context,
       barcodes,
+    }),
+    "STORAGE:DINNERS_UPDATE": ({ dinners }, context) => ({
+      ...context,
+      dinners,
     }),
     "STORAGE:WEEKS_UPDATE": (
       { currentWeek, nextWeek, previousWeek },

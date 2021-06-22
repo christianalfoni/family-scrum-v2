@@ -54,5 +54,24 @@
     "title": "Tittel",
     "add": "Legg til",
     "addNewItem": "Add new item"
+  },
+  "dinners": {
+    "dinner_1": {
+      "title": "En ganske konge middag",
+      "description": "Denne middagen er konge",
+      "preparationList": {
+        "0": "Gjør dette",
+        "1": "Og det der"
+      },
+      "directions": {
+        "0": "Putt alt sammen"
+      },
+      "ingredients": {
+        "0": "milk"
+      }
+    }
+  },
+  "ingredients": {
+    "milk": "Melk"
   }
 }

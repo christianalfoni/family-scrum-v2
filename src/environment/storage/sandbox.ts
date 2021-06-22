@@ -8,6 +8,7 @@ import {
   CheckListItemDTO,
   WeekTodoActivity,
   BarcodeDTO,
+  DinnerDTO,
 } from ".";
 import {
   getCurrentWeekId,
@@ -50,6 +51,10 @@ export const createStorage = (): Storage => {
       groceryId: "grocery_0",
     },
   };
+
+  let dinners: {
+    [dinnerId: string]: DinnerDTO;
+  } = {};
 
   let groceries: {
     [groceryId: string]: GroceryDTO;
@@ -253,6 +258,10 @@ export const createStorage = (): Storage => {
       this.events.emit({
         type: "STORAGE:CHECKLIST_ITEMS_UPDATE",
         checkListItemsByTodoId: createCheckListItemsByTodoId(checkListItems),
+      });
+      this.events.emit({
+        type: "STORAGE:DINNERS_UPDATE",
+        dinners,
       });
     },
     archiveTodo(_, id) {

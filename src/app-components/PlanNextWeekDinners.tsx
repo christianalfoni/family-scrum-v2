@@ -1,241 +1,150 @@
 import * as React from "react";
 import { planWeekSelectors, usePlanWeek } from "../features/PlanWeekFeature";
-import { useTranslations, useIntl } from "next-intl";
-import { Menu, Transition } from "@headlessui/react";
+import { useTranslations } from "next-intl";
+import { Switch } from "@headlessui/react";
+import SwiperCore from "swiper";
 import {
-  CalendarIcon,
   CheckCircleIcon,
   ChevronLeftIcon,
-  ClockIcon,
+  ChevronRightIcon,
   HeartIcon,
-  PencilIcon,
-  ReplyIcon,
-  SelectorIcon,
-  UserAddIcon,
 } from "@heroicons/react/outline";
 import {
-  CheckListItem,
   CheckListItemsByTodoId,
+  Dinners,
   Family,
-  Todo,
   Todos,
   User,
   Week,
 } from "../features/DashboardFeature/Feature";
-import { getCurrentWeekId, weekdays } from "../utils";
-import { WeekTodoActivity } from "../environment/storage";
-import { dashboardSelectors, useDasbhoard } from "../features/DashboardFeature";
+import { useDasbhoard } from "../features/DashboardFeature";
 import { useCheckLists } from "../features/CheckListFeature";
-import { TodoItem } from "../common-components/TodoItem";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { weekdays } from "../utils";
 
-const Confirmed = () => (
-  <div className="absolute z-10 top-0 left-0 bottom-0 right-0 flex items-center justify-center bg-white">
-    <svg
-      className="checkmark"
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 52 52"
-    >
-      <circle
-        className="checkmark__circle"
-        cx="26"
-        cy="26"
-        r="25"
-        fill="none"
-      />
-      <path
-        className="checkmark__check"
-        fill="none"
-        d="M14.1 27.2l7.1 7.2 16.7-16.8"
-      />
-    </svg>
-  </div>
-);
-
-const PlanTodoItem = React.memo(
-  ({
-    todo,
-    userIds,
-    family,
-    week,
-    previousWeek,
-    user,
-    archiveTodo,
-    toggleWeekday,
-    toggleItemCompleted,
-    deleteItem,
-    addItem,
-    checkListItems,
-  }: {
-    todo: Todo;
-    userIds: string[];
-    family: Family;
-    week: Week;
-    previousWeek: Week;
-    user: User;
-    archiveTodo: (id: string) => void;
-    toggleWeekday: (data: {
-      active: boolean;
-      todoId: string;
-      userId: string;
-      weekdayIndex: number;
-    }) => void;
-    toggleItemCompleted: (id: string) => void;
-    deleteItem: (itemId: string) => void;
-    addItem: (todoId: string, title: string) => void;
-    checkListItems: {
-      [itemId: string]: CheckListItem;
-    };
-  }) => {
-    return (
-      <TodoItem
-        todo={todo}
-        deleteItem={deleteItem}
-        checkListItems={checkListItems}
-        addItem={addItem}
-        toggleItemCompleted={toggleItemCompleted}
-        archiveTodo={archiveTodo}
-      >
-        {userIds.map((userId) => {
-          const weekActivity: WeekTodoActivity = week.todos[todo.id]?.[
-            userId
-          ] ?? [false, false, false, false, false, false, false];
-          return (
-            <div
-              key={userId}
-              className="flex pt-2 items-center justify-between"
-            >
-              <img
-                key={userId}
-                className="max-w-none h-6 w-6 rounded-full ring-2 ring-white"
-                src={family.users[userId].avatar!}
-                alt={family.users[userId].name}
-              />
-              {weekActivity.map((isActive, index) => {
-                const activePreviousWeek = Boolean(
-                  previousWeek.todos[todo.id] &&
-                    previousWeek.todos[todo.id][userId] &&
-                    previousWeek.todos[todo.id][userId][index]
-                );
-
-                return (
-                  <button
-                    key={index}
-                    type="button"
-                    disabled={user.id !== userId}
-                    onClick={() => {
-                      toggleWeekday({
-                        active: !isActive,
-                        todoId: todo.id,
-                        userId,
-                        weekdayIndex: index,
-                      });
-                    }}
-                    className={`${
-                      isActive
-                        ? "text-white bg-red-500"
-                        : activePreviousWeek
-                        ? "text-gray-700 bg-gray-200"
-                        : "text-gray-700 bg-white"
-                    } ${
-                      user.id === userId ? "" : "opacity-50"
-                    } order-1 w-10 h-8 justify-center inline-flex items-center px-2 py-1 border border-gray-300 shadow-sm text-xs font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500`}
-                  >
-                    {weekdays[index].substr(0, 2)}
-                  </button>
-                );
-              })}
+/*
+<SwiperSlide>
+          <div className="flex items-center py-4 px-8 space-x-3">
+            <div className="flex-shrink-0">
+              <img className="h-16 w-16 rounded" src="dinner_1.jpeg" alt="" />
             </div>
-          );
-        })}
-      </TodoItem>
-    );
-  }
-);
+            <div className="min-w-0 flex-1">
+              <p className="text-md font-medium text-gray-900">
+                Awesome dinner 1
+              </p>
+              <p className="text-sm text-gray-500">
+                Some info about the awesome dinner
+              </p>
+            </div>
+          </div>
+        </SwiperSlide>
+*/
+export const DinnerItem = ({
+  weekday,
+  dinners,
+}: {
+  weekday: string;
+  dinners: Dinners;
+}) => {
+  const commonT = useTranslations("common");
+  const [slideIndex, setSlideIndex] = React.useState(0);
+  const [controlledSwiper, setControlledSwiper] =
+    React.useState<SwiperCore | null>(null);
+  const availableDinners = Object.values(dinners);
+
+  return (
+    <li className="flex flex-col">
+      <div className="bg-gray-50 p-2 flex items-center border-b border-gray-200">
+        {commonT(weekday)}{" "}
+        {slideIndex > 0 ? (
+          <Switch
+            checked={false}
+            onChange={() => {}}
+            className={`${
+              true ? "bg-gray-400" : "bg-green-500"
+            } ml-auto relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-auto`}
+          >
+            <span
+              aria-hidden="true"
+              className={`
+          ${false ? "translate-x-5" : "translate-x-0"}
+          inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200
+        `}
+            />
+          </Switch>
+        ) : null}
+      </div>
+      <Swiper
+        className="relative w-full h-full"
+        spaceBetween={50}
+        slidesPerView={1}
+        onSlideChange={(swiper) => setSlideIndex(swiper.activeIndex)}
+        onSwiper={setControlledSwiper}
+        initialSlide={slideIndex}
+      >
+        <SwiperSlide>
+          <div className="flex items-center flex-col py-4 px-8 h-24 bg-gray-100 justify-center text-gray-500">
+            <div>
+              You have{" "}
+              <span className="font-bold">{availableDinners.length}</span>{" "}
+              recipes
+            </div>
+            <div className="text-sm">Tap to add more</div>
+          </div>
+        </SwiperSlide>
+        {availableDinners.map((dinner) => (
+          <SwiperSlide>
+            <div className="flex items-center py-4 px-8 space-x-3 h-24">
+              <div className="flex-shrink-0">
+                <img className="h-16 w-16 rounded" src="dinner_1.jpeg" alt="" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-md font-medium text-gray-900">
+                  {dinner.name}
+                </p>
+                <p className="text-sm text-gray-500">{dinner.description}</p>
+              </div>
+            </div>
+          </SwiperSlide>
+        ))}
+        <div
+          className="absolute h-full left-0 top-0 flex items-center justify-center w-6 z-10"
+          onClick={() => {
+            controlledSwiper?.slidePrev();
+          }}
+        >
+          <ChevronLeftIcon
+            className="h-6 w-6 text-gray-300"
+            aria-hidden="true"
+          />
+        </div>
+        <div
+          className="absolute h-full right-0 top-0 flex items-center justify-center w-6 z-10"
+          onClick={() => {
+            controlledSwiper?.slideNext();
+          }}
+        >
+          <ChevronRightIcon
+            className="h-6 w-6 text-gray-300"
+            aria-hidden="true"
+          />
+        </div>
+      </Swiper>
+    </li>
+  );
+};
 
 export const PlanNextWeekDinners = ({
-  user,
-  family,
-  todos,
-  week,
-  previousWeek,
+  dinners,
   onBackClick,
-  checkListItemsByTodoId,
 }: {
-  user: User;
-  family: Family;
-  week: Week;
-  previousWeek: Week;
-  todos: Todos;
+  dinners: Dinners;
   onBackClick: () => void;
-  checkListItemsByTodoId: CheckListItemsByTodoId;
 }) => {
   const [, sendDashboard] = useDasbhoard("LOADED");
   const [, send] = usePlanWeek();
   const [, sendTodos] = useCheckLists();
   const t = useTranslations("PlanWeekView");
-  const sortedTodos = planWeekSelectors.todosByType(
-    todos,
-    previousWeek,
-    week.id
-  );
-  const sortedUserIds = React.useMemo(
-    () =>
-      Object.keys(family.users).sort((a) => {
-        if (a === user.id) {
-          return -1;
-        }
-
-        return 1;
-      }),
-    [family]
-  );
-  const archiveTodo = React.useCallback((todoId: string) => {
-    sendTodos({
-      type: "ARCHIVE_TODO",
-      todoId,
-    });
-  }, []);
-  const toggleItemCompleted = React.useCallback((itemId: string) => {
-    sendTodos({
-      type: "TOGGLE_CHECKLIST_ITEM",
-      itemId,
-    });
-  }, []);
-  const deleteItem = React.useCallback((itemId: string) => {
-    sendTodos({
-      type: "DELETE_CHECKLIST_ITEM",
-      itemId,
-    });
-  }, []);
-  const addItem = React.useCallback((todoId: string, title: string) => {
-    sendTodos({
-      type: "ADD_CHECKLIST_ITEM",
-      todoId,
-      title,
-    });
-  }, []);
-  const toggleWeekday = React.useCallback(
-    ({
-      active,
-      todoId,
-      userId,
-      weekdayIndex,
-    }: {
-      active: boolean;
-      todoId: string;
-      userId: string;
-      weekdayIndex: number;
-    }) => {
-      send({
-        type: "TOGGLE_WEEKDAY",
-        active,
-        todoId,
-        userId,
-        weekdayIndex,
-      });
-    },
-    []
-  );
 
   return (
     <div className="bg-white flex flex-col h-screen">
@@ -284,7 +193,11 @@ export const PlanNextWeekDinners = ({
           <span className="flex-1" />
         </div>
       </div>
-      <ul className="relative z-0 divide-y divide-gray-200 border-b border-gray-200 overflow-y-scroll"></ul>
+      <ul className="relative z-0 divide-y divide-gray-200 border-b border-gray-200 overflow-y-scroll">
+        {weekdays.map((weekday) => (
+          <DinnerItem key={weekday} weekday={weekday} dinners={dinners} />
+        ))}
+      </ul>
     </div>
   );
 };
