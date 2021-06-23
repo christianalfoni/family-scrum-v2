@@ -4,6 +4,7 @@ import {
   CheckCircleIcon,
   ClipboardCheckIcon,
   CollectionIcon,
+  HeartIcon,
   PlusIcon,
   ShoppingCartIcon,
 } from "@heroicons/react/outline";
@@ -114,6 +115,14 @@ export const DashboardContentSkeleton = () => {
           color="bg-blue-500"
         >
           {t("planNextWeek")}
+        </MenuCard>
+        <MenuCard
+          disabled
+          Icon={HeartIcon}
+          onClick={() => {}}
+          color="bg-blue-500"
+        >
+          {t("dinners")}
         </MenuCard>
       </ul>
       <div className="h-2/4">
@@ -273,6 +282,20 @@ export const DashboardView = () => {
           color="bg-green-500"
         >
           {t("planNextWeek")}
+        </MenuCard>
+        <MenuCard
+          Icon={HeartIcon}
+          onClick={() => {
+            send({
+              type: "VIEW_SELECTED",
+              view: {
+                state: "DINNERS",
+              },
+            });
+          }}
+          color="bg-purple-500"
+        >
+          {t("dinners")}
         </MenuCard>
       </ul>
       <div className="h-2/4">

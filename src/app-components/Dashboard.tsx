@@ -5,6 +5,7 @@ import { GroceriesShoppingView } from "./GroceriesShoppingView";
 import { DashboardView, DashboardContentSkeleton } from "./DashboardView";
 
 import { GroceriesFeature } from "../features/GroceriesFeature";
+import { DinnersFeature } from "../features/DinnersFeature";
 import { GroceriesShoppingFeature } from "../features/GroceriesShoppingFeature";
 import { PlanNextWeekTodos } from "./PlanNextWeekTodos";
 import { PlanNextWeekDinners } from "./PlanNextWeekDinners";
@@ -14,6 +15,8 @@ import { AddTodoFeature } from "../features/AddTodoFeature";
 import { AddTodoView } from "./AddTodoView";
 import { CaptureFeature } from "../features/CaptureFeature";
 import { CheckListFeature } from "../features/CheckListFeature";
+import { DinnersView } from "./DinnersView";
+import { AddDinnerView } from "./AddDinnerView";
 
 export const Dashboard = () => {
   const [dashboard, send] = useDasbhoard();
@@ -121,6 +124,34 @@ export const Dashboard = () => {
                   />
                 </PlanWeekFeature>
               </CheckListFeature>
+            ),
+            DINNERS: () => (
+              <DinnersFeature>
+                <DinnersView
+                  onBackClick={() => {
+                    send({
+                      type: "VIEW_SELECTED",
+                      view: {
+                        state: "WEEKDAYS",
+                      },
+                    });
+                  }}
+                />
+              </DinnersFeature>
+            ),
+            ADD_DINNER: () => (
+              <DinnersFeature>
+                <AddDinnerView
+                  onBackClick={() => {
+                    send({
+                      type: "VIEW_SELECTED",
+                      view: {
+                        state: "DINNERS",
+                      },
+                    });
+                  }}
+                />
+              </DinnersFeature>
             ),
             ADD_TODO: () => (
               <AddTodoFeature familyId={family.id} userId={user.id}>

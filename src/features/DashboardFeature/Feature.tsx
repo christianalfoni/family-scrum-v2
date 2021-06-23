@@ -77,6 +77,12 @@ export type ViewContext =
       state: "PLAN_NEXT_WEEK_TODOS";
     }
   | {
+      state: "DINNERS";
+    }
+  | {
+      state: "ADD_DINNER";
+    }
+  | {
       state: "ADD_TODO";
     };
 

@@ -31,7 +31,10 @@ export type DinnerDTO = {
   name: string;
   description: string;
   preparationCheckList: string[];
-  groceries: string[];
+  groceries: Array<{
+    id: string;
+    shopCount: number;
+  }>;
   directions: string[];
 };
 
@@ -44,6 +47,7 @@ export type BarcodeDTO = {
 
 export type GroceryDTO = {
   id: string;
+  dinnerId?: string;
   created: number;
   modified: number;
   name: string;
