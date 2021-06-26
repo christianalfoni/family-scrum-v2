@@ -6,6 +6,7 @@ import { DashboardView, DashboardContentSkeleton } from "./DashboardView";
 
 import { GroceriesFeature } from "../features/GroceriesFeature";
 import { DinnersFeature } from "../features/DinnersFeature";
+import { DinnerFeature } from "../features/DinnerFeature";
 import { GroceriesShoppingFeature } from "../features/GroceriesShoppingFeature";
 import { PlanNextWeekTodos } from "./PlanNextWeekTodos";
 import { PlanNextWeekDinners } from "./PlanNextWeekDinners";
@@ -140,7 +141,7 @@ export const Dashboard = () => {
               </DinnersFeature>
             ),
             ADD_DINNER: () => (
-              <DinnersFeature>
+              <DinnerFeature>
                 <AddDinnerView
                   onBackClick={() => {
                     send({
@@ -151,7 +152,7 @@ export const Dashboard = () => {
                     });
                   }}
                 />
-              </DinnersFeature>
+              </DinnerFeature>
             ),
             ADD_TODO: () => (
               <AddTodoFeature familyId={family.id} userId={user.id}>

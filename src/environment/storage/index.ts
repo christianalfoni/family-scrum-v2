@@ -35,7 +35,7 @@ export type DinnerDTO = {
     id: string;
     shopCount: number;
   }>;
-  directions: string[];
+  instructions: string[];
 };
 
 export type BarcodeDTO = {

@@ -41,7 +41,7 @@ export const AddTodoView = ({ onBackClick }: { onBackClick: () => void }) => {
               description: event.target.value,
             });
           }}
-          className="p-2 border-none block w-full focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+          className="p-2 border-none block w-full focus:ring-blue-500 focus:border-blue-500 text-sm"
           placeholder="Description..."
           value={addTodo.description}
         />

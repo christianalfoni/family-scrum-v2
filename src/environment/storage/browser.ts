@@ -24,6 +24,7 @@ const GROCERIES_COLLECTION = "groceries";
 const TODOS_COLLECTION = "todos";
 const BARCODES_COLLECTION = "barcodes";
 const CHECKLIST_ITEMS_COLLECTION = "checkListItems";
+const DINNERS_COLLECTION = "dinners";
 
 const WEEKS_COLLECTION = "weeks";
 const WEEKS_TODOS_COLLECTION = "todos";
