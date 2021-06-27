@@ -19,9 +19,18 @@ type NewDinner = {
   instructions: string[];
 };
 
+type ValidationContext =
+  | {
+      state: "VALID";
+    }
+  | {
+      state: "INVALID";
+    };
+
 type BaseContext = {
   newIngredientName: string;
   newPreparationDescription: string;
+  validation: ValidationContext;
 };
 
 type Context = BaseContext &
@@ -101,23 +110,53 @@ type Event = UIEvent;
 
 const featureContext = createContext<Context, Event, TransientContext>();
 
+function validateDinner({
+  name,
+  description,
+  instructions,
+}: {
+  name: string;
+  description: string;
+  instructions: string[];
+}): ValidationContext {
+  if (name.length && description.length && instructions.length) {
+    return {
+      state: "VALID",
+    };
+  }
+
+  return {
+    state: "INVALID",
+  };
+}
+
 const reducer = createReducer<Context, Event, TransientContext>(
   {
     CREATING: {
-      NAME_CHANGED: ({ name }, context) => ({
-        ...context,
-        dinner: {
+      NAME_CHANGED: ({ name }, context) => {
+        const dinner = {
           ...context.dinner,
           name,
-        },
-      }),
-      DESCRIPTION_CHANGED: ({ description }, context) => ({
-        ...context,
-        dinner: {
+        };
+
+        return {
+          ...context,
+          dinner,
+          validation: validateDinner(dinner),
+        };
+      },
+      DESCRIPTION_CHANGED: ({ description }, context) => {
+        const dinner = {
           ...context.dinner,
           description,
-        },
-      }),
+        };
+
+        return {
+          ...context,
+          dinner,
+          validation: validateDinner(dinner),
+        };
+      },
       NEW_INGREDIENT_NAME_CHANGED: ({ name }, context) => ({
         ...context,
         newIngredientName: name,
@@ -193,26 +232,39 @@ const reducer = createReducer<Context, Event, TransientContext>(
           ),
         },
       }),
-      ADD_INSTRUCTION: (_, context) => ({
-        ...context,
-        dinner: {
+      ADD_INSTRUCTION: (_, context) => {
+        const dinner = {
           ...context.dinner,
           instructions: [...context.dinner.instructions, ""],
-        },
-      }),
-      REMOVE_INSTRUCTION: ({ index }, context) => ({
-        ...context,
-        dinner: {
+        };
+
+        return {
+          ...context,
+          dinner,
+          validation: validateDinner(dinner),
+        };
+      },
+      REMOVE_INSTRUCTION: ({ index }, context) => {
+        const dinner = {
           ...context.dinner,
           instructions: context.dinner.instructions.filter(
             (_, itemIndex) => itemIndex !== index
           ),
-        },
-      }),
-      SAVE: (_, context) => ({
-        state: "CREATING_DINNER",
-        dinner: context.dinner,
-      }),
+        };
+
+        return {
+          ...context,
+          dinner,
+          validation: validateDinner(dinner),
+        };
+      },
+      SAVE: (_, context) =>
+        context.validation.state === "VALID"
+          ? {
+              state: "CREATING_DINNER",
+              dinner: context.dinner,
+            }
+          : context,
     },
     EDITING: {
       NAME_CHANGED: ({ name }, context) => ({
@@ -255,6 +307,9 @@ export const Feature = ({
           dinner: dinner,
           newIngredientName: "",
           newPreparationDescription: "",
+          validation: {
+            state: "VALID",
+          },
         }
       : {
           state: "CREATING",
@@ -267,6 +322,9 @@ export const Feature = ({
           },
           newIngredientName: "",
           newPreparationDescription: "",
+          validation: {
+            state: "INVALID",
+          },
         }
   );
 

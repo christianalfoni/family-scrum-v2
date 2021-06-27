@@ -12,7 +12,6 @@ import { Groceries, Barcodes } from "../features/DashboardFeature/Feature";
 import { useGroceries } from "../features/GroceriesFeature";
 import { match } from "react-states";
 import { useTranslations } from "next-intl";
-import { useCapture } from "../features/CaptureFeature";
 
 export const GroceriesList = ({
   groceries,
@@ -24,7 +23,6 @@ export const GroceriesList = ({
   onGroceryClick: (id: string) => void;
 }) => {
   const [now] = React.useState(Date.now());
-  const [, sendCapture] = useCapture();
   const [groceriesFeature, send] = useGroceries();
   const t = useTranslations("GroceriesView");
   const sortedAndFilteredGroceries = match(groceriesFeature, {
@@ -133,8 +131,8 @@ export const GroceriesList = ({
                             {({ active }) => (
                               <a
                                 onClick={() => {
-                                  sendCapture({
-                                    type: "START_CAPTURE",
+                                  send({
+                                    type: "START_CAMERA",
                                     groceryId: grocery.id,
                                   });
                                 }}

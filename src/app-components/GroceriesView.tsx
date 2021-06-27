@@ -13,23 +13,16 @@ import { match } from "react-states";
 
 import { GroceriesList } from "./GroceriesList";
 import { Dialog, Transition } from "@headlessui/react";
-import { useCapture } from "../features/CaptureFeature";
-import { useEnvironment } from "../environment";
+import { CaptureFeature, useCapture } from "../features/CaptureFeature";
 
 const VIDEO_ID = "capture-video";
 
-const CaptureModal = () => {
-  const [capture, send] = useCapture();
-
-  const open = match(capture, {
-    CAPTURING: () => true,
-    AWAITING_VIDEO: () => true,
-    IDLE: () => false,
-  });
+const CaptureModal = ({ open }: { open: boolean }) => {
+  const [_, send] = useCapture();
 
   React.useEffect(() => {
     if (open) {
-      send({ type: "VIDEO_LOADED", id: VIDEO_ID });
+      send({ type: "VIDEO_LOADED", videoId: VIDEO_ID });
     }
   }, [open]);
 
@@ -78,7 +71,7 @@ const CaptureModal = () => {
                 onClick={() => {
                   send({
                     type: "CAPTURE",
-                    id: VIDEO_ID,
+                    videoId: VIDEO_ID,
                   });
                 }}
                 className="absolute top-0 left-0 w-full h-full bg-transparent z-10 flex items-center justify-center outline-none"
@@ -111,7 +104,7 @@ export const GroceriesView = ({ onBackClick }: { onBackClick: () => void }) => {
       });
 
       if (inputValue) {
-        inputRef.current!.focus()
+        inputRef.current!.focus();
       }
     },
     [Boolean(inputValue)]
@@ -186,7 +179,23 @@ export const GroceriesView = ({ onBackClick }: { onBackClick: () => void }) => {
         barcodes={barcodes}
         onGroceryClick={onGroceryClick}
       />
-      <CaptureModal />
+      <CaptureFeature
+        width={128}
+        height={128}
+        onCapture={(src) => {
+          send({
+            type: "ADD_IMAGE",
+            src,
+          });
+        }}
+      >
+        <CaptureModal
+          open={match(groceriesFeature.capture, {
+            CAPTURING: () => true,
+            IDLE: () => false,
+          })}
+        />
+      </CaptureFeature>
     </div>
   );
 };

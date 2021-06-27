@@ -232,7 +232,7 @@ export const AddDinnerView = ({
               {dinner.instructions.map((instruction, index) => (
                 <div className="flex items-center" key={index}>
                   <span className="font-bold mr-2">{index + 1}.</span>
-                  <div className="flex-grow">
+                  <div className="relative flex-grow">
                     <textarea
                       rows={3}
                       className="shadow-sm focus:ring-sky-500 focus:border-sky-500 mt-1 block w-full sm:text-sm border border-gray-300 rounded-md"
@@ -245,6 +245,23 @@ export const AddDinnerView = ({
                         });
                       }}
                     />
+                    {index > 0 ? (
+                      <button
+                        type="button"
+                        className="absolute bottom-2 right-2 bg-white inline-flex items-center p-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-light-blue-500"
+                        onClick={() => {
+                          send({
+                            type: "REMOVE_INSTRUCTION",
+                            index,
+                          });
+                        }}
+                      >
+                        <TrashIcon
+                          className="h-5 w-5 text-gray-400"
+                          aria-hidden="true"
+                        />
+                      </button>
+                    ) : null}
                   </div>
                 </div>
               ))}
@@ -259,6 +276,23 @@ export const AddDinnerView = ({
                 <PlusIcon className="w-4 h-4" /> Add instruction step
               </div>
             </div>
+          </div>
+          <div className="mt-4 flex justify-center">
+            <button
+              type="submit"
+              disabled={match(dinnerFeature.validation, {
+                INVALID: () => true,
+                VALID: () => false,
+              })}
+              onClick={() => {
+                send({
+                  type: "SAVE",
+                });
+              }}
+              className="disabled:opacity-50 mx-autoinline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+            >
+              {"save"}
+            </button>
           </div>
         </div>
       </div>

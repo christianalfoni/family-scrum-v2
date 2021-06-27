@@ -10,13 +10,24 @@ import { useDevtools } from "react-states/devtools";
 import { useEnvironment } from "../../environment";
 import { Barcodes, Groceries, Grocery } from "../DashboardFeature/Feature";
 
+type CaptureContext =
+  | {
+      state: "IDLE";
+    }
+  | {
+      state: "CAPTURING";
+      groceryId: string;
+    };
+
 type Context =
   | {
       state: "FILTERED";
       input: string;
+      capture: CaptureContext;
     }
   | {
       state: "UNFILTERED";
+      capture: CaptureContext;
     };
 
 type TransientContext =
@@ -49,11 +60,24 @@ type TransientContext =
       state: "SHOPPING_GROCERY";
       groceryId: string;
       shoppingListLength: number;
+    }
+  | {
+      state: "SAVING_IMAGE";
+      groceryId: string;
+      src: string;
     };
 
 type UIEvent =
   | {
       type: "ADD_GROCERY";
+    }
+  | {
+      type: "START_CAMERA";
+      groceryId: string;
+    }
+  | {
+      type: "ADD_IMAGE";
+      src: string;
     }
   | {
       type: "SHOP_GROCERY";
@@ -118,6 +142,27 @@ const defaultHandlers = {
     state: "DELETING_GROCERY",
     groceryId,
   }),
+  START_CAMERA: (
+    { groceryId }: { groceryId: string },
+    context: Context
+  ): Context => ({
+    ...context,
+    capture: {
+      state: "CAPTURING",
+      groceryId,
+    },
+  }),
+  ADD_IMAGE: (
+    { src }: { src: string },
+    context: Context
+  ): Context | TransientContext =>
+    context.capture.state === "CAPTURING"
+      ? {
+          state: "SAVING_IMAGE",
+          src,
+          groceryId: context.capture.groceryId,
+        }
+      : context,
 };
 
 const reducer = createReducer<Context, Event, TransientContext>(
@@ -131,6 +176,7 @@ const reducer = createReducer<Context, Event, TransientContext>(
               input,
             }
           : {
+              ...context,
               state: "UNFILTERED",
             },
       ADD_GROCERY: (_, { input }) => ({
@@ -143,6 +189,7 @@ const reducer = createReducer<Context, Event, TransientContext>(
       GROCERY_INPUT_CHANGED: ({ input }, context) =>
         input
           ? {
+              ...context,
               state: "FILTERED",
               input,
             }
@@ -150,7 +197,8 @@ const reducer = createReducer<Context, Event, TransientContext>(
     },
   },
   {
-    ADDING_GROCERY: () => ({
+    ADDING_GROCERY: (_, prevContext) => ({
+      ...prevContext,
       state: "UNFILTERED",
       input: "",
     }),
@@ -160,6 +208,12 @@ const reducer = createReducer<Context, Event, TransientContext>(
     LINKING_BARCODE: (_, prevContext) => prevContext,
     UNLINKING_BARCODE: (_, prevContext) => prevContext,
     SHOPPING_GROCERY: (_, prevContext) => prevContext,
+    SAVING_IMAGE: (_, prevContext) => ({
+      ...prevContext,
+      capture: {
+        state: "IDLE",
+      },
+    }),
   }
 );
 
@@ -226,6 +280,9 @@ export const Feature = ({
   familyId,
   initialContext = {
     state: "UNFILTERED",
+    capture: {
+      state: "IDLE",
+    },
   },
 }: {
   children: React.ReactNode;
@@ -263,6 +320,10 @@ export const Feature = ({
 
   useEnterEffect(context, "DELETING_GROCERY", ({ groceryId }) => {
     storage.deleteGrocery(familyId, groceryId);
+  });
+
+  useEnterEffect(context, "SAVING_IMAGE", ({ groceryId, src }) => {
+    storage.addImageToGrocery(familyId, groceryId, src);
   });
 
   useEnterEffect(

@@ -13,41 +13,34 @@ import { StorageEvent } from "../../environment/storage";
 
 type Context =
   | {
-      state: "IDLE";
-    }
-  | {
       state: "AWAITING_VIDEO";
-      groceryId: string;
     }
   | {
       state: "CAPTURING";
-      groceryId: string;
       videoId: string;
     };
 
 type TransientContext =
   | {
       state: "CREATING_CAPTURE";
-      id: string;
+      videoId: string;
     }
   | {
       state: "SAVING_CAPTURE";
       src: string;
-      groceryId: string;
     };
 
 type UIEvent =
   | {
       type: "START_CAPTURE";
-      groceryId: string;
     }
   | {
       type: "CAPTURE";
-      id: string;
+      videoId: string;
     }
   | {
       type: "VIDEO_LOADED";
-      id: string;
+      videoId: string;
     };
 
 type Event = UIEvent | StorageEvent | CaptureEvent;
@@ -58,47 +51,43 @@ export const useFeature = createHook(featureContext);
 
 const reducer = createReducer<Context, Event, TransientContext>(
   {
-    IDLE: {
-      START_CAPTURE: ({ groceryId }) => ({
-        state: "AWAITING_VIDEO",
-        groceryId,
-      }),
-    },
     AWAITING_VIDEO: {
-      VIDEO_LOADED: ({ id }, { groceryId }) => ({
+      VIDEO_LOADED: ({ videoId }) => ({
         state: "CAPTURING",
-        groceryId,
-        videoId: id,
+        videoId,
       }),
     },
     CAPTURING: {
-      CAPTURE: ({ id }) => ({
+      CAPTURE: ({ videoId }) => ({
         state: "CREATING_CAPTURE",
-        id,
+        videoId,
       }),
-      "CAPTURE:CAPTURED": ({ src }, { groceryId }) => ({
+      "CAPTURE:CAPTURED": ({ src }) => ({
         state: "SAVING_CAPTURE",
         src,
-        groceryId,
       }),
     },
   },
   {
     SAVING_CAPTURE: () => ({
-      state: "IDLE",
+      state: "AWAITING_VIDEO",
     }),
     CREATING_CAPTURE: (_, prevContext) => prevContext,
   }
 );
 
 export const Feature = ({
-  familyId,
   children,
+  onCapture,
+  width,
+  height,
   initialContext = {
-    state: "IDLE",
+    state: "AWAITING_VIDEO",
   },
 }: {
-  familyId: string;
+  onCapture: (src: string) => void;
+  width: number;
+  height: number;
   children: React.ReactNode;
   initialContext?: Context;
 }) => {
@@ -114,12 +103,12 @@ export const Feature = ({
   useEvents(storage.events, send);
   useEvents(capture.events, send);
 
-  useEnterEffect(context, "SAVING_CAPTURE", ({ src, groceryId }) => {
-    storage.addImageToGrocery(familyId, groceryId, src);
+  useEnterEffect(context, "SAVING_CAPTURE", ({ src }) => {
+    onCapture(src);
   });
 
-  useEnterEffect(context, "CREATING_CAPTURE", ({ id }) => {
-    capture.capture(id, 128, 128);
+  useEnterEffect(context, "CREATING_CAPTURE", ({ videoId }) => {
+    capture.capture(videoId, width, height);
   });
 
   useEnterEffect(context, "CAPTURING", ({ videoId }) => {
