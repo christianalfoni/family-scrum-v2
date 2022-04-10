@@ -1,5 +1,4 @@
 import firebase from "firebase/app";
-import { events } from "react-states";
 import {
   BarcodeDTO,
   CheckListItemDTO,
@@ -9,15 +8,16 @@ import {
   TodoDTO,
   WeekDTO,
   WeekTodoActivity,
-} from ".";
+  StorageEvent,
+} from "../../environment-interface/storage";
 import {
   getCurrentWeekId,
   getNextWeekId,
   getPreviousWeekId,
 } from "../../utils";
 import debounce from "lodash.debounce";
-import { StorageEvent } from "./";
 import { createCheckListItemsByTodoId } from "./utils";
+import { Emit } from "react-states";
 
 const FAMILY_DATA_COLLECTION = "familyData";
 const GROCERIES_COLLECTION = "groceries";
@@ -29,9 +29,10 @@ const DINNERS_COLLECTION = "dinners";
 const WEEKS_COLLECTION = "weeks";
 const WEEKS_TODOS_COLLECTION = "todos";
 
-export const createStorage = (app: firebase.app.App): Storage => {
-  const storageEvents = events<StorageEvent>();
-
+export const createStorage = (
+  emit: Emit<StorageEvent>,
+  app: firebase.app.App
+): Storage => {
   let groceries: {
     [groceryId: string]: GroceryDTO;
   } = {};
@@ -64,7 +65,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
             const data = groceryDoc.data();
 
             if (!data) {
-              return storageEvents.emit({
+              return emit({
                 type: "STORAGE:INCREASE_GROCERY_SHOP_COUNT_ERROR",
                 id: groceryDocRef.id,
                 error: "Document does not exist",
@@ -78,7 +79,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
           })
         )
         .catch((error) => {
-          storageEvents.emit({
+          emit({
             type: "STORAGE:INCREASE_GROCERY_SHOP_COUNT_ERROR",
             id: groceryDocRef.id,
             error: error.messsage,
@@ -145,7 +146,6 @@ export const createStorage = (app: firebase.app.App): Storage => {
   };
 
   return {
-    events: storageEvents,
     fetchFamilyData(familyId) {
       const familyDocRef = app
         .firestore()
@@ -160,7 +160,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
       const barcodesCollection = familyDocRef.collection(BARCODES_COLLECTION);
 
       familyDocRef.onSnapshot((snapshot) => {
-        this.events.emit({
+        emit({
           type: "STORAGE:FAMILY_UPDATE",
           family: {
             ...snapshot.data(),
@@ -174,7 +174,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
         () => groceries,
         (updatedGroceries) => {
           groceries = updatedGroceries;
-          this.events.emit({
+          emit({
             type: "STORAGE:GROCERIES_UPDATE",
             groceries: updatedGroceries,
           });
@@ -187,7 +187,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
         (updatedTodos) => {
           todos = updatedTodos;
 
-          this.events.emit({
+          emit({
             type: "STORAGE:TODOS_UPDATE",
             todos: updatedTodos,
           });
@@ -199,7 +199,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
         () => barcodes,
         (updatedBarcodes) => {
           barcodes = updatedBarcodes;
-          this.events.emit({
+          emit({
             type: "STORAGE:BARCODES_UPDATE",
             barcodes: updatedBarcodes,
           });
@@ -211,7 +211,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
         () => checkListItems,
         (updatedCheckListItems) => {
           checkListItems = updatedCheckListItems;
-          this.events.emit({
+          emit({
             type: "STORAGE:CHECKLIST_ITEMS_UPDATE",
             checkListItemsByTodoId:
               createCheckListItemsByTodoId(checkListItems),
@@ -240,7 +240,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
         },
       };
 
-      this.events.emit({
+      emit({
         type: "STORAGE:GROCERIES_UPDATE",
         groceries,
       });
@@ -253,7 +253,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
           name,
         })
         .catch((error) => {
-          this.events.emit({
+          emit({
             type: "STORAGE:ADD_GROCERY_ERROR",
             name,
             error: error.message,
@@ -287,7 +287,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
         },
       };
 
-      this.events.emit({
+      emit({
         type: "STORAGE:TODOS_UPDATE",
         todos,
       });
@@ -317,7 +317,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
           ...newCheckListItems,
         };
 
-        this.events.emit({
+        emit({
           type: "STORAGE:CHECKLIST_ITEMS_UPDATE",
           checkListItemsByTodoId: createCheckListItemsByTodoId(checkListItems),
         });
@@ -332,7 +332,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
               modified: firebase.firestore.FieldValue.serverTimestamp(),
             })
             .catch((error) => {
-              this.events.emit({
+              emit({
                 type: "STORAGE:ADD_CHECKLIST_ITEM_ERROR",
                 title: checkList[index],
                 todoId: todoDoc.id,
@@ -352,7 +352,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
           ...(metadata?.time ? { time: metadata?.time } : undefined),
         })
         .catch((error) => {
-          this.events.emit({
+          emit({
             type: "STORAGE:ADD_TODO_ERROR",
             description,
             error: error.message,
@@ -378,7 +378,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
 
       delete todos[id];
 
-      this.events.emit({
+      emit({
         type: "STORAGE:TODOS_UPDATE",
         todos,
       });
@@ -394,7 +394,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
       )
         .then(() => {
           todoDocRef.delete().catch((error) => {
-            this.events.emit({
+            emit({
               type: "STORAGE:ARCHIVE_TODO_ERROR",
               id,
               error: error.message,
@@ -402,7 +402,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
           });
         })
         .catch((error) => {
-          this.events.emit({
+          emit({
             type: "STORAGE:ARCHIVE_TODO_ERROR",
             error: error.message,
             id,
@@ -426,7 +426,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
       );
 
       if (barcodeLinks.length) {
-        return this.events.emit({
+        return emit({
           type: "STORAGE:DELETE_GROCERY_ERROR",
           id,
           error: "Please unlink all barcodes first",
@@ -435,13 +435,13 @@ export const createStorage = (app: firebase.app.App): Storage => {
 
       delete groceries[id];
 
-      this.events.emit({
+      emit({
         type: "STORAGE:GROCERIES_UPDATE",
         groceries,
       });
 
       groceryDocRef.delete().catch((error) => {
-        this.events.emit({
+        emit({
           type: "STORAGE:DELETE_GROCERY_ERROR",
           id,
           error: error.message,
@@ -464,7 +464,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
         },
       };
 
-      this.events.emit({
+      emit({
         type: "STORAGE:GROCERIES_UPDATE",
         groceries,
       });
@@ -487,7 +487,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
         },
       };
 
-      this.events.emit({
+      emit({
         type: "STORAGE:GROCERIES_UPDATE",
         groceries,
       });
@@ -498,7 +498,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
           shopCount: 0,
         })
         .catch((error) => {
-          this.events.emit({
+          emit({
             type: "STORAGE:RESET_GROCERY_SHOP_COUNT_ERROR",
             id,
             error: error.message,
@@ -550,7 +550,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
             },
           };
 
-          this.events.emit({
+          emit({
             type: "STORAGE:WEEKS_UPDATE",
             previousWeek: weeks[getPreviousWeekId()],
             currentWeek: weeks[getCurrentWeekId()],
@@ -579,7 +579,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
             });
           });
 
-          this.events.emit({
+          emit({
             type: "STORAGE:WEEKS_UPDATE",
             previousWeek: weeks[getPreviousWeekId()],
             currentWeek: weeks[getCurrentWeekId()],
@@ -587,7 +587,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
           });
         })
         .catch((error) => {
-          this.events.emit({
+          emit({
             type: "STORAGE:FETCH_WEEKS_ERROR",
             error: error.message,
           });
@@ -631,7 +631,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
         },
       };
 
-      this.events.emit({
+      emit({
         type: "STORAGE:WEEKS_UPDATE",
         previousWeek: weeks[getPreviousWeekId()],
         currentWeek: weeks[getCurrentWeekId()],
@@ -670,7 +670,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
         },
       };
 
-      this.events.emit({
+      emit({
         type: "STORAGE:BARCODES_UPDATE",
         barcodes,
       });
@@ -688,7 +688,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
           groceryId,
         })
         .catch((error) => {
-          this.events.emit({
+          emit({
             type: "STORAGE:LINK_BARCODE_ERROR",
             error: error.message,
           });
@@ -703,7 +703,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
         },
       };
 
-      this.events.emit({
+      emit({
         type: "STORAGE:BARCODES_UPDATE",
         barcodes,
       });
@@ -721,7 +721,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
           groceryId: null,
         })
         .catch((error) => {
-          this.events.emit({
+          emit({
             type: "STORAGE:LINK_BARCODE_ERROR",
             error: error.message,
           });
@@ -751,7 +751,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
         },
       };
 
-      this.events.emit({
+      emit({
         type: "STORAGE:GROCERIES_UPDATE",
         groceries,
       });
@@ -763,7 +763,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
             const data = groceryDoc.data();
 
             if (!data) {
-              return storageEvents.emit({
+              return emit({
                 type: "STORAGE:SHOP_GROCERY_ERROR",
                 id: groceryDocRef.id,
                 error: "Document does not exist",
@@ -781,7 +781,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
           })
         )
         .catch((error) => {
-          storageEvents.emit({
+          emit({
             type: "STORAGE:SHOP_GROCERY_ERROR",
             id: groceryDocRef.id,
             error: error.messsage,
@@ -804,7 +804,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
         },
       };
 
-      this.events.emit({
+      emit({
         type: "STORAGE:GROCERIES_UPDATE",
         groceries,
       });
@@ -815,7 +815,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
           image: src,
         })
         .catch((error) => {
-          this.events.emit({
+          emit({
             type: "STORAGE:ADD_IMAGE_TO_GROCERY_ERROR",
             groceryId: id,
             error: error.message,
@@ -842,7 +842,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
         },
       };
 
-      this.events.emit({
+      emit({
         type: "STORAGE:CHECKLIST_ITEMS_UPDATE",
         checkListItemsByTodoId: createCheckListItemsByTodoId(checkListItems),
       });
@@ -856,7 +856,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
           todoId,
         })
         .catch((error) => {
-          this.events.emit({
+          emit({
             type: "STORAGE:ADD_CHECKLIST_ITEM_ERROR",
             title,
             todoId,
@@ -878,13 +878,13 @@ export const createStorage = (app: firebase.app.App): Storage => {
 
       delete checkListItems[itemId];
 
-      this.events.emit({
+      emit({
         type: "STORAGE:CHECKLIST_ITEMS_UPDATE",
         checkListItemsByTodoId: createCheckListItemsByTodoId(checkListItems),
       });
 
       doc.delete().catch((error) => {
-        this.events.emit({
+        emit({
           type: "STORAGE:DELETE_CHECKLIST_ITEM_ERROR",
           itemId,
           error: error.message,
@@ -915,7 +915,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
             },
       };
 
-      this.events.emit({
+      emit({
         type: "STORAGE:CHECKLIST_ITEMS_UPDATE",
         checkListItemsByTodoId: createCheckListItemsByTodoId(checkListItems),
       });
@@ -934,7 +934,7 @@ export const createStorage = (app: firebase.app.App): Storage => {
               }
         )
         .catch((error) => {
-          this.events.emit({
+          emit({
             type: "STORAGE:TOGGLE_CHECKLIST_ITEM_ERROR",
             itemId,
             error: error.message,

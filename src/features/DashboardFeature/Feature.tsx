@@ -1,35 +1,28 @@
-import { useReducer } from "react";
+import { createContext, useContext } from "react";
 import {
-  createContext,
   match,
-  createHook,
-  createReducer,
-  useEnterEffect,
-  useEvents,
-  PickContext,
+  PickState,
+  States,
+  StatesTransition,
+  useStateEffect,
 } from "react-states";
-import { useEnvironment } from "../../environment";
+
 import {
-  BarcodeDTO,
   CheckListItemDTO,
   DinnerDTO,
   FamilyDTO,
   GroceryDTO,
-  StorageEvent,
   TodoDTO,
   WeekDTO,
-} from "../../environment/storage";
+} from "../../environment-interface/storage";
 import { useSession, User } from "../SessionFeature";
-import { useDevtools } from "react-states/devtools";
-import { AuthenticationEvent } from "../../environment/authentication";
 import { mod } from "../../utils";
 import { getDay, isThisWeek } from "date-fns";
-
-export type Barcodes = {
-  [barcodeId: string]: BarcodeDTO;
-};
-
-export type Barcode = BarcodeDTO;
+import {
+  createReducer,
+  useEnvironment,
+  useReducer,
+} from "../../environment-interface";
 
 export type Family = FamilyDTO;
 
@@ -57,15 +50,12 @@ export type CheckListItemsByTodoId = {
   };
 };
 
-export type ViewContext =
+export type ViewState =
   | {
       state: "WEEKDAYS";
     }
   | {
       state: "GROCERIES_SHOPPING";
-    }
-  | {
-      state: "GROCERIES";
     }
   | {
       state: "CHECKLISTS";
@@ -96,7 +86,7 @@ export type WeekdayTodos = {
   [todoId: string]: string[];
 };
 
-type Context =
+type State =
   | {
       state: "AWAITING_AUTHENTICATION";
     }
@@ -113,7 +103,6 @@ type Context =
       nextWeek?: Week;
       dinners?: Dinners;
       family?: Family;
-      barcodes?: Barcodes;
       checkListItemsByTodoId?: CheckListItemsByTodoId;
     }
   | {
@@ -124,9 +113,8 @@ type Context =
       previousWeek: Week;
       currentWeek: Week;
       nextWeek: Week;
-      view: ViewContext;
+      view: ViewState;
       user: User;
-      barcodes: Barcodes;
       checkListItemsByTodoId: CheckListItemsByTodoId;
       dinners: Dinners;
     }
@@ -135,10 +123,10 @@ type Context =
       error: string;
     };
 
-export type UIEvent =
+export type Action =
   | {
       type: "VIEW_SELECTED";
-      view: ViewContext;
+      view: ViewState;
     }
   | {
       type: "GROCERY_INPUT_CHANGED";
@@ -149,170 +137,148 @@ export type UIEvent =
       name: string;
     };
 
-type Event = UIEvent | AuthenticationEvent | StorageEvent;
+export type DashboardFeature = States<State, Action>;
 
-const featureContext = createContext<Context, UIEvent>();
+type Transition = StatesTransition<DashboardFeature>;
 
-export const useFeature = createHook(featureContext);
+const featureContext = createContext({} as DashboardFeature);
 
-const evaluateLoadedContext = (
-  context: PickContext<Context, "LOADING">
-): Context => {
+export const useFeature = () => useContext(featureContext);
+
+const evaluateLoadedState = (
+  state: PickState<DashboardFeature, "LOADING">
+): State => {
   if (
-    context.currentWeek &&
-    context.nextWeek &&
-    context.previousWeek &&
-    context.groceries &&
-    context.todos &&
-    context.barcodes &&
-    context.family &&
-    context.checkListItemsByTodoId &&
-    context.dinners
+    state.currentWeek &&
+    state.nextWeek &&
+    state.previousWeek &&
+    state.groceries &&
+    state.todos &&
+    state.family &&
+    state.checkListItemsByTodoId &&
+    state.dinners
   ) {
     return {
       state: "LOADED",
       view: {
         state: "WEEKDAYS",
       },
-      barcodes: context.barcodes,
-      currentWeek: context.currentWeek,
-      family: context.family,
-      groceries: context.groceries,
-      nextWeek: context.nextWeek,
-      previousWeek: context.previousWeek,
-      todos: context.todos,
-      user: context.user,
-      checkListItemsByTodoId: context.checkListItemsByTodoId,
-      dinners: context.dinners,
+      currentWeek: state.currentWeek,
+      family: state.family,
+      groceries: state.groceries,
+      nextWeek: state.nextWeek,
+      previousWeek: state.previousWeek,
+      todos: state.todos,
+      user: state.user,
+      checkListItemsByTodoId: state.checkListItemsByTodoId,
+      dinners: state.dinners,
     };
   }
 
-  return context;
+  return state;
 };
 
-const reducer = createReducer<Context, Event>({
+const reducer = createReducer<DashboardFeature>({
   AWAITING_AUTHENTICATION: {
-    "AUTHENTICATION:AUTHENTICATED_WITH_FAMILY": ({ user }) => ({
+    "AUTHENTICATION:AUTHENTICATED_WITH_FAMILY": (_, { user }): Transition => ({
       state: "LOADING",
-      dataLoaded: {
-        barcodes: false,
-        events: false,
-        family: false,
-        groceries: false,
-        todos: false,
-        weeks: false,
-      },
       user,
     }),
-    "AUTHENTICATION:UNAUTHENTICATED": () => ({
+    "AUTHENTICATION:UNAUTHENTICATED": (): Transition => ({
       state: "REQUIRING_AUTHENTICATION",
     }),
   },
   REQUIRING_AUTHENTICATION: {
-    "AUTHENTICATION:AUTHENTICATED_WITH_FAMILY": ({ user }) => ({
+    "AUTHENTICATION:AUTHENTICATED_WITH_FAMILY": (_, { user }): Transition => ({
       state: "LOADING",
-      dataLoaded: {
-        barcodes: false,
-        events: false,
-        family: false,
-        groceries: false,
-        todos: false,
-        weeks: false,
-      },
       user,
     }),
   },
   LOADING: {
-    "STORAGE:FAMILY_UPDATE": ({ family }, context) =>
-      evaluateLoadedContext({
-        ...context,
+    "STORAGE:FAMILY_UPDATE": (state, { family }): Transition =>
+      evaluateLoadedState({
+        ...state,
         family,
       }),
     "STORAGE:WEEKS_UPDATE": (
-      { previousWeek, currentWeek, nextWeek },
-      context
-    ) =>
-      evaluateLoadedContext({
-        ...context,
+      state,
+      { previousWeek, currentWeek, nextWeek }
+    ): Transition =>
+      evaluateLoadedState({
+        ...state,
         previousWeek,
         currentWeek,
         nextWeek,
       }),
-    "STORAGE:GROCERIES_UPDATE": ({ groceries }, context) =>
-      evaluateLoadedContext({
-        ...context,
+    "STORAGE:GROCERIES_UPDATE": (state, { groceries }): Transition =>
+      evaluateLoadedState({
+        ...state,
         groceries,
       }),
-    "STORAGE:TODOS_UPDATE": ({ todos }, context) =>
-      evaluateLoadedContext({
-        ...context,
+    "STORAGE:TODOS_UPDATE": (state, { todos }): Transition =>
+      evaluateLoadedState({
+        ...state,
         todos,
       }),
-    "STORAGE:BARCODES_UPDATE": ({ barcodes }, context) =>
-      evaluateLoadedContext({
-        ...context,
-        barcodes,
-      }),
-    "STORAGE:CHECKLIST_ITEMS_UPDATE": ({ checkListItemsByTodoId }, context) =>
-      evaluateLoadedContext({
-        ...context,
+    "STORAGE:CHECKLIST_ITEMS_UPDATE": (
+      state,
+      { checkListItemsByTodoId }
+    ): Transition =>
+      evaluateLoadedState({
+        ...state,
         checkListItemsByTodoId,
       }),
-    "STORAGE:DINNERS_UPDATE": ({ dinners }, context) =>
-      evaluateLoadedContext({
-        ...context,
+    "STORAGE:DINNERS_UPDATE": (state, { dinners }): Transition =>
+      evaluateLoadedState({
+        ...state,
         dinners,
       }),
-    "STORAGE:FETCH_WEEKS_ERROR": ({ error }) => ({
+    "STORAGE:FETCH_WEEKS_ERROR": (_, { error }): Transition => ({
       state: "ERROR",
       error,
     }),
   },
   LOADED: {
-    "STORAGE:FAMILY_UPDATE": ({ family }, context) => ({
-      ...context,
+    "STORAGE:FAMILY_UPDATE": (state, { family }): Transition => ({
+      ...state,
       family,
     }),
-    "STORAGE:GROCERIES_UPDATE": ({ groceries }, context) => ({
-      ...context,
+    "STORAGE:GROCERIES_UPDATE": (state, { groceries }): Transition => ({
+      ...state,
       groceries,
     }),
-    "STORAGE:BARCODES_UPDATE": ({ barcodes }, context) => ({
-      ...context,
-      barcodes,
-    }),
-    "STORAGE:DINNERS_UPDATE": ({ dinners }, context) => ({
-      ...context,
+    "STORAGE:DINNERS_UPDATE": (state, { dinners }): Transition => ({
+      ...state,
       dinners,
     }),
     "STORAGE:WEEKS_UPDATE": (
-      { currentWeek, nextWeek, previousWeek },
-      context
-    ) => ({
-      ...context,
+      state,
+      { currentWeek, nextWeek, previousWeek }
+    ): Transition => ({
+      ...state,
       currentWeek,
       nextWeek,
       previousWeek,
     }),
-    "STORAGE:TODOS_UPDATE": ({ todos }, context) => ({
-      ...context,
+    "STORAGE:TODOS_UPDATE": (state, { todos }): Transition => ({
+      ...state,
       view:
-        context.view.state === "ADD_TODO"
+        state.view.state === "ADD_TODO"
           ? {
               state: "WEEKDAYS",
             }
-          : context.view,
+          : state.view,
       todos,
     }),
     "STORAGE:CHECKLIST_ITEMS_UPDATE": (
-      { checkListItemsByTodoId },
-      context
-    ) => ({
-      ...context,
+      state,
+      { checkListItemsByTodoId }
+    ): Transition => ({
+      ...state,
       checkListItemsByTodoId,
     }),
-    VIEW_SELECTED: ({ view }, context) => ({
-      ...context,
+    VIEW_SELECTED: (state, { view }): Transition => ({
+      ...state,
       view,
     }),
   },
@@ -321,7 +287,7 @@ const reducer = createReducer<Context, Event>({
 
 export type Props = {
   children: React.ReactNode;
-  initialContext?: Context;
+  initialState?: State;
 };
 
 export const selectors = {
@@ -398,65 +364,48 @@ export const selectors = {
     }),
 };
 
-export const Feature = ({ children, initialContext }: Props) => {
+export const Feature = ({ children, initialState }: Props) => {
   const { storage, authentication } = useEnvironment();
   const [session] = useSession();
 
-  const matchSession = match(session);
-
-  initialContext =
-    initialContext ||
-    matchSession<Context>({
-      VERIFYING_AUTHENTICATION: () => ({
+  initialState =
+    initialState ||
+    match(session, {
+      VERIFYING_AUTHENTICATION: (): State => ({
         state: "AWAITING_AUTHENTICATION",
       }),
-      SIGNING_IN: () => ({
+      SIGNING_IN: (): State => ({
         state: "AWAITING_AUTHENTICATION",
       }),
-      ERROR: () => ({
+      ERROR: (): State => ({
         state: "AWAITING_AUTHENTICATION",
       }),
-      NO_FAMILY: () => ({
+      NO_FAMILY: (): State => ({
         state: "AWAITING_AUTHENTICATION",
       }),
-      JOINING_FAMILY: () => ({
+      JOINING_FAMILY: (): State => ({
         state: "AWAITING_AUTHENTICATION",
       }),
-      CREATING_FAMILY: () => ({
+      CREATING_FAMILY: (): State => ({
         state: "AWAITING_AUTHENTICATION",
       }),
-      SIGNED_IN: ({ user }) => ({
+      SIGNED_IN: ({ user }): State => ({
         state: "LOADING",
-        dataLoaded: {
-          barcodes: false,
-          events: false,
-          family: false,
-          groceries: false,
-          todos: false,
-          weeks: false,
-        },
         user,
       }),
-      SIGNED_OUT: () => ({
+      SIGNED_OUT: (): State => ({
         state: "REQUIRING_AUTHENTICATION",
       }),
-      UPDATING_VERSION: () => ({
+      UPDATING_VERSION: (): State => ({
         state: "AWAITING_AUTHENTICATION",
       }),
     });
 
-  const feature = useReducer(reducer, initialContext);
+  const feature = useReducer("Dashboard", reducer, initialState);
 
-  if (process.env.NODE_ENV === "development" && process.browser) {
-    useDevtools("Dashboard", feature);
-  }
+  const [state] = feature;
 
-  const [context, send] = feature;
-
-  useEvents(authentication.events, send);
-  useEvents(storage.events, send);
-
-  useEnterEffect(context, "LOADING", ({ user }) => {
+  useStateEffect(state, "LOADING", ({ user }) => {
     storage.fetchFamilyData(user.familyId);
     storage.fetchWeeks(user.familyId, user.id);
   });

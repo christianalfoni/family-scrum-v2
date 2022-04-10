@@ -1,5 +1,3 @@
-import { Events } from "react-states";
-
 export type CaptureEvent =
   | {
       type: "CAPTURE:CAPTURED";
@@ -11,7 +9,6 @@ export type CaptureEvent =
     };
 
 export interface Capture {
-  events: Events<CaptureEvent>;
   startCamera(elementId: string): void;
   capture(elementId: string, width: number, height: number): void;
 }

@@ -1,5 +1,3 @@
-import { Events } from "react-states";
-
 export type VersionEvent =
   | {
       type: "VERSION:NEW";
@@ -11,11 +9,6 @@ export type VersionEvent =
     };
 
 export interface Version {
-  events: Events<VersionEvent>;
-  /**
-   * @fires VERSION:NEW
-   * @fires VERSION:UP_TO_DATE
-   */
   checkVersion(): void;
   update(): void;
 }

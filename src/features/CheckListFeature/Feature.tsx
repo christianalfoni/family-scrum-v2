@@ -1,41 +1,19 @@
-import { useReducer } from "react";
+import { createContext, useContext } from "react";
+import { States, StatesTransition, useCommandEffect } from "react-states";
 import {
-  createContext,
-  createHook,
   createReducer,
-  useEnterEffect,
-} from "react-states";
-import { useDevtools } from "react-states/devtools";
-import { useEnvironment } from "../../environment";
-import { StorageEvent } from "../../environment/storage";
-import { Todo } from "../DashboardFeature";
+  useEnvironment,
+  useReducer,
+} from "../../environment-interface";
+
 import { CheckListItem, Todos } from "../DashboardFeature/Feature";
 import { User } from "../SessionFeature";
 
-type Context = {
+type State = {
   state: "LIST";
 };
 
-type TransientContext =
-  | {
-      state: "ARCHIVING_TODO";
-      todoId: string;
-    }
-  | {
-      state: "TOGGLING_CHECKLIST_ITEM";
-      itemId: string;
-    }
-  | {
-      state: "DELETING_CHECKLIST_ITEM";
-      itemId: string;
-    }
-  | {
-      state: "ADDING_CHECKLIST_ITEM";
-      title: string;
-      todoId: string;
-    };
-
-type UIEvent =
+type Action =
   | {
       type: "ARCHIVE_TODO";
       todoId: string;
@@ -54,41 +32,66 @@ type UIEvent =
       todoId: string;
     };
 
-type Event = UIEvent | StorageEvent;
+type Command =
+  | {
+      cmd: "ARCHIVE_TODO";
+      todoId: string;
+    }
+  | {
+      cmd: "TOGGLE_CHECKLIST_ITEM";
+      itemId: string;
+    }
+  | {
+      cmd: "DELETE_CHECKLIST_ITEM";
+      itemId: string;
+    }
+  | {
+      cmd: "ADD_CHECKLIST_ITEM";
+      title: string;
+      todoId: string;
+    };
 
-const featureContext = createContext<Context, UIEvent, TransientContext>();
+type CheckListFeature = States<State, Action, Command>;
 
-const reducer = createReducer<Context, Event, TransientContext>(
-  {
-    LIST: {
-      ARCHIVE_TODO: ({ todoId }) => ({
-        state: "ARCHIVING_TODO",
+type Transition = StatesTransition<CheckListFeature>;
+
+const featureContext = createContext({} as CheckListFeature);
+
+const reducer = createReducer<CheckListFeature>({
+  LIST: {
+    ARCHIVE_TODO: (state, { todoId }): Transition => [
+      state,
+      {
+        cmd: "ARCHIVE_TODO",
         todoId,
-      }),
-      TOGGLE_CHECKLIST_ITEM: ({ itemId }) => ({
-        state: "TOGGLING_CHECKLIST_ITEM",
+      },
+    ],
+    TOGGLE_CHECKLIST_ITEM: (state, { itemId }): Transition => [
+      state,
+      {
+        cmd: "TOGGLE_CHECKLIST_ITEM",
         itemId,
-      }),
-      DELETE_CHECKLIST_ITEM: ({ itemId }) => ({
-        state: "DELETING_CHECKLIST_ITEM",
+      },
+    ],
+    DELETE_CHECKLIST_ITEM: (state, { itemId }): Transition => [
+      state,
+      {
+        cmd: "DELETE_CHECKLIST_ITEM",
         itemId,
-      }),
-      ADD_CHECKLIST_ITEM: ({ title, todoId }) => ({
-        state: "ADDING_CHECKLIST_ITEM",
+      },
+    ],
+    ADD_CHECKLIST_ITEM: (state, { title, todoId }): Transition => [
+      state,
+      {
+        cmd: "ADD_CHECKLIST_ITEM",
         title,
         todoId,
-      }),
-    },
+      },
+    ],
   },
-  {
-    ARCHIVING_TODO: (_, prevContext) => prevContext,
-    TOGGLING_CHECKLIST_ITEM: (_, prevContext) => prevContext,
-    DELETING_CHECKLIST_ITEM: (_, prevContext) => prevContext,
-    ADDING_CHECKLIST_ITEM: (_, prevContext) => prevContext,
-  }
-);
+});
 
-export const useFeature = createHook(featureContext);
+export const useFeature = () => useContext(featureContext);
 
 export const selectors = {
   sortedCheckListItems(checkListItems: { [itemId: string]: CheckListItem }) {
@@ -116,30 +119,26 @@ export const Feature = ({
 }: {
   user: User;
   children: React.ReactNode;
-  initialContext?: Context;
+  initialContext?: State;
 }) => {
   const { storage } = useEnvironment();
-  const feature = useReducer(reducer, initialContext);
-
-  if (process.env.NODE_ENV === "development" && process.browser) {
-    useDevtools("Todos", feature);
-  }
+  const feature = useReducer("CheckList", reducer, initialContext);
 
   const [context, send] = feature;
 
-  useEnterEffect(context, "ARCHIVING_TODO", ({ todoId }) => {
+  useCommandEffect(context, "ARCHIVE_TODO", ({ todoId }) => {
     storage.archiveTodo(user.familyId, todoId);
   });
 
-  useEnterEffect(context, "TOGGLING_CHECKLIST_ITEM", ({ itemId }) => {
+  useCommandEffect(context, "TOGGLE_CHECKLIST_ITEM", ({ itemId }) => {
     storage.toggleCheckListItem(user.familyId, user.id, itemId);
   });
 
-  useEnterEffect(context, "DELETING_CHECKLIST_ITEM", ({ itemId }) => {
+  useCommandEffect(context, "DELETE_CHECKLIST_ITEM", ({ itemId }) => {
     storage.deleteChecklistItem(user.familyId, itemId);
   });
 
-  useEnterEffect(context, "ADDING_CHECKLIST_ITEM", ({ title, todoId }) => {
+  useCommandEffect(context, "ADD_CHECKLIST_ITEM", ({ title, todoId }) => {
     storage.addChecklistItem(user.familyId, todoId, title);
   });
 

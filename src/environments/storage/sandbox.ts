@@ -1,4 +1,4 @@
-import { events as reactStatesEvents } from "react-states";
+import { Emit } from "react-states";
 import {
   GroceryDTO,
   Storage,
@@ -7,9 +7,9 @@ import {
   FamilyDTO,
   CheckListItemDTO,
   WeekTodoActivity,
-  BarcodeDTO,
   DinnerDTO,
-} from ".";
+  StorageEvent,
+} from "../../environment-interface/storage";
 import {
   getCurrentWeekId,
   getNextWeekId,
@@ -18,7 +18,7 @@ import {
 import { randomWait } from "../utils";
 import { createCheckListItemsByTodoId } from "./utils";
 
-export const createStorage = (): Storage => {
+export const createStorage = (emit: Emit<StorageEvent>): Storage => {
   const family: FamilyDTO = {
     id: "456",
     users: {
@@ -35,23 +35,6 @@ export const createStorage = (): Storage => {
     },
   };
 
-  let barcodes: {
-    [barcodeId: string]: BarcodeDTO;
-  } = {
-    "1234567890": {
-      id: "1234567890",
-      created: Date.now(),
-      modified: Date.now(),
-      groceryId: null,
-    },
-    "09877654321": {
-      id: "09877654321",
-      created: Date.now(),
-      modified: Date.now(),
-      groceryId: "grocery_0",
-    },
-  };
-
   let dinners: {
     [dinnerId: string]: DinnerDTO;
   } = {};
@@ -64,7 +47,6 @@ export const createStorage = (): Storage => {
       created: Date.now(),
       modified: Date.now(),
       name: "Gryn",
-      shopCount: 1,
     },
   };
 
@@ -164,9 +146,8 @@ export const createStorage = (): Storage => {
   };
 
   return {
-    events: reactStatesEvents(),
     async fetchWeeks() {
-      this.events.emit({
+      emit({
         type: "STORAGE:WEEKS_UPDATE",
         currentWeek: weeks[currentWeekId],
         nextWeek: weeks[nextWeekId],
@@ -179,7 +160,6 @@ export const createStorage = (): Storage => {
         created: Date.now(),
         modified: Date.now(),
         name,
-        shopCount: 0,
       };
 
       groceries = {
@@ -187,7 +167,7 @@ export const createStorage = (): Storage => {
         [newGrocery.id]: newGrocery,
       };
 
-      this.events.emit({
+      emit({
         type: "STORAGE:GROCERIES_UPDATE",
         groceries,
       });
@@ -220,7 +200,7 @@ export const createStorage = (): Storage => {
         [id]: todo,
       };
 
-      this.events.emit({
+      emit({
         type: "STORAGE:TODOS_UPDATE",
         todos,
       });
@@ -232,34 +212,30 @@ export const createStorage = (): Storage => {
         ...groceries,
       };
 
-      this.events.emit({
+      emit({
         type: "STORAGE:GROCERIES_UPDATE",
         groceries,
       });
     },
     async fetchFamilyData() {
       await randomWait();
-      this.events.emit({
+      emit({
         type: "STORAGE:FAMILY_UPDATE",
         family,
       });
-      this.events.emit({
+      emit({
         type: "STORAGE:GROCERIES_UPDATE",
         groceries,
       });
-      this.events.emit({
-        type: "STORAGE:BARCODES_UPDATE",
-        barcodes,
-      });
-      this.events.emit({
+      emit({
         type: "STORAGE:TODOS_UPDATE",
         todos,
       });
-      this.events.emit({
+      emit({
         type: "STORAGE:CHECKLIST_ITEMS_UPDATE",
         checkListItemsByTodoId: createCheckListItemsByTodoId(checkListItems),
       });
-      this.events.emit({
+      emit({
         type: "STORAGE:DINNERS_UPDATE",
         dinners,
       });
@@ -271,39 +247,12 @@ export const createStorage = (): Storage => {
 
       delete todos[id];
 
-      this.events.emit({
+      emit({
         type: "STORAGE:TODOS_UPDATE",
         todos,
       });
     },
-    increaseGroceryShopCount(_, id) {
-      groceries = {
-        ...groceries,
-        [id]: {
-          ...groceries[id],
-          shopCount: groceries[id].shopCount + 1,
-        },
-      };
 
-      this.events.emit({
-        type: "STORAGE:GROCERIES_UPDATE",
-        groceries,
-      });
-    },
-    resetGroceryShopCount(_, id) {
-      groceries = {
-        ...groceries,
-        [id]: {
-          ...groceries[id],
-          shopCount: 0,
-        },
-      };
-
-      this.events.emit({
-        type: "STORAGE:GROCERIES_UPDATE",
-        groceries,
-      });
-    },
     setWeekTaskActivity({
       familyId,
       weekId,
@@ -334,75 +283,11 @@ export const createStorage = (): Storage => {
         },
       };
 
-      this.events.emit({
+      emit({
         type: "STORAGE:WEEKS_UPDATE",
         currentWeek: weeks[currentWeekId],
         nextWeek: weeks[nextWeekId],
         previousWeek: weeks[previousWeekId],
-      });
-    },
-    linkBarcode(familyId, barcodeId, groceryId) {
-      barcodes = {
-        ...barcodes,
-        [barcodeId]: {
-          ...barcodes[barcodeId],
-          groceryId,
-        },
-      };
-
-      this.events.emit({
-        type: "STORAGE:BARCODES_UPDATE",
-        barcodes,
-      });
-    },
-    unlinkBarcode(familyId, barcodeId) {
-      barcodes = {
-        ...barcodes,
-        [barcodeId]: {
-          ...barcodes[barcodeId],
-          groceryId: null,
-        },
-      };
-
-      this.events.emit({
-        type: "STORAGE:BARCODES_UPDATE",
-        barcodes,
-      });
-    },
-    shopGrocery(familyId, id, shoppingListLength) {
-      const currentShoppingListLength = Object.values(groceries).filter(
-        (grocery) => Boolean(grocery.shopCount)
-      ).length;
-
-      groceries = {
-        ...groceries,
-        [id]: {
-          ...groceries[id],
-          shopCount: 0,
-          shopHistory: {
-            ...groceries[id].shopHistory,
-            [shoppingListLength]: currentShoppingListLength,
-          },
-        },
-      };
-
-      this.events.emit({
-        type: "STORAGE:GROCERIES_UPDATE",
-        groceries,
-      });
-    },
-    addImageToGrocery(familyId, id, src) {
-      groceries = {
-        ...groceries,
-        [id]: {
-          ...groceries[id],
-          image: src,
-        },
-      };
-
-      this.events.emit({
-        type: "STORAGE:GROCERIES_UPDATE",
-        groceries,
       });
     },
     toggleCheckListItem(familyId, userId, itemId) {
@@ -422,7 +307,7 @@ export const createStorage = (): Storage => {
             },
       };
 
-      this.events.emit({
+      emit({
         type: "STORAGE:CHECKLIST_ITEMS_UPDATE",
         checkListItemsByTodoId: createCheckListItemsByTodoId(checkListItems),
       });
@@ -434,7 +319,7 @@ export const createStorage = (): Storage => {
 
       delete checkListItems[itemId];
 
-      this.events.emit({
+      emit({
         type: "STORAGE:CHECKLIST_ITEMS_UPDATE",
         checkListItemsByTodoId: createCheckListItemsByTodoId(checkListItems),
       });
@@ -456,7 +341,7 @@ export const createStorage = (): Storage => {
         },
       };
 
-      this.events.emit({
+      emit({
         type: "STORAGE:CHECKLIST_ITEMS_UPDATE",
         checkListItemsByTodoId: createCheckListItemsByTodoId(checkListItems),
       });

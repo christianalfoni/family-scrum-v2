@@ -17,6 +17,11 @@ import { getDayIndex, getFirstDateOfCurrentWeek, weekdays } from "../utils";
 import { groceriesShoppingSelectors } from "../features/GroceriesShoppingFeature";
 import { addDays, format, isSameDay } from "date-fns";
 import { checkListSelectors } from "../features/CheckListFeature";
+import { PickState } from "react-states";
+import {
+  DashboardFeature,
+  ViewState,
+} from "../features/DashboardFeature/Feature";
 
 SwiperCore.use([Controller]);
 
@@ -83,29 +88,22 @@ export const DashboardContentSkeleton = () => {
 
   return (
     <>
-      <div className="flex p-6 items-center">
-        <button className="border-gray-100 text-gray-400 border rounded flex  text-sm flex-1 mr-1 items-center shadow-sm`">
-          <span className="h-10 w-10 rounded-l mr-2 flex items-center justify-center">
-            <ShoppingCartIcon className="text-gray-400 w-5 h-5" />
-          </span>{" "}
-          {t("goShopping")}
-        </button>
-        <button className="border-gray-100 text-gray-400 border rounded flex  text-sm flex-1 mr-1 items-center shadow-sm`">
-          <span className="h-10 w-10 rounded-l mr-2 flex items-center justify-center">
-            <ClipboardCheckIcon className="text-gray-400 w-5 h-5" />
-          </span>{" "}
-          {t("checkLists")}
-        </button>
-      </div>
-
-      <ul className="flex flex-col px-6 mb-2">
+      <ul className="flex flex-col px-6 mb-2 mt-6">
         <MenuCard
           disabled
           Icon={CollectionIcon}
           onClick={() => {}}
-          color="bg-yellow-500"
+          color="bg-red-500"
         >
-          {t("groceries")}
+          {t("goShopping")}
+        </MenuCard>
+        <MenuCard
+          disabled
+          Icon={CollectionIcon}
+          onClick={() => {}}
+          color="bg-blue-500"
+        >
+          {t("checkLists")}
         </MenuCard>
 
         <MenuCard
@@ -166,8 +164,13 @@ export const DashboardContentSkeleton = () => {
   );
 };
 
-export const DashboardView = () => {
-  const [dashboard, send] = useDasbhoard("LOADED");
+export const DashboardView = ({
+  dashboard,
+  selectView,
+}: {
+  dashboard: PickState<DashboardFeature, "LOADED">;
+  selectView: (view: ViewState) => void;
+}) => {
   const t = useTranslations("DashboardView");
   const tCommon = useTranslations("common");
   const intl = useIntl();
@@ -177,106 +180,44 @@ export const DashboardView = () => {
   const [slideIndex, setSlideIndex] = useState(currentDayIndex);
   const todosByWeekday = dashboardSelectors.todosByWeekday(currentWeek);
   const eventsByWeekday = dashboardSelectors.eventsByWeekday(todos);
-  const [controlledSwiper, setControlledSwiper] =
-    useState<SwiperCore | null>(null);
+  const [controlledSwiper, setControlledSwiper] = useState<SwiperCore | null>(
+    null
+  );
   const shopCount = groceriesShoppingSelectors.shopCount(groceries);
   const checkLists = checkListSelectors.checkLists(todos);
 
   return (
     <>
-      <div className="flex p-6 items-center">
-        <button
-          disabled={!shopCount}
-          onClick={() => {
-            send({
-              type: "VIEW_SELECTED",
-              view: {
-                state: "GROCERIES_SHOPPING",
-              },
-            });
-          }}
-          className={`${
-            shopCount
-              ? "border-gray-200 bg-white text-black"
-              : "border-gray-100 text-gray-400"
-          }  border rounded flex  text-sm flex-1 mr-1 items-center shadow-sm`}
-        >
-          <span
-            className={`${
-              shopCount ? "bg-red-500" : ""
-            } h-10 w-10 rounded-l mr-2 flex items-center justify-center relative`}
-          >
-            <ShoppingCartIcon
-              className={`${
-                shopCount ? "text-white" : "text-gray-400"
-              } w-5 h-5`}
-            />
-            {shopCount ? (
-              <span className="absolute -top-2 -right-2 text-xs text-gray-800 w-5 h-5 border border-red-500 rounded-full bg-white flex items-center justify-center">
-                {shopCount}
-              </span>
-            ) : null}
-          </span>{" "}
-          {t("goShopping")}
-        </button>
-        <button
-          disabled={!shopCount}
-          onClick={() => {
-            send({
-              type: "VIEW_SELECTED",
-              view: {
-                state: "CHECKLISTS",
-              },
-            });
-          }}
-          className={`${
-            shopCount
-              ? "border-gray-200 bg-white text-black"
-              : "border-gray-100 text-gray-400"
-          }  border rounded flex  text-sm flex-1 mr-1 items-center shadow-sm`}
-        >
-          <span
-            className={`${
-              checkLists.length ? "bg-blue-500" : ""
-            } h-10 w-10 rounded-l mr-2 flex items-center justify-center relative`}
-          >
-            <ClipboardCheckIcon
-              className={`${
-                checkLists.length ? "text-white" : "text-gray-400"
-              } w-5 h-5`}
-            />
-            {checkLists.length ? (
-              <span className="absolute -top-2 -right-2 text-xs text-gray-800 w-5 h-5 border border-blue-500 rounded-full bg-white flex items-center justify-center">
-                {checkLists.length}
-              </span>
-            ) : null}
-          </span>{" "}
-          {t("checkLists")}
-        </button>
-      </div>
-      <ul className="flex flex-col px-6 mb-2">
+      <ul className="flex flex-col px-6 mb-2 mt-6">
         <MenuCard
-          Icon={CollectionIcon}
+          disabled={!shopCount}
+          Icon={ShoppingCartIcon}
           onClick={() => {
-            send({
-              type: "VIEW_SELECTED",
-              view: {
-                state: "GROCERIES",
-              },
+            selectView({
+              state: "GROCERIES_SHOPPING",
             });
           }}
-          color="bg-yellow-500"
+          color="bg-red-500"
         >
-          {t("groceries")}
+          {t("goShopping")} ( {shopCount} )
+        </MenuCard>
+        <MenuCard
+          disabled={!checkLists.length}
+          Icon={ClipboardCheckIcon}
+          onClick={() => {
+            selectView({
+              state: "CHECKLISTS",
+            });
+          }}
+          color="bg-blue-500"
+        >
+          {t("checkLists")} ( {checkLists.length} )
         </MenuCard>
         <MenuCard
           Icon={ChatAlt2Icon}
           onClick={() => {
-            send({
-              type: "VIEW_SELECTED",
-              view: {
-                state: "PLAN_NEXT_WEEK_DINNERS",
-              },
+            selectView({
+              state: "PLAN_NEXT_WEEK_DINNERS",
             });
           }}
           color="bg-green-500"
@@ -286,11 +227,8 @@ export const DashboardView = () => {
         <MenuCard
           Icon={HeartIcon}
           onClick={() => {
-            send({
-              type: "VIEW_SELECTED",
-              view: {
-                state: "DINNERS",
-              },
+            selectView({
+              state: "DINNERS",
             });
           }}
           color="bg-purple-500"
@@ -393,11 +331,8 @@ export const DashboardView = () => {
         <button
           type="button"
           onClick={() => {
-            send({
-              type: "VIEW_SELECTED",
-              view: {
-                state: "ADD_TODO",
-              },
+            selectView({
+              state: "ADD_TODO",
             });
           }}
           className="z-50 fixed right-6 bottom-14 h-14 w-14 rounded-full inline-flex items-center justify-center px-3 py-2 border border-gray-300 shadow-lg text-sm font-medium  text-gray-500 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"

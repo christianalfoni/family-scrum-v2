@@ -1,17 +1,17 @@
-import { useReducer } from "react";
+import { createContext, useContext } from "react";
 import {
-  createContext,
-  createHook,
-  createReducer,
-  useEnterEffect,
-  useEvents,
+  States,
+  StatesTransition,
+  useCommandEffect,
+  useStateEffect,
 } from "react-states";
-import { useDevtools } from "react-states/devtools";
-import { useEnvironment } from "../../environment";
-import { CaptureEvent } from "../../environment/capture";
-import { StorageEvent } from "../../environment/storage";
+import {
+  createReducer,
+  useEnvironment,
+  useReducer,
+} from "../../environment-interface";
 
-type Context =
+type State =
   | {
       state: "AWAITING_VIDEO";
     }
@@ -20,17 +20,7 @@ type Context =
       videoId: string;
     };
 
-type TransientContext =
-  | {
-      state: "CREATING_CAPTURE";
-      videoId: string;
-    }
-  | {
-      state: "SAVING_CAPTURE";
-      src: string;
-    };
-
-type UIEvent =
+type Action =
   | {
       type: "START_CAPTURE";
     }
@@ -43,45 +33,60 @@ type UIEvent =
       videoId: string;
     };
 
-type Event = UIEvent | StorageEvent | CaptureEvent;
+type Command =
+  | {
+      cmd: "CREATE_CAPTURE";
+      videoId: string;
+    }
+  | {
+      cmd: "SAVE_CAPTURE";
+      src: string;
+    };
 
-const featureContext = createContext<Context, UIEvent, TransientContext>();
+type CaptureFeature = States<State, Action, Command>;
 
-export const useFeature = createHook(featureContext);
+type Transition = StatesTransition<CaptureFeature>;
 
-const reducer = createReducer<Context, Event, TransientContext>(
-  {
-    AWAITING_VIDEO: {
-      VIDEO_LOADED: ({ videoId }) => ({
-        state: "CAPTURING",
-        videoId,
-      }),
-    },
-    CAPTURING: {
-      CAPTURE: ({ videoId }) => ({
-        state: "CREATING_CAPTURE",
-        videoId,
-      }),
-      "CAPTURE:CAPTURED": ({ src }) => ({
-        state: "SAVING_CAPTURE",
-        src,
-      }),
-    },
-  },
-  {
-    SAVING_CAPTURE: () => ({
-      state: "AWAITING_VIDEO",
+const featureContext = createContext({} as CaptureFeature);
+
+export const useFeature = () => useContext(featureContext);
+
+const reducer = createReducer<CaptureFeature>({
+  AWAITING_VIDEO: {
+    VIDEO_LOADED: (_, { videoId }) => ({
+      state: "CAPTURING",
+      videoId,
     }),
-    CREATING_CAPTURE: (_, prevContext) => prevContext,
-  }
-);
+  },
+  CAPTURING: {
+    CAPTURE: (state, { videoId }): Transition => [
+      {
+        ...state,
+        videoId,
+      },
+      {
+        cmd: "CREATE_CAPTURE",
+        videoId,
+      },
+    ],
+    "CAPTURE:CAPTURED": (_, { src }): Transition => [
+      {
+        state: "AWAITING_VIDEO",
+      },
+      {
+        cmd: "SAVE_CAPTURE",
+        src,
+      },
+    ],
+  },
+});
 
 export const Feature = ({
   children,
   onCapture,
   width,
   height,
-  initialContext = {
+  initialState = {
     state: "AWAITING_VIDEO",
   },
 }: {
@@ -89,29 +94,21 @@ export const Feature = ({
   width: number;
   height: number;
   children: React.ReactNode;
-  initialContext?: Context;
+  initialState?: State;
 }) => {
-  const { storage, capture } = useEnvironment();
-  const feature = useReducer(reducer, initialContext);
+  const { capture } = useEnvironment();
+  const feature = useReducer("Capture", reducer, initialState);
+  const [state] = feature;
 
-  if (process.env.NODE_ENV === "development" && process.browser) {
-    useDevtools("Capture", feature);
-  }
-
-  const [context, send] = feature;
-
-  useEvents(storage.events, send);
-  useEvents(capture.events, send);
-
-  useEnterEffect(context, "SAVING_CAPTURE", ({ src }) => {
+  useCommandEffect(state, "SAVE_CAPTURE", ({ src }) => {
     onCapture(src);
   });
 
-  useEnterEffect(context, "CREATING_CAPTURE", ({ videoId }) => {
+  useCommandEffect(state, "CREATE_CAPTURE", ({ videoId }) => {
     capture.capture(videoId, width, height);
   });
 
-  useEnterEffect(context, "CAPTURING", ({ videoId }) => {
+  useStateEffect(state, "CAPTURING", ({ videoId }) => {
     capture.startCamera(videoId);
   });
 

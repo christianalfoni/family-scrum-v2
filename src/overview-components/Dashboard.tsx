@@ -38,10 +38,15 @@ export const Dashboard = () => {
   return match(dashboard, {
     AWAITING_AUTHENTICATION: () => <DashboardSkeleton />,
     ERROR: () => <DashboardSkeleton />,
-    LOADED: ({ groceries, todos, currentWeek, family, view, barcodes }) => {
+    LOADED: (loadedDashboard) => {
+      const { groceries, todos, currentWeek, family, view, barcodes } =
+        loadedDashboard;
       return (
         <DashboardLayout>
-          <GroceriesShoppingFeature familyId={family.id}>
+          <GroceriesShoppingFeature
+            familyId={family.id}
+            dashboard={loadedDashboard}
+          >
             <ShoppingList groceries={groceries} />
           </GroceriesShoppingFeature>
           <MainContentLayout>
@@ -49,8 +54,10 @@ export const Dashboard = () => {
               // Not available in this version of the app
               GROCERIES_SHOPPING: () => null,
               GROCERIES: () => null,
-              PLAN_CURRENT_WEEK: () => null,
-              PLAN_NEXT_WEEK: () => null,
+              ADD_DINNER: () => null,
+              DINNERS: () => null,
+              PLAN_NEXT_WEEK_DINNERS: () => null,
+              PLAN_NEXT_WEEK_TODOS: () => null,
               ADD_TODO: () => null,
               CHECKLISTS: () => null,
               WEEKDAYS: () => (

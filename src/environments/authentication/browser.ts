@@ -1,12 +1,16 @@
 import firebase from "firebase/app";
-import { events } from "react-states";
-import { Authentication, AuthenticationEvent } from ".";
+import { Emit } from "react-states";
+import {
+  Authentication,
+  AuthenticationEvent,
+} from "../../environment-interface/authentication";
 
 const USER_DATA_COLLECTION = "userData";
 
-export const createAuthentication = (app: firebase.app.App): Authentication => {
-  const authenticationEvents = events<AuthenticationEvent>();
-
+export const createAuthentication = (
+  emit: Emit<AuthenticationEvent>,
+  app: firebase.app.App
+): Authentication => {
   app.auth().useDeviceLanguage();
 
   app.auth().onAuthStateChanged((user) => {
@@ -19,38 +23,37 @@ export const createAuthentication = (app: firebase.app.App): Authentication => {
         .then((userDataDoc) => {
           const userData = userDataDoc.data();
 
-          authenticationEvents.emit(
+          emit(
             userData
               ? {
-                type: "AUTHENTICATION:AUTHENTICATED_WITH_FAMILY",
-                user: {
-                  id: user.uid,
-                  familyId: userData.familyId,
-                },
-              }
+                  type: "AUTHENTICATION:AUTHENTICATED_WITH_FAMILY",
+                  user: {
+                    id: user.uid,
+                    familyId: userData.familyId,
+                  },
+                }
               : {
-                type: "AUTHENTICATION:AUTHENTICATED",
-                user: {
-                  id: user.uid,
-                },
-              }
+                  type: "AUTHENTICATION:AUTHENTICATED",
+                  user: {
+                    id: user.uid,
+                  },
+                }
           );
         })
         .catch((error) => {
-          authenticationEvents.emit({
+          emit({
             type: "AUTHENTICATION:ERROR",
             error: error.message,
           });
         });
     } else {
-      authenticationEvents.emit({
+      emit({
         type: "AUTHENTICATION:UNAUTHENTICATED",
       });
     }
   });
 
   return {
-    events: authenticationEvents,
     signIn() {
       const provider = new firebase.auth.GoogleAuthProvider();
 
@@ -58,7 +61,7 @@ export const createAuthentication = (app: firebase.app.App): Authentication => {
         .auth()
         .signInWithRedirect(provider)
         .catch((error) => {
-          this.events.emit({
+          emit({
             type: "AUTHENTICATION:SIGN_IN_ERROR",
             error: error.message,
           });

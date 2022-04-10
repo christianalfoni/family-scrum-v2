@@ -1,13 +1,12 @@
-import { useReducer } from "react";
+import { createContext, useContext } from "react";
+import { States, StatesTransition, useStateEffect } from "react-states";
+
 import {
-  createContext,
-  createHook,
+  useEnvironment,
   createReducer,
-  useEnterEffect,
-} from "react-states";
-import { useDevtools } from "react-states/devtools";
-import { useEnvironment } from "../../environment";
-import { DinnerDTO } from "../../environment/storage";
+  useReducer,
+} from "../../environment-interface";
+import { DinnerDTO } from "../../environment-interface/storage";
 
 export type Dinner = DinnerDTO;
 
@@ -19,7 +18,7 @@ type NewDinner = {
   instructions: string[];
 };
 
-type ValidationContext =
+type ValidationState =
   | {
       state: "VALID";
     }
@@ -27,13 +26,13 @@ type ValidationContext =
       state: "INVALID";
     };
 
-type BaseContext = {
+type BaseState = {
   newIngredientName: string;
   newPreparationDescription: string;
-  validation: ValidationContext;
+  validation: ValidationState;
 };
 
-type Context = BaseContext &
+type State = BaseState &
   (
     | {
         state: "CREATING";
@@ -43,19 +42,17 @@ type Context = BaseContext &
         state: "EDITING";
         dinner: Dinner;
       }
+    | {
+        state: "SAVING";
+        dinner: NewDinner;
+      }
+    | {
+        state: "UPDATING";
+        dinner: Dinner;
+      }
   );
 
-type TransientContext =
-  | {
-      state: "CREATING_DINNER";
-      dinner: NewDinner;
-    }
-  | {
-      state: "UPDATING_DINNER";
-      dinner: Dinner;
-    };
-
-type UIEvent =
+type Action =
   | {
       type: "NAME_CHANGED";
       name: string;
@@ -106,9 +103,11 @@ type UIEvent =
       type: "SAVE";
     };
 
-type Event = UIEvent;
+export type DinnerFeature = States<State, Action>;
 
-const featureContext = createContext<Context, Event, TransientContext>();
+type Transition = StatesTransition<DinnerFeature>;
+
+const featureContext = createContext({} as DinnerFeature);
 
 function validateDinner({
   name,
@@ -118,7 +117,7 @@ function validateDinner({
   name: string;
   description: string;
   instructions: string[];
-}): ValidationContext {
+}): ValidationState {
   if (name.length && description.length && instructions.length) {
     return {
       state: "VALID",
@@ -130,166 +129,165 @@ function validateDinner({
   };
 }
 
-const reducer = createReducer<Context, Event, TransientContext>(
-  {
-    CREATING: {
-      NAME_CHANGED: ({ name }, context) => {
-        const dinner = {
-          ...context.dinner,
-          name,
-        };
+const reducer = createReducer<DinnerFeature>({
+  CREATING: {
+    NAME_CHANGED: (state, { name }): Transition => {
+      const dinner = {
+        ...state.dinner,
+        name,
+      };
 
-        return {
-          ...context,
-          dinner,
-          validation: validateDinner(dinner),
-        };
-      },
-      DESCRIPTION_CHANGED: ({ description }, context) => {
-        const dinner = {
-          ...context.dinner,
-          description,
-        };
-
-        return {
-          ...context,
-          dinner,
-          validation: validateDinner(dinner),
-        };
-      },
-      NEW_INGREDIENT_NAME_CHANGED: ({ name }, context) => ({
-        ...context,
-        newIngredientName: name,
-      }),
-      ADD_INGREDIENT: (_, context) => ({
-        ...context,
-        dinner: {
-          ...context.dinner,
-          groceries: [
-            ...context.dinner.groceries,
-            {
-              name: context.newIngredientName,
-              shopCount: 1,
-            },
-          ],
-        },
-        newIngredientName: "",
-      }),
-      REMOVE_INGREDIENT: ({ index }, context) => ({
-        ...context,
-        dinner: {
-          ...context.dinner,
-          groceries: context.dinner.groceries.filter(
-            (_, itemIndex) => itemIndex !== index
-          ),
-        },
-      }),
-      INCREASE_SHOP_COUNT: ({ index }, context) => ({
-        ...context,
-        dinner: {
-          ...context.dinner,
-          groceries: context.dinner.groceries.map((grocery, groceryIndex) =>
-            groceryIndex === index
-              ? {
-                  ...grocery,
-                  shopCount: grocery.shopCount + 1,
-                }
-              : grocery
-          ),
-        },
-      }),
-      NEW_PREPARATION_ITEM_DESCRIPTION_CHANGED: ({ description }, context) => ({
-        ...context,
-        newPreparationDescription: description,
-      }),
-      ADD_PREPARATION_ITEM: (_, context) => ({
-        ...context,
-        dinner: {
-          ...context.dinner,
-          preparationCheckList: [
-            ...context.dinner.preparationCheckList,
-            context.newPreparationDescription,
-          ],
-        },
-        newPreparationDescription: "",
-      }),
-      REMOVE_PREPARATION_ITEM: ({ index }, context) => ({
-        ...context,
-        dinner: {
-          ...context.dinner,
-          preparationCheckList: context.dinner.preparationCheckList.filter(
-            (_, itemIndex) => itemIndex !== index
-          ),
-        },
-      }),
-      INSTRUCTION_CHANGED: ({ instruction, index }, context) => ({
-        ...context,
-        dinner: {
-          ...context.dinner,
-          instructions: context.dinner.instructions.map(
-            (current, instructionIndex) =>
-              index === instructionIndex ? instruction : current
-          ),
-        },
-      }),
-      ADD_INSTRUCTION: (_, context) => {
-        const dinner = {
-          ...context.dinner,
-          instructions: [...context.dinner.instructions, ""],
-        };
-
-        return {
-          ...context,
-          dinner,
-          validation: validateDinner(dinner),
-        };
-      },
-      REMOVE_INSTRUCTION: ({ index }, context) => {
-        const dinner = {
-          ...context.dinner,
-          instructions: context.dinner.instructions.filter(
-            (_, itemIndex) => itemIndex !== index
-          ),
-        };
-
-        return {
-          ...context,
-          dinner,
-          validation: validateDinner(dinner),
-        };
-      },
-      SAVE: (_, context) =>
-        context.validation.state === "VALID"
-          ? {
-              state: "CREATING_DINNER",
-              dinner: context.dinner,
-            }
-          : context,
+      return {
+        ...state,
+        dinner,
+        validation: validateDinner(dinner),
+      };
     },
-    EDITING: {
-      NAME_CHANGED: ({ name }, context) => ({
-        ...context,
-        dinner: {
-          ...context.dinner,
-          name,
-        },
-      }),
-      DESCRIPTION_CHANGED: ({ description }, context) => ({
-        ...context,
-        dinner: {
-          ...context.dinner,
-          description,
-        },
-      }),
+    DESCRIPTION_CHANGED: (state, { description }): Transition => {
+      const dinner = {
+        ...state.dinner,
+        description,
+      };
+
+      return {
+        ...state,
+        dinner,
+        validation: validateDinner(dinner),
+      };
     },
+    NEW_INGREDIENT_NAME_CHANGED: (state, { name }): Transition => ({
+      ...state,
+      newIngredientName: name,
+    }),
+    ADD_INGREDIENT: (state): Transition => ({
+      ...state,
+      dinner: {
+        ...state.dinner,
+        groceries: [
+          ...state.dinner.groceries,
+          {
+            name: state.newIngredientName,
+            shopCount: 1,
+          },
+        ],
+      },
+      newIngredientName: "",
+    }),
+    REMOVE_INGREDIENT: (state, { index }): Transition => ({
+      ...state,
+      dinner: {
+        ...state.dinner,
+        groceries: state.dinner.groceries.filter(
+          (_, itemIndex) => itemIndex !== index
+        ),
+      },
+    }),
+    INCREASE_SHOP_COUNT: (state, { index }): Transition => ({
+      ...state,
+      dinner: {
+        ...state.dinner,
+        groceries: state.dinner.groceries.map((grocery, groceryIndex) =>
+          groceryIndex === index
+            ? {
+                ...grocery,
+                shopCount: grocery.shopCount + 1,
+              }
+            : grocery
+        ),
+      },
+    }),
+    NEW_PREPARATION_ITEM_DESCRIPTION_CHANGED: (
+      state,
+      { description }
+    ): Transition => ({
+      ...state,
+      newPreparationDescription: description,
+    }),
+    ADD_PREPARATION_ITEM: (state): Transition => ({
+      ...state,
+      dinner: {
+        ...state.dinner,
+        preparationCheckList: [
+          ...state.dinner.preparationCheckList,
+          state.newPreparationDescription,
+        ],
+      },
+      newPreparationDescription: "",
+    }),
+    REMOVE_PREPARATION_ITEM: (state, { index }): Transition => ({
+      ...state,
+      dinner: {
+        ...state.dinner,
+        preparationCheckList: state.dinner.preparationCheckList.filter(
+          (_, itemIndex) => itemIndex !== index
+        ),
+      },
+    }),
+    INSTRUCTION_CHANGED: (state, { instruction, index }): Transition => ({
+      ...state,
+      dinner: {
+        ...state.dinner,
+        instructions: state.dinner.instructions.map(
+          (current, instructionIndex) =>
+            index === instructionIndex ? instruction : current
+        ),
+      },
+    }),
+    ADD_INSTRUCTION: (state): Transition => {
+      const dinner = {
+        ...state.dinner,
+        instructions: [...state.dinner.instructions, ""],
+      };
+
+      return {
+        ...state,
+        dinner,
+        validation: validateDinner(dinner),
+      };
+    },
+    REMOVE_INSTRUCTION: (state, { index }): Transition => {
+      const dinner = {
+        ...state.dinner,
+        instructions: state.dinner.instructions.filter(
+          (_, itemIndex) => itemIndex !== index
+        ),
+      };
+
+      return {
+        ...state,
+        dinner,
+        validation: validateDinner(dinner),
+      };
+    },
+    SAVE: (state): Transition =>
+      state.validation.state === "VALID"
+        ? {
+            ...state,
+            state: "SAVING",
+          }
+        : state,
   },
-  {
-    CREATING_DINNER: (_, prevContext) => prevContext,
-    UPDATING_DINNER: (_, prevContext) => prevContext,
-  }
-);
+  EDITING: {
+    NAME_CHANGED: (state, { name }): Transition => ({
+      ...state,
+      dinner: {
+        ...state.dinner,
+        name,
+      },
+    }),
+    DESCRIPTION_CHANGED: (state, { description }): Transition => ({
+      ...state,
+      dinner: {
+        ...state.dinner,
+        description,
+      },
+    }),
+  },
+  SAVING: {},
+  UPDATING: {},
+});
 
-export const useFeature = createHook(featureContext);
+export const useFeature = () => useContext(featureContext);
 
 export const Feature = ({
   children,
@@ -300,6 +298,7 @@ export const Feature = ({
 }) => {
   const { storage } = useEnvironment();
   const feature = useReducer(
+    "Dinner",
     reducer,
     dinner
       ? {
@@ -328,15 +327,11 @@ export const Feature = ({
         }
   );
 
-  if (process.browser && process.env.NODE_ENV === "development") {
-    useDevtools("Dinner", feature);
-  }
+  const [state] = feature;
 
-  const [context, send] = feature;
+  useStateEffect(state, "SAVING", () => {});
 
-  useEnterEffect(context, "CREATING_DINNER", () => {});
-
-  useEnterEffect(context, "UPDATING_DINNER", () => {});
+  useStateEffect(state, "UPDATING", () => {});
 
   return (
     <featureContext.Provider value={feature}>

@@ -1,14 +1,17 @@
-import { useReducer } from "react";
+import { createContext, useContext } from "react";
 import {
-  createContext,
-  createHook,
-  createReducer,
-  useEnterEffect,
+  States,
+  StatesHandlers,
+  StatesTransition,
+  useCommandEffect,
 } from "react-states";
-import { useDevtools } from "react-states/devtools";
-import { useEnvironment } from "../../environment";
+import {
+  useEnvironment,
+  createReducer,
+  useReducer,
+} from "../../environment-interface";
 
-type DateContext =
+type DateState =
   | {
       state: "INACTIVE";
     }
@@ -17,7 +20,7 @@ type DateContext =
       date: number;
     };
 
-type TimeContext =
+type TimeState =
   | {
       state: "INACTIVE";
     }
@@ -26,7 +29,7 @@ type TimeContext =
       time: string;
     };
 
-type ChecklistContext =
+type ChecklistState =
   | {
       state: "INACTIVE";
     }
@@ -35,14 +38,14 @@ type ChecklistContext =
       items: string[];
     };
 
-type BaseContext = {
+type BaseState = {
   description: string;
-  date: DateContext;
-  time: TimeContext;
-  checkList: ChecklistContext;
+  date: DateState;
+  time: TimeState;
+  checkList: ChecklistState;
 };
 
-type Context = BaseContext &
+type State = BaseState &
   (
     | {
         state: "VALID";
@@ -52,15 +55,7 @@ type Context = BaseContext &
       }
   );
 
-type TransientContext = {
-  state: "ADDING_TODO";
-  description: string;
-  date?: number;
-  time?: string;
-  checkList?: string[];
-};
-
-type UIEvent =
+type Action =
   | {
       type: "DESCRIPTION_CHANGED";
       description: string;
@@ -94,162 +89,139 @@ type UIEvent =
       type: "ADD_TODO";
     };
 
-type Event = UIEvent;
+type Command = {
+  cmd: "ADD_TODO";
+  description: string;
+  date?: number;
+  time?: string;
+  checkList?: string[];
+};
 
-const featureContext = createContext<Context, UIEvent, TransientContext>();
+type AddTodoFeature = States<State, Action, Command>;
 
-const DESCRIPTION_CHANGED = (
-  { description }: { description: string },
-  context: Context
-): Context => ({
-  ...context,
-  description,
-  state: description ? "VALID" : "INVALID",
-});
+type Transition = StatesTransition<AddTodoFeature>;
 
-const DATE_TOGGLED = (_: any, context: Context): Context => ({
-  ...context,
-  date:
-    context.date.state === "ACTIVE"
-      ? {
-          state: "INACTIVE",
-        }
-      : {
-          state: "ACTIVE",
-          date: Date.now(),
-        },
-});
+const featureContext = createContext({} as AddTodoFeature);
 
-const DATE_CHANGED = (
-  { date }: { date: number },
-  context: Context
-): Context => ({
-  ...context,
-  date:
-    context.date.state === "ACTIVE"
-      ? {
-          ...context.date,
-          date,
-        }
-      : context.date,
-});
+const handlers: StatesHandlers<AddTodoFeature> = {
+  DESCRIPTION_CHANGED: (state, { description }): Transition => ({
+    ...state,
+    description,
+    state: description ? "VALID" : "INVALID",
+  }),
+  DATE_TOGGLED: (state): Transition => ({
+    ...state,
+    date:
+      state.date.state === "ACTIVE"
+        ? {
+            state: "INACTIVE",
+          }
+        : {
+            state: "ACTIVE",
+            date: Date.now(),
+          },
+  }),
+  DATE_CHANGED: (state, { date }): Transition => ({
+    ...state,
+    date:
+      state.date.state === "ACTIVE"
+        ? {
+            ...state.date,
+            date,
+          }
+        : state.date,
+  }),
 
-const TIME_TOGGLED = (_: any, context: Context): Context => ({
-  ...context,
-  time:
-    context.time.state === "ACTIVE"
-      ? {
-          state: "INACTIVE",
-        }
-      : {
-          state: "ACTIVE",
-          time: "10:00",
-        },
-});
+  TIME_TOGGLED: (state): Transition => ({
+    ...state,
+    time:
+      state.time.state === "ACTIVE"
+        ? {
+            state: "INACTIVE",
+          }
+        : {
+            state: "ACTIVE",
+            time: "10:00",
+          },
+  }),
 
-const TIME_CHANGED = (
-  { time }: { time: string },
-  context: Context
-): Context => ({
-  ...context,
-  time:
-    context.time.state === "ACTIVE"
-      ? {
-          ...context.time,
-          time,
-        }
-      : context.time,
-});
+  TIME_CHANGED: (state, { time }): Transition => ({
+    ...state,
+    time:
+      state.time.state === "ACTIVE"
+        ? {
+            ...state.time,
+            time,
+          }
+        : state.time,
+  }),
 
-const CHECKLIST_TOGGLED = (_: any, context: Context): Context => ({
-  ...context,
-  checkList:
-    context.checkList.state === "ACTIVE"
-      ? {
-          state: "INACTIVE",
-        }
-      : {
-          state: "ACTIVE",
-          items: [],
-        },
-});
+  CHECKLIST_TOGGLED: (state): Transition => ({
+    ...state,
+    checkList:
+      state.checkList.state === "ACTIVE"
+        ? {
+            state: "INACTIVE",
+          }
+        : {
+            state: "ACTIVE",
+            items: [],
+          },
+  }),
 
-const CHECKLIST_ITEM_ADDED = (
-  { title }: { title: string },
-  context: Context
-): Context => ({
-  ...context,
-  checkList:
-    context.checkList.state === "ACTIVE"
-      ? {
-          state: "ACTIVE",
-          items: [...context.checkList.items, title],
-        }
-      : context.checkList,
-});
+  CHECKLIST_ITEM_ADDED: (state, { title }): Transition => ({
+    ...state,
+    checkList:
+      state.checkList.state === "ACTIVE"
+        ? {
+            state: "ACTIVE",
+            items: [...state.checkList.items, title],
+          }
+        : state.checkList,
+  }),
 
-const CHECKLIST_ITEM_REMOVED = (
-  { index }: { index: number },
-  context: Context
-): Context => ({
-  ...context,
-  checkList:
-    context.checkList.state === "ACTIVE"
-      ? {
-          state: "ACTIVE",
-          items: [
-            ...context.checkList.items.slice(0, index),
-            ...context.checkList.items.slice(index + 1),
-          ],
-        }
-      : context.checkList,
-});
+  CHECKLIST_ITEM_REMOVED: (state, { index }): Transition => ({
+    ...state,
+    checkList:
+      state.checkList.state === "ACTIVE"
+        ? {
+            state: "ACTIVE",
+            items: [
+              ...state.checkList.items.slice(0, index),
+              ...state.checkList.items.slice(index + 1),
+            ],
+          }
+        : state.checkList,
+  }),
+};
 
-const reducer = createReducer<Context, Event, TransientContext>(
-  {
-    INVALID: {
-      DESCRIPTION_CHANGED,
-      DATE_TOGGLED,
-      DATE_CHANGED,
-      TIME_TOGGLED,
-      TIME_CHANGED,
-      CHECKLIST_TOGGLED,
-      CHECKLIST_ITEM_ADDED,
-      CHECKLIST_ITEM_REMOVED,
-    },
-    VALID: {
-      DESCRIPTION_CHANGED,
-      DATE_TOGGLED,
-      DATE_CHANGED,
-      TIME_TOGGLED,
-      TIME_CHANGED,
-      CHECKLIST_TOGGLED,
-      CHECKLIST_ITEM_ADDED,
-      CHECKLIST_ITEM_REMOVED,
-      ADD_TODO: (_, context) => ({
-        state: "ADDING_TODO",
-        description: context.description,
+const reducer = createReducer<AddTodoFeature>({
+  INVALID: handlers,
+  VALID: {
+    ...handlers,
+    ADD_TODO: (state): Transition => [
+      state,
+      {
+        cmd: "ADD_TODO",
+        description: state.description,
         checkList:
-          context.checkList.state === "ACTIVE"
-            ? context.checkList.items
+          state.checkList.state === "ACTIVE"
+            ? state.checkList.items
             : undefined,
-        date: context.date.state === "ACTIVE" ? context.date.date : undefined,
-        time: context.time.state === "ACTIVE" ? context.time.time : undefined,
-      }),
-    },
+        date: state.date.state === "ACTIVE" ? state.date.date : undefined,
+        time: state.time.state === "ACTIVE" ? state.time.time : undefined,
+      },
+    ],
   },
-  {
-    ADDING_TODO: (_, prevContext) => prevContext,
-  }
-);
+});
 
-export const useFeature = createHook(featureContext);
+export const useFeature = () => useContext(featureContext);
 
 export const Feature = ({
   familyId,
   userId,
   children,
-  initialContext = {
+  initialState = {
     state: "INVALID",
     description: "",
     checkList: {
@@ -266,20 +238,15 @@ export const Feature = ({
   familyId: string;
   userId: string;
   children: React.ReactNode;
-  initialContext?: Context;
+  initialState?: State;
 }) => {
   const { storage } = useEnvironment();
-  const feature = useReducer(reducer, initialContext);
+  const feature = useReducer("AddTodo", reducer, initialState);
+  const [state] = feature;
 
-  if (process.env.NODE_ENV === "development" && process.browser) {
-    useDevtools("GroceryList", feature);
-  }
-
-  const [context, send] = feature;
-
-  useEnterEffect(
-    context,
-    "ADDING_TODO",
+  useCommandEffect(
+    state,
+    "ADD_TODO",
     ({ description, date, time, checkList }) => {
       storage.addTodo(familyId, description, {
         date,

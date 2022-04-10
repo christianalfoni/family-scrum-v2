@@ -1,37 +1,35 @@
-import { useReducer } from "react";
-import { createContext, createHook, createReducer } from "react-states";
-import { useDevtools } from "react-states/devtools";
+import { createContext, useContext } from "react";
+import { States } from "react-states";
+import { createReducer, useReducer } from "../../environment-interface";
 
-type Context = {
+type State = {
   state: "OVERVIEW";
 };
 
-type Event = {
+type Action = {
   type: "NOOP";
 };
 
-const featureContext = createContext<Context, Event>();
+export type WeekdaysFeature = States<State, Action>;
 
-const reducer = createReducer<Context, Event>({
+const featureContext = createContext({} as WeekdaysFeature);
+
+const reducer = createReducer<WeekdaysFeature>({
   OVERVIEW: {},
 });
 
-export const useFeature = createHook(featureContext);
+export const useFeature = () => useContext(featureContext);
 
 export const Feature = ({
   children,
-  initialContext = {
+  initialState = {
     state: "OVERVIEW",
   },
 }: {
   children: React.ReactNode;
-  initialContext?: Context;
+  initialState?: State;
 }) => {
-  const feature = useReducer(reducer, initialContext);
-
-  if (process.env.NODE_ENV === "development" && process.browser) {
-    useDevtools("Weekdays", feature);
-  }
+  const feature = useReducer("Weekdays", reducer, initialState);
 
   return (
     <featureContext.Provider value={feature}>

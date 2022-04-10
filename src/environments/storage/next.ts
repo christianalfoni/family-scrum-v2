@@ -1,11 +1,9 @@
-import { events } from "react-states";
-import { Storage } from ".";
+import { Storage } from "../../environment-interface/storage";
 
 const shouldNotCallError = new Error("Should not be called on the server");
 
 export const createStorage = (): Storage => {
   return {
-    events: events(),
     addGrocery() {
       throw shouldNotCallError;
     },

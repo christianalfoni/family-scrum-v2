@@ -48,7 +48,9 @@
     "todos": "Gjøremål"
   },
   "GroceriesShoppingView": {
-    "shoppingList": "Handleliste"
+    "shoppingList": "Handleliste",
+    "filterNewGrocery": "Filtrer/Ny Matvare",
+    "add": "Legg til"
   },
   "CheckListsView": {
     "checkLists": "Sjekklister",

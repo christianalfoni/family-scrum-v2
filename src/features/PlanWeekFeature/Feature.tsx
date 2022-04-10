@@ -1,30 +1,22 @@
 import { addDays, differenceInDays } from "date-fns";
-import { useReducer } from "react";
+import { createContext, useContext } from "react";
+import { States, StatesTransition, useCommandEffect } from "react-states";
+
 import {
-  createContext,
-  createHook,
   createReducer,
-  useEnterEffect,
-} from "react-states";
-import { useDevtools } from "react-states/devtools";
-import { useEnvironment } from "../../environment";
-import { StorageEvent } from "../../environment/storage";
+  useEnvironment,
+  useReducer,
+} from "../../environment-interface";
+
 import { getDateFromWeekId, isWithinWeek } from "../../utils";
 import { Todo, Todos, User, Week } from "../DashboardFeature";
 
-type Context = {
+type State = {
   state: "PLANNING";
   userId: string;
 };
 
-type TransientContext = {
-  state: "TOGGLING_WEEKDAY";
-  todoId: string;
-  weekdayIndex: number;
-  active: boolean;
-};
-
-type UIEvent = {
+type Action = {
   type: "TOGGLE_WEEKDAY";
   todoId: string;
   userId: string;
@@ -32,30 +24,40 @@ type UIEvent = {
   active: boolean;
 };
 
-type Event = UIEvent | StorageEvent;
+type Command = {
+  cmd: "TOGGLE_WEEKDAY";
+  todoId: string;
+  weekdayIndex: number;
+  active: boolean;
+};
 
-const featureContext = createContext<Context, UIEvent, TransientContext>();
+export type PlanWeekFeature = States<State, Action, Command>;
 
-const reducer = createReducer<Context, Event, TransientContext>(
-  {
-    PLANNING: {
-      TOGGLE_WEEKDAY: ({ userId, todoId, weekdayIndex, active }, context) =>
-        userId === context.userId
-          ? {
-              state: "TOGGLING_WEEKDAY",
+type Transition = StatesTransition<PlanWeekFeature>;
+
+const featureContext = createContext({} as PlanWeekFeature);
+
+const reducer = createReducer<PlanWeekFeature>({
+  PLANNING: {
+    TOGGLE_WEEKDAY: (
+      state,
+      { userId, todoId, weekdayIndex, active }
+    ): Transition =>
+      userId === state.userId
+        ? [
+            state,
+            {
+              cmd: "TOGGLE_WEEKDAY",
               todoId,
               weekdayIndex,
               active,
-            }
-          : context,
-    },
+            },
+          ]
+        : state,
   },
-  {
-    TOGGLING_WEEKDAY: (_, prevContext) => prevContext,
-  }
-);
+});
 
-export const useFeature = createHook(featureContext);
+export const useFeature = () => useContext(featureContext);
 
 export const selectors = {
   todosByType(
@@ -144,7 +146,7 @@ export const Feature = ({
   user,
   weekId,
   children,
-  initialContext = {
+  initialState = {
     state: "PLANNING",
     userId: user.id,
   },
@@ -152,20 +154,16 @@ export const Feature = ({
   user: User;
   weekId: string;
   children: React.ReactNode;
-  initialContext?: Context;
+  initialState?: State;
 }) => {
   const { storage } = useEnvironment();
-  const feature = useReducer(reducer, initialContext);
+  const feature = useReducer("PlanWeek", reducer, initialState);
 
-  if (process.env.NODE_ENV === "development" && process.browser) {
-    useDevtools("PlanWeek", feature);
-  }
+  const [state] = feature;
 
-  const [context] = feature;
-
-  useEnterEffect(
-    context,
-    "TOGGLING_WEEKDAY",
+  useCommandEffect(
+    state,
+    "TOGGLE_WEEKDAY",
     ({ todoId, weekdayIndex, active }) => {
       storage.setWeekTaskActivity({
         familyId: user.familyId,

@@ -1,10 +1,7 @@
 import React from "react";
-import { EnvironmentProvider } from "../environment";
-import { createAuthentication } from "../environment/authentication/sandbox";
-import { createCapture } from "../environment/capture/sandbox";
-import { createStorage } from "../environment/storage/sandbox";
-import { createVersion } from "../environment/version/sandbox";
-import { createVisibility } from "../environment/visibility/sandbox";
+
+import { EnvironmentProvider } from "../environment-interface";
+import { environment } from "../environments/sandbox";
 
 export default function SandboxEnvironment({
   children,
@@ -12,15 +9,7 @@ export default function SandboxEnvironment({
   children: React.ReactNode;
 }) {
   return (
-    <EnvironmentProvider
-      environment={{
-        authentication: createAuthentication(),
-        storage: createStorage(),
-        version: createVersion("1.0.0", "1.0.0"),
-        visibility: createVisibility(),
-        capture: createCapture(),
-      }}
-    >
+    <EnvironmentProvider environment={environment}>
       {children}
     </EnvironmentProvider>
   );

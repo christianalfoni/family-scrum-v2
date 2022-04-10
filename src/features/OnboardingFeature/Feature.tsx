@@ -1,43 +1,39 @@
-import * as React from 'react'
-import { createContext, createHook, createReducer } from "react-states"
-import { useDevtools } from 'react-states/devtools'
+import * as React from "react";
+import { createReducer, States } from "react-states";
+import { useReducer } from "../../environment-interface";
 
-type Context = {
-    state: 'SELECTING_ONBOARDING'
-}
+type State = {
+  state: "SELECTING_ONBOARDING";
+};
 
-type UIEvent = {
-    type: 'CREATE_FAMILY_SELECTED'
-}
+type Action = {
+  type: "CREATE_FAMILY_SELECTED";
+};
 
-type Event = UIEvent
+export type OnboardingFeature = States<State, Action>;
 
-const featureContext = createContext<Context, UIEvent>()
+const featureContext = React.createContext({} as OnboardingFeature);
 
-export const useFeature = createHook(featureContext)
+export const useFeature = () => React.useContext(featureContext);
 
-const reducer = createReducer<Context, Event>({
-    SELECTING_ONBOARDING: {}
-})
+const reducer = createReducer<OnboardingFeature>({
+  SELECTING_ONBOARDING: {},
+});
 
 export const Feature = ({
-    children,
-    initialContext = {
-        state: 'SELECTING_ONBOARDING'
-    }
+  children,
+  initialState = {
+    state: "SELECTING_ONBOARDING",
+  },
 }: {
-    children: React.ReactNode
-    initialContext: Context
+  children: React.ReactNode;
+  initialState: State;
 }) => {
-    const feature = React.useReducer(reducer, initialContext)
+  const feature = useReducer("Onboarding", reducer, initialState);
 
-    if (process.env.NODE_ENV === 'development' && process.browser) {
-        useDevtools('Onboarding', feature)
-    }
-
-    return (
-        <featureContext.Provider value={feature}>
-            {children}
-        </featureContext.Provider>
-    )
-}
+  return (
+    <featureContext.Provider value={feature}>
+      {children}
+    </featureContext.Provider>
+  );
+};

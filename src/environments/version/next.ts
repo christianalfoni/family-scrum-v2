@@ -1,8 +1,6 @@
-import { events } from "react-states";
-import { Version } from ".";
+import { Version } from "../../environment-interface/version";
 
 export const createVersion = (): Version => ({
-  events: events(),
   checkVersion() {},
   update() {},
 });

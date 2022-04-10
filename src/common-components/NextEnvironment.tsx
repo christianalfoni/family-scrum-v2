@@ -1,27 +1,15 @@
-import dynamic from "next/dynamic";
 import React from "react";
-import { EnvironmentProvider } from "../environment";
-import { createAuthentication } from "../environment/authentication/next";
-import { createCapture } from "../environment/capture/next";
-import { createStorage } from "../environment/storage/next";
-import { createVersion } from "../environment/version/next";
-import { createVisibility } from "../environment/visibility/next";
 
-export default function SandboxEnvironment({
+import { EnvironmentProvider } from "../environment-interface";
+import { environment } from "../environments/next";
+
+export default function NextEnvironment({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <EnvironmentProvider
-      environment={{
-        authentication: createAuthentication(),
-        storage: createStorage(),
-        version: createVersion(),
-        visibility: createVisibility(),
-        capture: createCapture(),
-      }}
-    >
+    <EnvironmentProvider environment={environment}>
       {children}
     </EnvironmentProvider>
   );

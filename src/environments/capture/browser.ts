@@ -1,16 +1,15 @@
-import { events } from "react-states";
-import { Capture } from ".";
+import { Emit } from "react-states";
+import { Capture, CaptureEvent } from "../../environment-interface/capture";
 
-export const createCapture = (): Capture => {
+export const createCapture = (emit: Emit<CaptureEvent>): Capture => {
   let currentStream: MediaStream;
 
   return {
-    events: events(),
     startCamera(elementId) {
       const video = document.querySelector<HTMLVideoElement>(`#${elementId}`);
 
       if (!video) {
-        this.events.emit({
+        emit({
           type: "CAPTURE:CAMERA_ERROR",
           error: "No video element",
         });
@@ -24,13 +23,13 @@ export const createCapture = (): Capture => {
             currentStream = video.srcObject = stream;
           })
           .catch((error) => {
-            this.events.emit({
+            emit({
               type: "CAPTURE:CAMERA_ERROR",
               error: error.message,
             });
           });
       } else {
-        this.events.emit({
+        emit({
           type: "CAPTURE:CAMERA_ERROR",
           error: "Camera not supported",
         });
@@ -40,7 +39,7 @@ export const createCapture = (): Capture => {
       const video = document.querySelector<HTMLVideoElement>(`#${elementId}`);
 
       if (!video) {
-        this.events.emit({
+        emit({
           type: "CAPTURE:CAMERA_ERROR",
           error: "No video element",
         });
@@ -76,7 +75,7 @@ export const createCapture = (): Capture => {
         });
       }
 
-      this.events.emit({
+      emit({
         type: "CAPTURE:CAPTURED",
         src: canvas.toDataURL(),
       });

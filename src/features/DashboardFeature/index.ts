@@ -12,5 +12,5 @@ export type {
   Week,
   User,
   UIEvent as DashboardUIEvent,
-  ViewContext as DashboardViewContext,
+  ViewState as DashboardViewContext,
 } from "./Feature";

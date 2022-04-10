@@ -1,10 +1,8 @@
 import { match } from "react-states";
 import { useDasbhoard } from "../features/DashboardFeature";
-import { GroceriesView } from "./GroceriesView";
 import { GroceriesShoppingView } from "./GroceriesShoppingView";
 import { DashboardView, DashboardContentSkeleton } from "./DashboardView";
 
-import { GroceriesFeature } from "../features/GroceriesFeature";
 import { DinnersFeature } from "../features/DinnersFeature";
 import { DinnerFeature } from "../features/DinnerFeature";
 import { GroceriesShoppingFeature } from "../features/GroceriesShoppingFeature";
@@ -20,7 +18,7 @@ import { DinnersView } from "./DinnersView";
 import { AddDinnerView } from "./AddDinnerView";
 
 export const Dashboard = () => {
-  const [dashboard, send] = useDasbhoard();
+  const [dashboard, dispatch] = useDasbhoard();
 
   return (
     <div className="h-screen overflow-hidden bg-gray-100 flex flex-col">
@@ -29,23 +27,28 @@ export const Dashboard = () => {
         ERROR: () => <DashboardContentSkeleton />,
         LOADING: () => <DashboardContentSkeleton />,
         REQUIRING_AUTHENTICATION: () => <DashboardContentSkeleton />,
-        LOADED: ({
-          family,
-          view,
-          todos,
-          currentWeek,
-          nextWeek,
-          dinners,
-          groceries,
-          user,
-          checkListItemsByTodoId,
-        }) => {
+        LOADED: (loadedDashboard) => {
+          const {
+            family,
+            view,
+            todos,
+            currentWeek,
+            nextWeek,
+            dinners,
+            groceries,
+            user,
+            checkListItemsByTodoId,
+          } = loadedDashboard;
           return match(view, {
             GROCERIES_SHOPPING: () => (
-              <GroceriesShoppingFeature familyId={family.id}>
+              <GroceriesShoppingFeature
+                familyId={family.id}
+                dashboard={loadedDashboard}
+              >
                 <GroceriesShoppingView
+                  dashboard={loadedDashboard}
                   onBackClick={() =>
-                    send({
+                    dispatch({
                       type: "VIEW_SELECTED",
                       view: {
                         state: "WEEKDAYS",
@@ -55,28 +58,24 @@ export const Dashboard = () => {
                 />
               </GroceriesShoppingFeature>
             ),
-            GROCERIES: () => (
-              <GroceriesFeature familyId={family.id}>
-                <GroceriesView
-                  onBackClick={() =>
-                    send({
-                      type: "VIEW_SELECTED",
-                      view: {
-                        state: "WEEKDAYS",
-                      },
-                    })
-                  }
-                />
-              </GroceriesFeature>
+            WEEKDAYS: () => (
+              <DashboardView
+                dashboard={loadedDashboard}
+                selectView={(view) => {
+                  dispatch({
+                    type: "VIEW_SELECTED",
+                    view,
+                  });
+                }}
+              />
             ),
-            WEEKDAYS: () => <DashboardView />,
             CHECKLISTS: () => (
               <CheckListFeature user={user}>
                 <CheckListsView
                   todos={todos}
                   checkListItemsByTodoId={checkListItemsByTodoId}
                   onBackClick={() =>
-                    send({
+                    dispatch({
                       type: "VIEW_SELECTED",
                       view: {
                         state: "WEEKDAYS",
@@ -92,7 +91,7 @@ export const Dashboard = () => {
                   <PlanNextWeekDinners
                     dinners={dinners}
                     onBackClick={() =>
-                      send({
+                      dispatch({
                         type: "VIEW_SELECTED",
                         view: {
                           state: "WEEKDAYS",
@@ -114,7 +113,7 @@ export const Dashboard = () => {
                     previousWeek={currentWeek}
                     week={nextWeek}
                     onBackClick={() =>
-                      send({
+                      dispatch({
                         type: "VIEW_SELECTED",
                         view: {
                           state: "WEEKDAYS",
@@ -129,7 +128,7 @@ export const Dashboard = () => {
               <DinnersFeature>
                 <DinnersView
                   onBackClick={() => {
-                    send({
+                    dispatch({
                       type: "VIEW_SELECTED",
                       view: {
                         state: "WEEKDAYS",
@@ -144,7 +143,7 @@ export const Dashboard = () => {
                 <AddDinnerView
                   groceries={groceries}
                   onBackClick={() => {
-                    send({
+                    dispatch({
                       type: "VIEW_SELECTED",
                       view: {
                         state: "DINNERS",
@@ -158,7 +157,7 @@ export const Dashboard = () => {
               <AddTodoFeature familyId={family.id} userId={user.id}>
                 <AddTodoView
                   onBackClick={() => {
-                    send({
+                    dispatch({
                       type: "VIEW_SELECTED",
                       view: {
                         state: "WEEKDAYS",

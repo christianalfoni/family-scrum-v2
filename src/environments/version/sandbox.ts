@@ -1,17 +1,17 @@
-import { events } from "react-states";
+import { Emit } from "react-states";
 import gt from "semver/functions/gt";
-import { Version } from ".";
+import { Version, VersionEvent } from "../../environment-interface/version";
 
 const STORAGE_KEY = "family-scrum.sandbox.version";
 
 export const createVersion = (
+  emit: Emit<VersionEvent>,
   localVersion: string,
   version: string
 ): Version => ({
-  events: events(),
   checkVersion() {
     if (localVersion && gt(version, localVersion)) {
-      this.events.emit({
+      emit({
         type: "VERSION:NEW",
         newVersion: version,
         version: localVersion,
@@ -20,7 +20,7 @@ export const createVersion = (
     if (!localVersion) {
       localStorage.setItem(STORAGE_KEY, version);
     } else {
-      this.events.emit({
+      emit({
         type: "VERSION:UP_TO_DATE",
       });
     }

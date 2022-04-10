@@ -1,5 +1,3 @@
-import { Events } from "react-states";
-
 export type VisibilityEvent =
   | {
       type: "VISIBILITY:VISIBLE";
@@ -9,5 +7,4 @@ export type VisibilityEvent =
     };
 
 export interface Visibility {
-  events: Events<VisibilityEvent>;
 }

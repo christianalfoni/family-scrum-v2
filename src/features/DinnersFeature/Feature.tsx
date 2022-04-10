@@ -1,41 +1,37 @@
-import { useReducer } from "react";
-import { createContext, createHook, createReducer } from "react-states";
-import { useDevtools } from "react-states/devtools";
+import { createContext, useContext } from "react";
+import { States, StatesTransition } from "react-states";
+import { createReducer, useReducer } from "../../environment-interface";
 
-type Context = {
+type State = {
   state: "LIST";
 };
 
-type UIEvent = {
+type Action = {
   type: "ADD_DINNER";
 };
 
-type Event = UIEvent;
+export type DinnersFeature = States<State, Action>;
 
-const featureContext = createContext<Context, Event>();
+type Transition = StatesTransition<DinnersFeature>;
 
-const reducer = createReducer<Context, Event>({
+const featureContext = createContext({} as DinnersFeature);
+
+const reducer = createReducer<DinnersFeature>({
   LIST: {},
 });
 
-export const useFeature = createHook(featureContext);
+export const useFeature = () => useContext(featureContext);
 
 export const Feature = ({
-  initialContext = {
+  initialState = {
     state: "LIST",
   },
   children,
 }: {
-  initialContext?: Context;
+  initialState?: State;
   children: React.ReactNode;
 }) => {
-  const feature = useReducer(reducer, initialContext);
-
-  if (process.browser && process.env.NODE_ENV === "development") {
-    useDevtools("Dinners", feature);
-  }
-
-  const [context, send] = feature;
+  const feature = useReducer("Dinners", reducer, initialState);
 
   return (
     <featureContext.Provider value={feature}>

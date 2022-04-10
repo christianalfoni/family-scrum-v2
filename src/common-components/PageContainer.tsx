@@ -272,7 +272,7 @@ export const PageContainer = ({ children }: Props) => {
             <UpdateModal />
           </SessionFeature>
         ) : (
-          <DevtoolsProvider>
+          <DevtoolsProvider show>
             <SessionFeature>
               {children}
               <SignInModal />
