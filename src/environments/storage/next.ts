@@ -4,10 +4,23 @@ const shouldNotCallError = new Error("Should not be called on the server");
 
 export const createStorage = (): Storage => {
   return {
+    createDinnerId() {
+      throw shouldNotCallError;
+    },
+    createTodoId() {
+      throw shouldNotCallError;
+    },
+
+    deleteDinner() {
+      throw shouldNotCallError;
+    },
+    storeDinner() {
+      throw shouldNotCallError;
+    },
     addGrocery() {
       throw shouldNotCallError;
     },
-    addTodo() {
+    storeTodo() {
       throw shouldNotCallError;
     },
     archiveTodo() {
@@ -22,25 +35,8 @@ export const createStorage = (): Storage => {
     fetchWeeks() {
       throw shouldNotCallError;
     },
-    increaseGroceryShopCount() {
-      throw shouldNotCallError;
-    },
-    resetGroceryShopCount() {
-      throw shouldNotCallError;
-    },
+
     setWeekTaskActivity() {
-      throw shouldNotCallError;
-    },
-    linkBarcode() {
-      throw shouldNotCallError;
-    },
-    unlinkBarcode() {
-      throw shouldNotCallError;
-    },
-    shopGrocery() {
-      throw shouldNotCallError;
-    },
-    addImageToGrocery() {
       throw shouldNotCallError;
     },
     addChecklistItem() {

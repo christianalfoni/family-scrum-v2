@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react";
-import { States } from "react-states";
+import { StatesReducer } from "react-states";
 import { createReducer, useReducer } from "../../environment-interface";
 
 type State = {
@@ -10,7 +10,7 @@ type Action = {
   type: "NOOP";
 };
 
-export type WeekdaysFeature = States<State, Action>;
+export type WeekdaysFeature = StatesReducer<State, Action>;
 
 const featureContext = createContext({} as WeekdaysFeature);
 

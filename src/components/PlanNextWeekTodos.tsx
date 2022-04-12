@@ -1,17 +1,11 @@
 import * as React from "react";
 import { planWeekSelectors, usePlanWeek } from "../features/PlanWeekFeature";
-import { useTranslations, useIntl } from "next-intl";
-import { Menu, Transition } from "@headlessui/react";
+import { useTranslations } from "next-intl";
 import {
   CalendarIcon,
   CheckCircleIcon,
   ChevronLeftIcon,
-  ClockIcon,
   HeartIcon,
-  PencilIcon,
-  ReplyIcon,
-  SelectorIcon,
-  UserAddIcon,
 } from "@heroicons/react/outline";
 import {
   CheckListItem,
@@ -22,11 +16,11 @@ import {
   User,
   Week,
 } from "../features/DashboardFeature/Feature";
-import { getCurrentWeekId, weekdays } from "../utils";
-import { WeekTodoActivity } from "../environments/storage";
-import { dashboardSelectors, useDasbhoard } from "../features/DashboardFeature";
+import { weekdays } from "../utils";
+import { WeekTodoActivity } from "../environment-interface/storage";
+import { useDasbhoard } from "../features/DashboardFeature";
 import { useCheckLists } from "../features/CheckListFeature";
-import { TodoItem } from "../common-components/TodoItem";
+import { TodoItem } from "./TodoItem";
 
 const Confirmed = () => (
   <div className="absolute z-10 top-0 left-0 bottom-0 right-0 flex items-center justify-center bg-white">

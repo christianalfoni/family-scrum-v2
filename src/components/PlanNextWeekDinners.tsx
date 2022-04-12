@@ -1,5 +1,4 @@
 import * as React from "react";
-import { planWeekSelectors, usePlanWeek } from "../features/PlanWeekFeature";
 import { useTranslations } from "next-intl";
 import { Switch } from "@headlessui/react";
 import SwiperCore from "swiper";
@@ -9,76 +8,54 @@ import {
   ChevronRightIcon,
   HeartIcon,
 } from "@heroicons/react/outline";
-import {
-  CheckListItemsByTodoId,
-  Dinners,
-  Family,
-  Todos,
-  User,
-  Week,
-} from "../features/DashboardFeature/Feature";
-import { useDasbhoard } from "../features/DashboardFeature";
-import { useCheckLists } from "../features/CheckListFeature";
+import { Dinners, selectors } from "../features/DashboardFeature/Feature";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { weekdays } from "../utils";
+import { WeekDinnersDTO } from "../environment-interface/storage";
+import { usePlanWeek } from "../features/PlanWeekFeature";
 
-/*
-<SwiperSlide>
-          <div className="flex items-center py-4 px-8 space-x-3">
-            <div className="flex-shrink-0">
-              <img className="h-16 w-16 rounded" src="dinner_1.jpeg" alt="" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-md font-medium text-gray-900">
-                Awesome dinner 1
-              </p>
-              <p className="text-sm text-gray-500">
-                Some info about the awesome dinner
-              </p>
-            </div>
-          </div>
-        </SwiperSlide>
-*/
 export const DinnerItem = ({
   weekday,
+  weekdayIndex,
   dinners,
+  activeDinner,
+  onDinnerChange,
 }: {
   weekday: string;
+  weekdayIndex: number;
   dinners: Dinners;
+  activeDinner: string | null;
+  onDinnerChange: (dayIndex: number, dinnerId: string | null) => void;
 }) => {
+  const availableDinners = selectors.sortedDinners(dinners);
+  const activeDinnerIndex = availableDinners.findIndex(
+    (dinner) => dinner.id === activeDinner
+  );
   const commonT = useTranslations("common");
-  const [slideIndex, setSlideIndex] = React.useState(0);
+  const [slideIndex, setSlideIndex] = React.useState(
+    activeDinnerIndex === -1 ? 0 : activeDinnerIndex + 1
+  );
   const [controlledSwiper, setControlledSwiper] =
     React.useState<SwiperCore | null>(null);
-  const availableDinners = Object.values(dinners);
 
   return (
     <li className="flex flex-col">
       <div className="bg-gray-50 p-2 flex items-center border-b border-gray-200">
         {commonT(weekday)}{" "}
-        {slideIndex > 0 ? (
-          <Switch
-            checked={false}
-            onChange={() => {}}
-            className={`${
-              true ? "bg-gray-400" : "bg-green-500"
-            } ml-auto relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-auto`}
-          >
-            <span
-              aria-hidden="true"
-              className={`
-          ${false ? "translate-x-5" : "translate-x-0"}
-          inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200
-        `}
-            />
-          </Switch>
-        ) : null}
       </div>
       <Swiper
         className="relative w-full h-full"
         spaceBetween={50}
         slidesPerView={1}
-        onSlideChange={(swiper) => setSlideIndex(swiper.activeIndex)}
+        onSlideChange={(swiper) => {
+          setSlideIndex(swiper.activeIndex);
+          onDinnerChange(
+            weekdayIndex,
+            swiper.activeIndex === 0
+              ? null
+              : availableDinners[swiper.activeIndex - 1].id
+          );
+        }}
         onSwiper={setControlledSwiper}
         initialSlide={slideIndex}
       >
@@ -93,7 +70,7 @@ export const DinnerItem = ({
           </div>
         </SwiperSlide>
         {availableDinners.map((dinner) => (
-          <SwiperSlide>
+          <SwiperSlide key={dinner.id}>
             <div className="flex items-center py-4 px-8 space-x-3 h-24">
               <div className="flex-shrink-0">
                 <img className="h-16 w-16 rounded" src="dinner_1.jpeg" alt="" />
@@ -135,15 +112,17 @@ export const DinnerItem = ({
 };
 
 export const PlanNextWeekDinners = ({
+  weekDinners,
   dinners,
   onBackClick,
+  onClickPlanNextWeekTodos,
 }: {
+  weekDinners: WeekDinnersDTO;
   dinners: Dinners;
   onBackClick: () => void;
+  onClickPlanNextWeekTodos: () => void;
 }) => {
-  const [, sendDashboard] = useDasbhoard("LOADED");
-  const [, send] = usePlanWeek();
-  const [, sendTodos] = useCheckLists();
+  const [, dispatch] = usePlanWeek();
   const t = useTranslations("PlanWeekView");
 
   return (
@@ -172,14 +151,7 @@ export const PlanNextWeekDinners = ({
             </button>
             <button
               type="button"
-              onClick={() => {
-                sendDashboard({
-                  type: "VIEW_SELECTED",
-                  view: {
-                    state: "PLAN_NEXT_WEEK_TODOS",
-                  },
-                });
-              }}
+              onClick={onClickPlanNextWeekTodos}
               className="flex-1 inline-flex -ml-px relative items-center px-4 py-2 rounded-r-md border border-gray-300 bg-gray-50 text-sm font-medium text-gray-900 hover:bg-gray-50 focus:z-10 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600"
             >
               <CheckCircleIcon
@@ -194,8 +166,21 @@ export const PlanNextWeekDinners = ({
         </div>
       </div>
       <ul className="relative z-0 divide-y divide-gray-200 border-b border-gray-200 overflow-y-scroll">
-        {weekdays.map((weekday) => (
-          <DinnerItem key={weekday} weekday={weekday} dinners={dinners} />
+        {weekdays.map((weekday, index) => (
+          <DinnerItem
+            key={weekday}
+            weekdayIndex={index}
+            onDinnerChange={(weekdayIndex, dinnerId) => {
+              dispatch({
+                type: "CHANGE_WEEKDAY_DINNER",
+                dinnerId,
+                weekdayIndex,
+              });
+            }}
+            weekday={weekday}
+            dinners={dinners}
+            activeDinner={weekDinners[index]}
+          />
         ))}
       </ul>
     </div>

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { createReducer, States } from "react-states";
+import { createReducer, StatesReducer } from "react-states";
 import { useReducer } from "../../environment-interface";
 
 type State = {
@@ -10,7 +10,7 @@ type Action = {
   type: "CREATE_FAMILY_SELECTED";
 };
 
-export type OnboardingFeature = States<State, Action>;
+export type OnboardingFeature = StatesReducer<State, Action>;
 
 const featureContext = React.createContext({} as OnboardingFeature);
 

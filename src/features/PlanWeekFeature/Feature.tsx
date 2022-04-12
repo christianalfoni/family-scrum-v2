@@ -1,6 +1,10 @@
-import { addDays, differenceInDays } from "date-fns";
+import { differenceInDays } from "date-fns";
 import { createContext, useContext } from "react";
-import { States, StatesTransition, useCommandEffect } from "react-states";
+import {
+  StatesReducer,
+  StatesTransition,
+  useCommandEffect,
+} from "react-states";
 
 import {
   createReducer,
@@ -16,22 +20,34 @@ type State = {
   userId: string;
 };
 
-type Action = {
-  type: "TOGGLE_WEEKDAY";
-  todoId: string;
-  userId: string;
-  weekdayIndex: number;
-  active: boolean;
-};
+type Action =
+  | {
+      type: "TOGGLE_WEEKDAY";
+      todoId: string;
+      userId: string;
+      weekdayIndex: number;
+      active: boolean;
+    }
+  | {
+      type: "CHANGE_WEEKDAY_DINNER";
+      weekdayIndex: number;
+      dinnerId: string | null;
+    };
 
-type Command = {
-  cmd: "TOGGLE_WEEKDAY";
-  todoId: string;
-  weekdayIndex: number;
-  active: boolean;
-};
+type Command =
+  | {
+      cmd: "TOGGLE_WEEKDAY";
+      todoId: string;
+      weekdayIndex: number;
+      active: boolean;
+    }
+  | {
+      cmd: "CHANGE_WEEKDAY_DINNER";
+      weekdayIndex: number;
+      dinnerId: string | null;
+    };
 
-export type PlanWeekFeature = States<State, Action, Command>;
+export type PlanWeekFeature = StatesReducer<State, Action, Command>;
 
 type Transition = StatesTransition<PlanWeekFeature>;
 
@@ -54,6 +70,14 @@ const reducer = createReducer<PlanWeekFeature>({
             },
           ]
         : state,
+    CHANGE_WEEKDAY_DINNER: (state, { dinnerId, weekdayIndex }): Transition => [
+      state,
+      {
+        cmd: "CHANGE_WEEKDAY_DINNER",
+        dinnerId,
+        weekdayIndex,
+      },
+    ],
   },
 });
 
@@ -171,6 +195,19 @@ export const Feature = ({
         todoId,
         userId: user.id,
         active,
+        weekdayIndex,
+      });
+    }
+  );
+
+  useCommandEffect(
+    state,
+    "CHANGE_WEEKDAY_DINNER",
+    ({ weekdayIndex, dinnerId }) => {
+      storage.setWeekDinner({
+        familyId: user.familyId,
+        weekId,
+        dinnerId,
         weekdayIndex,
       });
     }

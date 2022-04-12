@@ -1,5 +1,9 @@
-import { createContext, useContext } from "react";
-import { States, StatesTransition, useStateEffect } from "react-states";
+import {
+  StatesReducer,
+  StatesTransition,
+  useCommandEffect,
+  useStateEffect,
+} from "react-states";
 
 import {
   useEnvironment,
@@ -9,14 +13,6 @@ import {
 import { DinnerDTO } from "../../environment-interface/storage";
 
 export type Dinner = DinnerDTO;
-
-type NewDinner = {
-  name: string;
-  description: string;
-  preparationCheckList: string[];
-  groceries: Array<{ name: string; shopCount: number }>;
-  instructions: string[];
-};
 
 type ValidationState =
   | {
@@ -35,19 +31,11 @@ type BaseState = {
 type State = BaseState &
   (
     | {
-        state: "CREATING";
-        dinner: NewDinner;
-      }
-    | {
         state: "EDITING";
         dinner: Dinner;
       }
     | {
         state: "SAVING";
-        dinner: NewDinner;
-      }
-    | {
-        state: "UPDATING";
         dinner: Dinner;
       }
   );
@@ -70,10 +58,6 @@ type Action =
     }
   | {
       type: "REMOVE_INGREDIENT";
-      index: number;
-    }
-  | {
-      type: "INCREASE_SHOP_COUNT";
       index: number;
     }
   | {
@@ -103,11 +87,13 @@ type Action =
       type: "SAVE";
     };
 
-export type DinnerFeature = States<State, Action>;
+type Command = {
+  cmd: "EXIT";
+};
 
-type Transition = StatesTransition<DinnerFeature>;
+export type DinnerReducer = StatesReducer<State, Action, Command>;
 
-const featureContext = createContext({} as DinnerFeature);
+type Transition = StatesTransition<DinnerReducer>;
 
 function validateDinner({
   name,
@@ -129,8 +115,8 @@ function validateDinner({
   };
 }
 
-const reducer = createReducer<DinnerFeature>({
-  CREATING: {
+export const reducer = createReducer<DinnerReducer>({
+  EDITING: {
     NAME_CHANGED: (state, { name }): Transition => {
       const dinner = {
         ...state.dinner,
@@ -163,13 +149,7 @@ const reducer = createReducer<DinnerFeature>({
       ...state,
       dinner: {
         ...state.dinner,
-        groceries: [
-          ...state.dinner.groceries,
-          {
-            name: state.newIngredientName,
-            shopCount: 1,
-          },
-        ],
+        groceries: [...state.dinner.groceries, state.newIngredientName],
       },
       newIngredientName: "",
     }),
@@ -179,20 +159,6 @@ const reducer = createReducer<DinnerFeature>({
         ...state.dinner,
         groceries: state.dinner.groceries.filter(
           (_, itemIndex) => itemIndex !== index
-        ),
-      },
-    }),
-    INCREASE_SHOP_COUNT: (state, { index }): Transition => ({
-      ...state,
-      dinner: {
-        ...state.dinner,
-        groceries: state.dinner.groceries.map((grocery, groceryIndex) =>
-          groceryIndex === index
-            ? {
-                ...grocery,
-                shopCount: grocery.shopCount + 1,
-              }
-            : grocery
         ),
       },
     }),
@@ -267,75 +233,15 @@ const reducer = createReducer<DinnerFeature>({
           }
         : state,
   },
-  EDITING: {
-    NAME_CHANGED: (state, { name }): Transition => ({
-      ...state,
-      dinner: {
-        ...state.dinner,
-        name,
-      },
-    }),
-    DESCRIPTION_CHANGED: (state, { description }): Transition => ({
-      ...state,
-      dinner: {
-        ...state.dinner,
-        description,
-      },
-    }),
+  SAVING: {
+    "STORAGE:DINNERS_UPDATE": (state, { dinners }): Transition =>
+      state.dinner.id in dinners
+        ? [
+            state,
+            {
+              cmd: "EXIT",
+            },
+          ]
+        : state,
   },
-  SAVING: {},
-  UPDATING: {},
 });
-
-export const useFeature = () => useContext(featureContext);
-
-export const Feature = ({
-  children,
-  dinner,
-}: {
-  children: React.ReactNode;
-  dinner?: Dinner;
-}) => {
-  const { storage } = useEnvironment();
-  const feature = useReducer(
-    "Dinner",
-    reducer,
-    dinner
-      ? {
-          state: "EDITING",
-          dinner: dinner,
-          newIngredientName: "",
-          newPreparationDescription: "",
-          validation: {
-            state: "VALID",
-          },
-        }
-      : {
-          state: "CREATING",
-          dinner: {
-            name: "",
-            description: "",
-            instructions: [""],
-            groceries: [],
-            preparationCheckList: [],
-          },
-          newIngredientName: "",
-          newPreparationDescription: "",
-          validation: {
-            state: "INVALID",
-          },
-        }
-  );
-
-  const [state] = feature;
-
-  useStateEffect(state, "SAVING", () => {});
-
-  useStateEffect(state, "UPDATING", () => {});
-
-  return (
-    <featureContext.Provider value={feature}>
-      {children}
-    </featureContext.Provider>
-  );
-};

@@ -29,11 +29,10 @@ export type DinnerDTO = {
   name: string;
   description: string;
   preparationCheckList: string[];
-  groceries: Array<{
-    id: string;
-    shopCount: number;
-  }>;
+  groceries: string[];
   instructions: string[];
+  created: number;
+  modified: number;
 };
 
 export type GroceryDTO = {
@@ -66,6 +65,16 @@ export type WeekTodoActivity = [
   boolean
 ];
 
+export type WeekDinnersDTO = [
+  string | null,
+  string | null,
+  string | null,
+  string | null,
+  string | null,
+  string | null,
+  string | null
+];
+
 export type WeekDTO = {
   // Week id is the date of each Monday (YYYYMMDD)
   id: string;
@@ -74,6 +83,7 @@ export type WeekDTO = {
       [userId: string]: WeekTodoActivity;
     };
   };
+  dinners: WeekDinnersDTO;
 };
 
 export type StorageEvent =
@@ -182,17 +192,18 @@ export type StorageEvent =
     };
 
 export interface Storage {
+  createDinnerId(): string;
+  createTodoId(): string;
+  createCheckListId(): string;
+  storeDinner(familyId: string, dinner: DinnerDTO): void;
+  deleteDinner(familyId: string, dinner: DinnerDTO): void;
   fetchFamilyData(familyId: string): void;
   fetchWeeks(familyId: string, userId: string): void;
   addGrocery(familyId: string, name: string): void;
-  addTodo(
+  storeTodo(
     familyId: string,
-    description: string,
-    metadata?: {
-      date?: number;
-      time?: string;
-      checkList?: string[];
-    }
+    todo: TodoDTO,
+    checkList?: CheckListItemDTO[]
   ): void;
   deleteGrocery(familyId: string, id: string): void;
   archiveTodo(familyId: string, id: string): void;
@@ -203,6 +214,12 @@ export interface Storage {
     userId: string;
     weekdayIndex: number;
     active: boolean;
+  }): void;
+  setWeekDinner(options: {
+    familyId: string;
+    weekId: string;
+    dinnerId: string | null;
+    weekdayIndex: number;
   }): void;
   toggleCheckListItem(familyId: string, userId: string, itemId: string): void;
   deleteChecklistItem(familyId: string, itemId: string): void;

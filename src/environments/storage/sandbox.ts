@@ -37,7 +37,18 @@ export const createStorage = (emit: Emit<StorageEvent>): Storage => {
 
   let dinners: {
     [dinnerId: string]: DinnerDTO;
-  } = {};
+  } = {
+    dinner_0: {
+      id: "dinner_0",
+      created: Date.now(),
+      modified: Date.now(),
+      description: "Pretty nice dinner",
+      groceries: [],
+      instructions: ["Do this"],
+      name: "Our awesomest dinner",
+      preparationCheckList: ["Pre this"],
+    },
+  };
 
   let groceries: {
     [groceryId: string]: GroceryDTO;
@@ -117,6 +128,7 @@ export const createStorage = (emit: Emit<StorageEvent>): Storage => {
           user_2: [false, true, true, false, false, false, false],
         },
       },
+      dinners: [null, null, null, null, null, null, null],
     },
     [currentWeekId]: {
       id: currentWeekId,
@@ -129,6 +141,7 @@ export const createStorage = (emit: Emit<StorageEvent>): Storage => {
           user_2: [false, true, false, false, false, true, false],
         },
       },
+      dinners: [null, null, null, null, null, null, null],
     },
     [nextWeekId]: {
       id: nextWeekId,
@@ -142,6 +155,7 @@ export const createStorage = (emit: Emit<StorageEvent>): Storage => {
           user_2: [false, false, false, false, false, false, false],
         },
       },
+      dinners: ["dinner_0", null, null, null, null, null, null],
     },
   };
 
@@ -153,6 +167,26 @@ export const createStorage = (emit: Emit<StorageEvent>): Storage => {
         nextWeek: weeks[nextWeekId],
         previousWeek: weeks[previousWeekId],
       });
+    },
+    storeDinner(_, dinner) {
+      dinners = {
+        ...dinners,
+        [dinner.id]: dinner,
+      };
+
+      emit({
+        type: "STORAGE:DINNERS_UPDATE",
+        dinners,
+      });
+    },
+    deleteDinner(_, dinner) {
+      delete dinners[dinner.id];
+
+      dinners = {
+        ...dinners,
+      };
+
+      emit({ type: "STORAGE:DINNERS_UPDATE", dinners });
     },
     addGrocery(_, name) {
       const newGrocery: GroceryDTO = {
@@ -172,38 +206,45 @@ export const createStorage = (emit: Emit<StorageEvent>): Storage => {
         groceries,
       });
     },
-    addTodo(_, description, metadata = {}) {
-      const id = `todo_${Object.keys(todos).length}`;
-      const todo: TodoDTO = {
-        id,
-        description,
-        created: Date.now(),
-        modified: Date.now(),
-        checkList: metadata.checkList?.reduce((aggr, title, index) => {
-          const id = `CHECKLIST_ITEM_${index}`;
-          aggr[id] = {
-            id,
-            title,
-            completed: false,
-            created: Date.now(),
-            modified: Date.now(),
-          };
-
-          return aggr;
-        }, {} as any),
-        date: metadata.date,
-        time: metadata.time,
-      };
-
+    createTodoId() {
+      return `todo_${Object.keys(todos).length}`;
+    },
+    createCheckListId() {
+      return `checklist_item_${Object.keys(checkListItems).length}`;
+    },
+    createDinnerId() {
+      return `dinner_${Object.keys(dinners).length}`;
+    },
+    storeTodo(_, todo, checkList) {
       todos = {
         ...todos,
-        [id]: todo,
+        [todo.id]: todo,
       };
 
       emit({
         type: "STORAGE:TODOS_UPDATE",
         todos,
       });
+
+      if (checkList) {
+        const newCheckListItems = checkList.reduce<{
+          [itemId: string]: CheckListItemDTO;
+        }>((aggr, itemDoc) => {
+          aggr[itemDoc.id] = itemDoc;
+
+          return aggr;
+        }, {});
+
+        checkListItems = {
+          ...checkListItems,
+          ...newCheckListItems,
+        };
+
+        emit({
+          type: "STORAGE:CHECKLIST_ITEMS_UPDATE",
+          checkListItemsByTodoId: createCheckListItemsByTodoId(checkListItems),
+        });
+      }
     },
     deleteGrocery(_, id) {
       delete groceries[id];
@@ -344,6 +385,15 @@ export const createStorage = (emit: Emit<StorageEvent>): Storage => {
       emit({
         type: "STORAGE:CHECKLIST_ITEMS_UPDATE",
         checkListItemsByTodoId: createCheckListItemsByTodoId(checkListItems),
+      });
+    },
+    setWeekDinner({ weekId, weekdayIndex, dinnerId }) {
+      weeks[weekId].dinners[weekdayIndex] = dinnerId || null;
+      emit({
+        type: "STORAGE:WEEKS_UPDATE",
+        currentWeek: weeks[currentWeekId],
+        nextWeek: weeks[nextWeekId],
+        previousWeek: weeks[previousWeekId],
       });
     },
   };

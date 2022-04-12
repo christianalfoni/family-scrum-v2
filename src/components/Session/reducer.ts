@@ -1,16 +1,5 @@
-import { createContext, useContext } from "react";
-import {
-  States,
-  StatesTransition,
-  useCommandEffect,
-  useStateEffect,
-} from "react-states";
-
-import {
-  useEnvironment,
-  createReducer,
-  useReducer,
-} from "../../environment-interface";
+import { StatesReducer, StatesTransition } from "react-states";
+import { createReducer } from "../../environment-interface";
 
 export type User = {
   id: string;
@@ -75,15 +64,11 @@ type Command = {
   cmd: "CHECK_VERSION";
 };
 
-export type SessionFeature = States<State, Action, Command>;
+export type SessionReducer = StatesReducer<State, Action, Command>;
 
-type Transition = StatesTransition<SessionFeature>;
+type Transition = StatesTransition<SessionReducer>;
 
-const context = createContext({} as SessionFeature);
-
-export const useFeature = () => useContext(context);
-
-const reducer = createReducer<SessionFeature>({
+export const reducer = createReducer<SessionReducer>({
   VERIFYING_AUTHENTICATION: {
     "AUTHENTICATION:AUTHENTICATED": (_, { user }): Transition => ({
       state: "NO_FAMILY",
@@ -148,30 +133,3 @@ const reducer = createReducer<SessionFeature>({
   ERROR: {},
   UPDATING_VERSION: {},
 });
-
-export type Props = {
-  children: React.ReactNode;
-  initialContext?: State;
-};
-
-export const Feature = ({
-  children,
-  initialContext = {
-    state: "VERIFYING_AUTHENTICATION",
-  },
-}: Props) => {
-  const { authentication, version, visibility } = useEnvironment();
-  const featureReducer = useReducer("Session", reducer, initialContext);
-
-  const [state, dispatch] = featureReducer;
-
-  useStateEffect(state, "SIGNING_IN", () => authentication.signIn());
-
-  useCommandEffect(state, "CHECK_VERSION", () => version.checkVersion());
-
-  useStateEffect(state, "SIGNED_IN", () => version.checkVersion());
-
-  useStateEffect(state, "UPDATING_VERSION", () => version.update());
-
-  return <context.Provider value={featureReducer}>{children}</context.Provider>;
-};

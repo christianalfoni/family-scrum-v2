@@ -1,6 +1,6 @@
 import { createContext, useContext } from "react";
 import {
-  States,
+  StatesReducer,
   StatesTransition,
   useCommandEffect,
   useStateEffect,
@@ -43,7 +43,7 @@ type Command =
       src: string;
     };
 
-type CaptureFeature = States<State, Action, Command>;
+type CaptureFeature = StatesReducer<State, Action, Command>;
 
 type Transition = StatesTransition<CaptureFeature>;
 

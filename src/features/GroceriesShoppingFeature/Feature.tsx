@@ -2,7 +2,7 @@ import levenshtein from "fast-levenshtein";
 import { createContext, useContext } from "react";
 import {
   PickState,
-  States,
+  StatesReducer,
   StatesHandlers,
   StatesTransition,
   useCommandEffect,
@@ -65,7 +65,7 @@ type Command =
       name: string;
     };
 
-export type GroceriesShoppingFeature = States<State, Action, Command>;
+export type GroceriesShoppingFeature = StatesReducer<State, Action, Command>;
 
 type Transition = StatesTransition<GroceriesShoppingFeature>;
 

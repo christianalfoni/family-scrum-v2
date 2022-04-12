@@ -2,7 +2,7 @@ import { createContext, useContext } from "react";
 import {
   match,
   PickState,
-  States,
+  StatesReducer,
   StatesTransition,
   useStateEffect,
 } from "react-states";
@@ -70,10 +70,12 @@ export type ViewState =
       state: "DINNERS";
     }
   | {
-      state: "ADD_DINNER";
+      state: "EDIT_DINNER";
+      id?: string;
     }
   | {
-      state: "ADD_TODO";
+      state: "EDIT_TODO";
+      id?: string;
     };
 
 export type Todos = {
@@ -137,7 +139,7 @@ export type Action =
       name: string;
     };
 
-export type DashboardFeature = States<State, Action>;
+export type DashboardFeature = StatesReducer<State, Action>;
 
 type Transition = StatesTransition<DashboardFeature>;
 
@@ -263,7 +265,7 @@ const reducer = createReducer<DashboardFeature>({
     "STORAGE:TODOS_UPDATE": (state, { todos }): Transition => ({
       ...state,
       view:
-        state.view.state === "ADD_TODO"
+        state.view.state === "EDIT_TODO"
           ? {
               state: "WEEKDAYS",
             }
@@ -354,6 +356,16 @@ export const selectors = {
   },
   sortedTodos: (todos: Todos) =>
     Object.values(todos).sort((a, b) => {
+      if (a.created < b.created) {
+        return 1;
+      } else if (a.created > b.created) {
+        return -1;
+      }
+
+      return 0;
+    }),
+  sortedDinners: (dinners: Dinners) =>
+    Object.values(dinners).sort((a, b) => {
       if (a.created < b.created) {
         return 1;
       } else if (a.created > b.created) {

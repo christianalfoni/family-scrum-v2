@@ -1,13 +1,17 @@
 import { createContext, useContext } from "react";
-import { States, StatesTransition, useCommandEffect } from "react-states";
+import {
+  StatesReducer,
+  StatesTransition,
+  useCommandEffect,
+} from "react-states";
 import {
   createReducer,
   useEnvironment,
   useReducer,
 } from "../../environment-interface";
+import { FamilyUserDTO } from "../../environment-interface/authentication";
 
 import { CheckListItem, Todos } from "../DashboardFeature/Feature";
-import { User } from "../SessionFeature";
 
 type State = {
   state: "LIST";
@@ -51,7 +55,7 @@ type Command =
       todoId: string;
     };
 
-type CheckListFeature = States<State, Action, Command>;
+type CheckListFeature = StatesReducer<State, Action, Command>;
 
 type Transition = StatesTransition<CheckListFeature>;
 
@@ -117,7 +121,7 @@ export const Feature = ({
     state: "LIST",
   },
 }: {
-  user: User;
+  user: FamilyUserDTO;
   children: React.ReactNode;
   initialContext?: State;
 }) => {

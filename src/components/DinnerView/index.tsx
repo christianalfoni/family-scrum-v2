@@ -6,21 +6,52 @@ import {
   CollectionIcon,
   PlusIcon,
   TrashIcon,
-  XIcon,
 } from "@heroicons/react/outline";
-import { useDinner } from "../features/DinnerFeature";
-import { Groceries } from "../features/DashboardFeature";
-import { match } from "react-states";
+import { match, useCommandEffect, useStateEffect } from "react-states";
+import { useEnvironment, useReducer } from "../../environment-interface";
+import { DinnerDTO } from "../../environment-interface/storage";
+import { reducer } from "./reducer";
 
-export const AddDinnerView = ({
-  groceries,
+export const DinnerView = ({
   onBackClick,
+  familyId,
+  dinner,
 }: {
-  groceries: Groceries;
+  dinner: DinnerDTO;
+  familyId: string;
   onBackClick: () => void;
 }) => {
-  const [dinnerFeature, send] = useDinner();
-  const { dinner } = dinnerFeature;
+  const { storage } = useEnvironment();
+  const [state, dispatch] = useReducer("Dinner", reducer, {
+    state: "EDITING",
+    dinner: dinner || {
+      id: storage.createDinnerId(),
+      name: "",
+      description: "",
+      instructions: [""],
+      groceries: [],
+      preparationCheckList: [],
+      modified: Date.now(),
+      created: Date.now(),
+    },
+    newIngredientName: "",
+    newPreparationDescription: "",
+    validation: dinner
+      ? {
+          state: "VALID",
+        }
+      : {
+          state: "INVALID",
+        },
+  });
+
+  useStateEffect(state, "SAVING", ({ dinner }) => {
+    storage.storeDinner(familyId, dinner);
+  });
+
+  useCommandEffect(state, "EXIT", () => {
+    onBackClick();
+  });
 
   return (
     <div className="bg-white flex flex-col h-screen">
@@ -55,7 +86,7 @@ export const AddDinnerView = ({
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-sky-500 focus:border-sky-500 text-sm"
               value={dinner.name}
               onChange={(event) => {
-                send({
+                dispatch({
                   type: "NAME_CHANGED",
                   name: event.target.value,
                 });
@@ -72,7 +103,7 @@ export const AddDinnerView = ({
                 className="shadow-sm focus:ring-sky-500 focus:border-sky-500 mt-1 block w-full sm:text-sm border border-gray-300 rounded-md"
                 value={dinner.description}
                 onChange={(event) => {
-                  send({
+                  dispatch({
                     type: "DESCRIPTION_CHANGED",
                     description: event.target.value,
                   });
@@ -92,9 +123,9 @@ export const AddDinnerView = ({
                   <input
                     autoFocus
                     type="text"
-                    value={dinnerFeature.newIngredientName}
+                    value={state.newIngredientName}
                     onChange={(event) => {
-                      send({
+                      dispatch({
                         type: "NEW_INGREDIENT_NAME_CHANGED",
                         name: event.target.value,
                       });
@@ -109,7 +140,7 @@ export const AddDinnerView = ({
                     type="button"
                     className="bg-white inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-light-blue-500"
                     onClick={() => {
-                      send({
+                      dispatch({
                         type: "ADD_INGREDIENT",
                       });
                     }}
@@ -124,8 +155,8 @@ export const AddDinnerView = ({
               </div>
               {dinner.groceries.length ? (
                 <ul className="my-2">
-                  {match(dinnerFeature, {
-                    CREATING: ({ dinner }) =>
+                  {match(state, {
+                    EDITING: ({ dinner }) =>
                       dinner.groceries.map((grocery, index) => (
                         <li
                           key={index}
@@ -136,18 +167,18 @@ export const AddDinnerView = ({
                             disabled
                             className="rounded text-green-500 mr-2 opacity-50"
                           />
-                          <label className="w-full">{grocery.name}</label>
+                          <label className="w-full">{grocery}</label>
                           <span
                             className="p-2 text-gray-300"
                             onClick={() => {
-                              send({ type: "REMOVE_INGREDIENT", index });
+                              dispatch({ type: "REMOVE_INGREDIENT", index });
                             }}
                           >
                             <TrashIcon className="w-6 h-6" />
                           </span>
                         </li>
                       )),
-                    EDITING: () => null,
+                    SAVING: () => null,
                   })}
                 </ul>
               ) : null}
@@ -164,9 +195,9 @@ export const AddDinnerView = ({
                   <input
                     autoFocus
                     type="text"
-                    value={dinnerFeature.newPreparationDescription}
+                    value={state.newPreparationDescription}
                     onChange={(event) => {
-                      send({
+                      dispatch({
                         type: "NEW_PREPARATION_ITEM_DESCRIPTION_CHANGED",
                         description: event.target.value,
                       });
@@ -181,7 +212,7 @@ export const AddDinnerView = ({
                     type="button"
                     className="bg-white inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-light-blue-500"
                     onClick={() => {
-                      send({
+                      dispatch({
                         type: "ADD_PREPARATION_ITEM",
                       });
                     }}
@@ -210,7 +241,7 @@ export const AddDinnerView = ({
                       <span
                         className="p-2 text-gray-300"
                         onClick={() => {
-                          send({
+                          dispatch({
                             type: "REMOVE_PREPARATION_ITEM",
                             index,
                           });
@@ -238,7 +269,7 @@ export const AddDinnerView = ({
                       className="shadow-sm focus:ring-sky-500 focus:border-sky-500 mt-1 block w-full sm:text-sm border border-gray-300 rounded-md"
                       value={instruction}
                       onChange={(event) => {
-                        send({
+                        dispatch({
                           type: "INSTRUCTION_CHANGED",
                           instruction: event.target.value,
                           index,
@@ -250,7 +281,7 @@ export const AddDinnerView = ({
                         type="button"
                         className="absolute bottom-2 right-2 bg-white inline-flex items-center p-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-light-blue-500"
                         onClick={() => {
-                          send({
+                          dispatch({
                             type: "REMOVE_INSTRUCTION",
                             index,
                           });
@@ -268,7 +299,7 @@ export const AddDinnerView = ({
               <div
                 className="flex items-center justify-center p-4 text-gray-500"
                 onClick={() => {
-                  send({
+                  dispatch({
                     type: "ADD_INSTRUCTION",
                   });
                 }}
@@ -280,12 +311,12 @@ export const AddDinnerView = ({
           <div className="mt-4 flex justify-center">
             <button
               type="submit"
-              disabled={match(dinnerFeature.validation, {
+              disabled={match(state.validation, {
                 INVALID: () => true,
                 VALID: () => false,
               })}
               onClick={() => {
-                send({
+                dispatch({
                   type: "SAVE",
                 });
               }}

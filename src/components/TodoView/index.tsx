@@ -9,12 +9,12 @@ import {
   XIcon,
 } from "@heroicons/react/outline";
 import { useTranslations } from "next-intl";
-import { useAddTodo } from "../features/AddTodoFeature";
+import { useTodo } from "../features/TodoFeature";
 import { match } from "react-states";
 import { format } from "date-fns";
 
-export const AddTodoView = ({ onBackClick }: { onBackClick: () => void }) => {
-  const [addTodo, send] = useAddTodo();
+export const TodoView = ({ onBackClick }: { onBackClick: () => void }) => {
+  const [todo, send] = useTodo();
   const t = useTranslations("AddTodoView");
   const [newItemTitle, setNewItemTitle] = React.useState("");
 
@@ -43,10 +43,10 @@ export const AddTodoView = ({ onBackClick }: { onBackClick: () => void }) => {
           }}
           className="p-2 border-none block w-full focus:ring-blue-500 focus:border-blue-500 text-sm"
           placeholder="Description..."
-          value={addTodo.description}
+          value={todo.description}
         />
         <div className="px-4 border-t border-gray-200  text-gray-500 text-lg font-medium ">
-          {match(addTodo.date, {
+          {match(todo.date, {
             ACTIVE: ({ date }) => (
               <div className="flex items-center  h-20">
                 <CalendarIcon className="w-6 h-6 mr-2" />
@@ -88,7 +88,7 @@ export const AddTodoView = ({ onBackClick }: { onBackClick: () => void }) => {
           })}
         </div>
         <div className="px-4 border-t border-gray-200 text-gray-500 text-lg font-medium ">
-          {match(addTodo.time, {
+          {match(todo.time, {
             ACTIVE: ({ time }) => (
               <div className="flex items-center  h-20">
                 <ClockIcon className="w-6 h-6 mr-2" />
@@ -130,7 +130,7 @@ export const AddTodoView = ({ onBackClick }: { onBackClick: () => void }) => {
           })}
         </div>
         <div className="px-4 border-t border-gray-200 text-gray-500 text-lg font-medium ">
-          {match(addTodo.checkList, {
+          {match(todo.checkList, {
             ACTIVE: ({ items }) => (
               <div className="flex flex-col">
                 <div className="flex items-center  h-20">
@@ -226,7 +226,7 @@ export const AddTodoView = ({ onBackClick }: { onBackClick: () => void }) => {
         <div className="border-t border-gray-200 p-4 flex justify-center">
           <button
             type="submit"
-            disabled={match(addTodo, {
+            disabled={match(todo, {
               INVALID: () => true,
               VALID: () => false,
             })}

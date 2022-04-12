@@ -5,12 +5,11 @@ import {
   CheckListItemsByTodoId,
   Todos,
 } from "../features/DashboardFeature/Feature";
-import { dashboardSelectors } from "../features/DashboardFeature";
 import {
   checkListSelectors,
   useCheckLists,
 } from "../features/CheckListFeature";
-import { TodoItem } from "../common-components/TodoItem";
+import { TodoItem } from "./TodoItem";
 
 export const CheckListsView = ({
   todos,

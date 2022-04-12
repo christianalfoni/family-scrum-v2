@@ -332,7 +332,7 @@ export const DashboardView = ({
           type="button"
           onClick={() => {
             selectView({
-              state: "ADD_TODO",
+              state: "EDIT_TODO",
             });
           }}
           className="z-50 fixed right-6 bottom-14 h-14 w-14 rounded-full inline-flex items-center justify-center px-3 py-2 border border-gray-300 shadow-lg text-sm font-medium  text-gray-500 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"

@@ -1,6 +1,6 @@
 import { createContext, useContext } from "react";
 import {
-  States,
+  StatesReducer,
   StatesHandlers,
   StatesTransition,
   useCommandEffect,
@@ -97,7 +97,7 @@ type Command = {
   checkList?: string[];
 };
 
-type AddTodoFeature = States<State, Action, Command>;
+type AddTodoFeature = StatesReducer<State, Action, Command>;
 
 type Transition = StatesTransition<AddTodoFeature>;
 
@@ -248,11 +248,29 @@ export const Feature = ({
     state,
     "ADD_TODO",
     ({ description, date, time, checkList }) => {
-      storage.addTodo(familyId, description, {
-        date,
-        time,
-        checkList,
-      });
+      const id = storage.createTodoId();
+      storage.storeTodo(
+        familyId,
+        {
+          id,
+          description,
+          date,
+          time,
+          created: Date.now(),
+          modified: Date.now(),
+          checkList: Boolean(checkList),
+        },
+        checkList
+          ? checkList.map((title) => ({
+              completed: false,
+              created: Date.now(),
+              id: storage.createCheckListId(),
+              modified: Date.now(),
+              title,
+              todoId: id,
+            }))
+          : checkList
+      );
     }
   );
 

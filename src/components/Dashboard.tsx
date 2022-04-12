@@ -10,12 +10,12 @@ import { PlanNextWeekTodos } from "./PlanNextWeekTodos";
 import { PlanNextWeekDinners } from "./PlanNextWeekDinners";
 import { CheckListsView } from "./CheckListsView";
 import { PlanWeekFeature } from "../features/PlanWeekFeature";
-import { AddTodoFeature } from "../features/AddTodoFeature";
-import { AddTodoView } from "./AddTodoView";
+import { TodoFeature } from "../features/TodoFeature";
+import { TodoView } from "./TodoView";
 
 import { CheckListFeature } from "../features/CheckListFeature";
 import { DinnersView } from "./DinnersView";
-import { AddDinnerView } from "./AddDinnerView";
+import { DinnerView } from "./DinnerView";
 
 export const Dashboard = () => {
   const [dashboard, dispatch] = useDasbhoard();
@@ -39,6 +39,7 @@ export const Dashboard = () => {
             user,
             checkListItemsByTodoId,
           } = loadedDashboard;
+
           return match(view, {
             GROCERIES_SHOPPING: () => (
               <GroceriesShoppingFeature
@@ -89,7 +90,16 @@ export const Dashboard = () => {
               <CheckListFeature user={user}>
                 <PlanWeekFeature user={user} weekId={nextWeek.id}>
                   <PlanNextWeekDinners
+                    weekDinners={nextWeek.dinners}
                     dinners={dinners}
+                    onClickPlanNextWeekTodos={() => {
+                      dispatch({
+                        type: "VIEW_SELECTED",
+                        view: {
+                          state: "PLAN_NEXT_WEEK_TODOS",
+                        },
+                      });
+                    }}
                     onBackClick={() =>
                       dispatch({
                         type: "VIEW_SELECTED",
@@ -127,6 +137,24 @@ export const Dashboard = () => {
             DINNERS: () => (
               <DinnersFeature>
                 <DinnersView
+                  dinners={dinners}
+                  onDinnerClick={(id) => {
+                    dispatch({
+                      type: "VIEW_SELECTED",
+                      view: {
+                        state: "EDIT_DINNER",
+                        id,
+                      },
+                    });
+                  }}
+                  onAddDinnerClick={() => {
+                    dispatch({
+                      type: "VIEW_SELECTED",
+                      view: {
+                        state: "EDIT_DINNER",
+                      },
+                    });
+                  }}
                   onBackClick={() => {
                     dispatch({
                       type: "VIEW_SELECTED",
@@ -138,10 +166,12 @@ export const Dashboard = () => {
                 />
               </DinnersFeature>
             ),
-            ADD_DINNER: () => (
-              <DinnerFeature>
-                <AddDinnerView
-                  groceries={groceries}
+            EDIT_DINNER: ({ id }) => (
+              <DinnerFeature
+                familyId={family.id}
+                dinner={id ? dinners[id] : undefined}
+              >
+                <DinnerView
                   onBackClick={() => {
                     dispatch({
                       type: "VIEW_SELECTED",
@@ -153,9 +183,9 @@ export const Dashboard = () => {
                 />
               </DinnerFeature>
             ),
-            ADD_TODO: () => (
-              <AddTodoFeature familyId={family.id} userId={user.id}>
-                <AddTodoView
+            EDIT_TODO: ({ id }) => (
+              <TodoFeature familyId={family.id} userId={user.id}>
+                <TodoView
                   onBackClick={() => {
                     dispatch({
                       type: "VIEW_SELECTED",
@@ -165,7 +195,7 @@ export const Dashboard = () => {
                     });
                   }}
                 />
-              </AddTodoFeature>
+              </TodoFeature>
             ),
           });
         },

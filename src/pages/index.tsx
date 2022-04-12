@@ -1,39 +1,28 @@
 import React from "react";
-import Link from "next/link";
-import { useTranslations } from "next-intl";
+import { PageContainer } from "../components/PageContainer";
+import { DashboardFeature } from "../features/DashboardFeature";
+import { Dashboard } from "../components/Dashboard";
 import { GetStaticPropsContext } from "next";
 
-const Button = ({
-  href,
-  children,
-}: {
-  href: string;
-  children: React.ReactNode;
-}) => (
-  <Link href={href}>
-    <a className="bg-gray-200 p-8 m-4 rounded-md shadow-md text-2xl font-bold text-gray-800 w-80 text-center">
-      {children}
-    </a>
-  </Link>
-);
-
-function HomePage() {
-  const t = useTranslations("HomePage");
-
+function AppPage() {
   return (
-    <div className="bg-gray-100 h-screen w-screen flex items-center justify-center">
-      <Button href="/overview">{t("overview")}</Button>
-      <Button href="/app">{t("app")}</Button>
-    </div>
+    <PageContainer>
+      <DashboardFeature>
+        <Dashboard />
+      </DashboardFeature>
+    </PageContainer>
   );
 }
 
 export function getStaticProps({ locale }: GetStaticPropsContext) {
   return {
     props: {
-      messages: require(`../../messages/index/${locale}.json`),
+      messages: {
+        ...require(`../../messages/session/${locale}.json`),
+        ...require(`../../messages/app/${locale}.json`),
+      },
     },
   };
 }
 
-export default HomePage;
+export default AppPage;
