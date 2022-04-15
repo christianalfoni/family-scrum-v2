@@ -8,7 +8,7 @@ import {
   ExclamationCircleIcon,
   LockClosedIcon,
 } from "@heroicons/react/outline";
-import { SessionReducer } from "./reducer";
+import { SessionReducer } from "./useSession";
 
 export const SignInModal = ({
   session: [session, dispatch],

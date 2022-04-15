@@ -7,50 +7,22 @@ import {
   PlusIcon,
   TrashIcon,
 } from "@heroicons/react/outline";
-import { match, useCommandEffect, useStateEffect } from "react-states";
-import { useEnvironment, useReducer } from "../../environment-interface";
+import { match } from "react-states";
 import { DinnerDTO } from "../../environment-interface/storage";
-import { reducer } from "./reducer";
+import { useEditDinner } from "./useEditDinner";
 
-export const DinnerView = ({
+export const EditDinner = ({
   onBackClick,
-  familyId,
+
   dinner,
 }: {
-  dinner: DinnerDTO;
-  familyId: string;
+  dinner?: DinnerDTO;
+
   onBackClick: () => void;
 }) => {
-  const { storage } = useEnvironment();
-  const [state, dispatch] = useReducer("Dinner", reducer, {
-    state: "EDITING",
-    dinner: dinner || {
-      id: storage.createDinnerId(),
-      name: "",
-      description: "",
-      instructions: [""],
-      groceries: [],
-      preparationCheckList: [],
-      modified: Date.now(),
-      created: Date.now(),
-    },
-    newIngredientName: "",
-    newPreparationDescription: "",
-    validation: dinner
-      ? {
-          state: "VALID",
-        }
-      : {
-          state: "INVALID",
-        },
-  });
-
-  useStateEffect(state, "SAVING", ({ dinner }) => {
-    storage.storeDinner(familyId, dinner);
-  });
-
-  useCommandEffect(state, "EXIT", () => {
-    onBackClick();
+  const [state, dispatch] = useEditDinner({
+    dinner,
+    onExit: onBackClick,
   });
 
   return (
@@ -84,7 +56,7 @@ export const DinnerView = ({
             <input
               type="text"
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-sky-500 focus:border-sky-500 text-sm"
-              value={dinner.name}
+              value={state.dinner.name}
               onChange={(event) => {
                 dispatch({
                   type: "NAME_CHANGED",
@@ -101,7 +73,7 @@ export const DinnerView = ({
               <textarea
                 rows={3}
                 className="shadow-sm focus:ring-sky-500 focus:border-sky-500 mt-1 block w-full sm:text-sm border border-gray-300 rounded-md"
-                value={dinner.description}
+                value={state.dinner.description}
                 onChange={(event) => {
                   dispatch({
                     type: "DESCRIPTION_CHANGED",
@@ -153,7 +125,7 @@ export const DinnerView = ({
                   </button>
                 </span>
               </div>
-              {dinner.groceries.length ? (
+              {state.dinner.groceries.length ? (
                 <ul className="my-2">
                   {match(state, {
                     EDITING: ({ dinner }) =>
@@ -178,7 +150,6 @@ export const DinnerView = ({
                           </span>
                         </li>
                       )),
-                    SAVING: () => null,
                   })}
                 </ul>
               ) : null}
@@ -225,9 +196,9 @@ export const DinnerView = ({
                   </button>
                 </span>
               </div>
-              {dinner.preparationCheckList.length ? (
+              {state.dinner.preparationCheckList.length ? (
                 <ul className="my-2">
-                  {dinner.preparationCheckList.map((title, index) => (
+                  {state.dinner.preparationCheckList.map((title, index) => (
                     <li
                       key={index}
                       className="flex items-center text-lg py-1 px-1"
@@ -260,7 +231,7 @@ export const DinnerView = ({
               Instructions
             </label>
             <div className="flex flex-col mt-1">
-              {dinner.instructions.map((instruction, index) => (
+              {state.dinner.instructions.map((instruction, index) => (
                 <div className="flex items-center" key={index}>
                   <span className="font-bold mr-2">{index + 1}.</span>
                   <div className="relative flex-grow">

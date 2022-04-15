@@ -24,6 +24,12 @@ export type CheckListItemDTO = {
     }
 );
 
+export type CheckListItemsByTodoId = {
+  [todoId: string]: {
+    [itemId: string]: CheckListItemDTO;
+  };
+};
+
 export type DinnerDTO = {
   id: string;
   name: string;
@@ -114,9 +120,16 @@ export type StorageEvent =
       };
     }
   | {
-      type: "STORAGE:ADD_TODO_ERROR";
-      error: string;
-      description: string;
+      type: "STORAGE:STORE_DINNER_ERROR";
+      dinner: DinnerDTO;
+    }
+  | {
+      type: "STORAGE:STORE_TODO_SUCCESS";
+      id: string;
+    }
+  | {
+      type: "STORAGE:STORE_TODO_ERROR";
+      todo: TodoDTO;
     }
   | {
       type: "STORAGE:GROCERIES_UPDATE";
@@ -125,27 +138,15 @@ export type StorageEvent =
       };
     }
   | {
-      type: "STORAGE:ADD_GROCERY_ERROR";
-      error: string;
-      name: string;
+      type: "STORAGE:STORE_GROCERY_SUCCESS";
+      id: string;
+    }
+  | {
+      type: "STORAGE:STORE_GROCERY_ERROR";
+      grocery: GroceryDTO;
     }
   | {
       type: "STORAGE:DELETE_GROCERY_ERROR";
-      id: string;
-      error: string;
-    }
-  | {
-      type: "STORAGE:INCREASE_GROCERY_SHOP_COUNT_ERROR";
-      id: string;
-      error: string;
-    }
-  | {
-      type: "STORAGE:SHOP_GROCERY_ERROR";
-      id: string;
-      error: string;
-    }
-  | {
-      type: "STORAGE:RESET_GROCERY_SHOP_COUNT_ERROR";
       id: string;
       error: string;
     }
@@ -159,11 +160,6 @@ export type StorageEvent =
       weekId: string;
       todoId: string;
       userId: string;
-      error: string;
-    }
-  | {
-      type: "STORAGE:ADD_IMAGE_TO_GROCERY_ERROR";
-      groceryId: string;
       error: string;
     }
   | {
@@ -184,31 +180,37 @@ export type StorageEvent =
     }
   | {
       type: "STORAGE:CHECKLIST_ITEMS_UPDATE";
-      checkListItemsByTodoId: {
-        [todoId: string]: {
-          [itemId: string]: CheckListItemDTO;
-        };
-      };
+      checkListItemsByTodoId: CheckListItemsByTodoId;
     };
 
 export interface Storage {
   createDinnerId(): string;
   createTodoId(): string;
-  createCheckListId(): string;
-  storeDinner(familyId: string, dinner: DinnerDTO): void;
-  deleteDinner(familyId: string, dinner: DinnerDTO): void;
-  fetchFamilyData(familyId: string): void;
-  fetchWeeks(familyId: string, userId: string): void;
-  addGrocery(familyId: string, name: string): void;
-  storeTodo(
-    familyId: string,
-    todo: TodoDTO,
-    checkList?: CheckListItemDTO[]
+  createCheckListItemId(): string;
+  createGroceryId(): string;
+  configureFamilyCollection(familyId: string): void;
+  storeDinner(
+    dinner: Pick<
+      DinnerDTO,
+      | "id"
+      | "description"
+      | "groceries"
+      | "instructions"
+      | "name"
+      | "preparationCheckList"
+    >
   ): void;
-  deleteGrocery(familyId: string, id: string): void;
-  archiveTodo(familyId: string, id: string): void;
+  deleteDinner(id: string): void;
+  fetchFamilyData(): void;
+  fetchWeeks(userId: string): void;
+  storeGrocery(grocery: Pick<GroceryDTO, "id" | "name" | "dinnerId">): void;
+  storeTodo(
+    todo: Pick<TodoDTO, "description" | "date" | "id" | "time">,
+    checkList?: Pick<CheckListItemDTO, "id" | "title">[]
+  ): void;
+  deleteGrocery(id: string): void;
+  archiveTodo(id: string): void;
   setWeekTaskActivity(options: {
-    familyId: string;
     weekId: string;
     todoId: string;
     userId: string;
@@ -216,12 +218,13 @@ export interface Storage {
     active: boolean;
   }): void;
   setWeekDinner(options: {
-    familyId: string;
     weekId: string;
     dinnerId: string | null;
     weekdayIndex: number;
   }): void;
-  toggleCheckListItem(familyId: string, userId: string, itemId: string): void;
-  deleteChecklistItem(familyId: string, itemId: string): void;
-  addChecklistItem(familyId: string, todoId: string, title: string): void;
+  toggleCheckListItem(userId: string, itemId: string): void;
+  deleteChecklistItem(id: string): void;
+  storeChecklistItem(
+    checkListItem: Pick<CheckListItemDTO, "id" | "title" | "todoId">
+  ): void;
 }

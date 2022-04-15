@@ -1,15 +1,12 @@
 import React from "react";
 import { PageContainer } from "../components/PageContainer";
-import { DashboardFeature } from "../features/DashboardFeature";
 import { Dashboard } from "../components/Dashboard";
 import { GetStaticPropsContext } from "next";
 
 function AppPage() {
   return (
     <PageContainer>
-      <DashboardFeature>
-        <Dashboard />
-      </DashboardFeature>
+      <Dashboard />
     </PageContainer>
   );
 }

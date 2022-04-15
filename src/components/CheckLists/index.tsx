@@ -1,53 +1,30 @@
 import * as React from "react";
 import { useTranslations } from "next-intl";
 import { ChevronLeftIcon } from "@heroicons/react/outline";
+
+import { TodoItem } from "../TodoItem";
+import * as selectors from "../../selectors";
 import {
   CheckListItemsByTodoId,
-  Todos,
-} from "../features/DashboardFeature/Feature";
-import {
-  checkListSelectors,
-  useCheckLists,
-} from "../features/CheckListFeature";
-import { TodoItem } from "./TodoItem";
+  TodoDTO,
+} from "../../environment-interface/storage";
+import { FamilyUserDTO } from "../../environment-interface/authentication";
 
-export const CheckListsView = ({
+export const CheckLists = ({
   todos,
+  user,
   checkListItemsByTodoId,
   onBackClick,
+  onTodoClick,
 }: {
-  todos: Todos;
+  todos: Record<string, TodoDTO>;
+  user: FamilyUserDTO;
   checkListItemsByTodoId: CheckListItemsByTodoId;
   onBackClick: () => void;
+  onTodoClick: (id: string) => void;
 }) => {
-  const [, send] = useCheckLists();
   const t = useTranslations("CheckListsView");
-  const checkLists = checkListSelectors.checkLists(todos);
-  const archiveTodo = React.useCallback((todoId: string) => {
-    send({
-      type: "ARCHIVE_TODO",
-      todoId,
-    });
-  }, []);
-  const toggleItemCompleted = React.useCallback((itemId: string) => {
-    send({
-      type: "TOGGLE_CHECKLIST_ITEM",
-      itemId,
-    });
-  }, []);
-  const deleteItem = React.useCallback((itemId: string) => {
-    send({
-      type: "DELETE_CHECKLIST_ITEM",
-      itemId,
-    });
-  }, []);
-  const addItem = React.useCallback((todoId: string, title: string) => {
-    send({
-      type: "ADD_CHECKLIST_ITEM",
-      todoId,
-      title,
-    });
-  }, []);
+  const checkLists = selectors.checkLists(todos);
 
   return (
     <div className="bg-white flex flex-col h-screen">
@@ -70,11 +47,9 @@ export const CheckListsView = ({
           <TodoItem
             key={todo.id}
             todo={todo}
-            archiveTodo={archiveTodo}
+            onClick={() => onTodoClick(todo.id)}
+            user={user}
             checkListItems={checkListItemsByTodoId[todo.id]}
-            toggleItemCompleted={toggleItemCompleted}
-            deleteItem={deleteItem}
-            addItem={addItem}
           />
         ))}
       </ul>

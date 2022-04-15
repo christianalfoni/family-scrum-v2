@@ -1,7 +1,6 @@
 import {
   CalendarIcon,
   ChatAlt2Icon,
-  CheckCircleIcon,
   ClipboardCheckIcon,
   CollectionIcon,
   HeartIcon,
@@ -12,16 +11,11 @@ import { useTranslations, useIntl } from "next-intl";
 import React, { useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import SwiperCore, { Controller } from "swiper";
-import { dashboardSelectors, useDasbhoard } from "../features/DashboardFeature";
-import { getDayIndex, getFirstDateOfCurrentWeek, weekdays } from "../utils";
-import { groceriesShoppingSelectors } from "../features/GroceriesShoppingFeature";
-import { addDays, format, isSameDay } from "date-fns";
-import { checkListSelectors } from "../features/CheckListFeature";
+import { getDayIndex, getFirstDateOfCurrentWeek, weekdays } from "../../utils";
+import { addDays } from "date-fns";
 import { PickState } from "react-states";
-import {
-  DashboardFeature,
-  ViewState,
-} from "../features/DashboardFeature/Feature";
+import { DashboardReducer, ViewState } from "./useDashboard";
+import * as selectors from "../../selectors";
 
 SwiperCore.use([Controller]);
 
@@ -82,7 +76,7 @@ const WeekdaySlideContent = ({
   </div>
 );
 
-export const DashboardContentSkeleton = () => {
+export const DashboardSkeleton = () => {
   const t = useTranslations("DashboardView");
   const tCommon = useTranslations("common");
 
@@ -164,27 +158,27 @@ export const DashboardContentSkeleton = () => {
   );
 };
 
-export const DashboardView = ({
+export const DashboardContent = ({
   dashboard,
   selectView,
 }: {
-  dashboard: PickState<DashboardFeature, "LOADED">;
+  dashboard: PickState<DashboardReducer, "LOADED">;
   selectView: (view: ViewState) => void;
 }) => {
   const t = useTranslations("DashboardView");
   const tCommon = useTranslations("common");
   const intl = useIntl();
-  const { groceries, family, currentWeek, todos } = dashboard;
+  const { groceries, family, currentWeek, todos, dinners } = dashboard;
   const currentDayIndex = getDayIndex();
   const currentWeekDate = getFirstDateOfCurrentWeek();
   const [slideIndex, setSlideIndex] = useState(currentDayIndex);
-  const todosByWeekday = dashboardSelectors.todosByWeekday(currentWeek);
-  const eventsByWeekday = dashboardSelectors.eventsByWeekday(todos);
+  const todosByWeekday = selectors.todosByWeekday(currentWeek);
+  const eventsByWeekday = selectors.eventsByWeekday(todos);
   const [controlledSwiper, setControlledSwiper] = useState<SwiperCore | null>(
     null
   );
-  const shopCount = groceriesShoppingSelectors.shopCount(groceries);
-  const checkLists = checkListSelectors.checkLists(todos);
+  const shopCount = selectors.shopCount(groceries);
+  const checkLists = selectors.checkLists(todos);
 
   return (
     <>
@@ -217,7 +211,7 @@ export const DashboardView = ({
           Icon={ChatAlt2Icon}
           onClick={() => {
             selectView({
-              state: "PLAN_NEXT_WEEK_DINNERS",
+              state: "PLAN_NEXT_WEEK",
             });
           }}
           color="bg-green-500"
@@ -246,6 +240,8 @@ export const DashboardView = ({
           initialSlide={slideIndex}
         >
           {todosByWeekday.map((weekdayTodos, index) => {
+            const dinnerId = currentWeek.dinners[index];
+            const dinner = dinnerId && dinners[dinnerId];
             return (
               <SwiperSlide key={index}>
                 <WeekdaySlideContent
@@ -257,6 +253,27 @@ export const DashboardView = ({
                 >
                   {
                     <ul className="mt-2 ">
+                      {dinner ? (
+                        <li key="DINNER">
+                          <div className="flex items-center space-x-3 h-20">
+                            <div className="flex-shrink-0">
+                              <img
+                                className="h-16 w-16 rounded"
+                                src="dinner_1.jpeg"
+                                alt=""
+                              />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-md font-medium text-gray-900">
+                                {dinner.name}
+                              </p>
+                              <p className="text-sm text-gray-500">
+                                {dinner.description}
+                              </p>
+                            </div>
+                          </div>
+                        </li>
+                      ) : null}
                       {eventsByWeekday[index].map((todo) => (
                         <li
                           key={todo.id}

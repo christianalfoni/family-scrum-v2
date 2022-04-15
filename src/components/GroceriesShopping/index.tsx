@@ -1,11 +1,5 @@
-import { useDasbhoard } from "../features/DashboardFeature";
 import confetti from "canvas-confetti";
-
 import React, { useEffect } from "react";
-import {
-  groceriesShoppingSelectors,
-  useGroceriesShopping,
-} from "../features/GroceriesShoppingFeature";
 import {
   ChevronLeftIcon,
   LightBulbIcon,
@@ -15,39 +9,33 @@ import {
 import { LightBulbIcon as SolidLightBulbIcon } from "@heroicons/react/solid";
 import { useTranslations } from "next-intl";
 import { match, PickState } from "react-states";
-import { mp4 } from "../video";
-import { DashboardFeature } from "../features/DashboardFeature/Feature";
+import { mp4 } from "../../video";
+import { DashboardReducer } from "../Dashboard/useDashboard";
+import { useGroceriesShopping } from "./useGroceriesShopping";
+import * as selectors from "../../selectors";
 
-export const GroceriesShoppingView = ({
+export const GroceriesShopping = ({
   onBackClick,
   dashboard,
 }: {
   onBackClick: () => void;
-  dashboard: PickState<DashboardFeature, "LOADED">;
+  dashboard: PickState<DashboardReducer, "LOADED">;
 }) => {
   const t = useTranslations("GroceriesShoppingView");
   const [now] = React.useState(Date.now());
-  const [groceriesShopping, send] = useGroceriesShopping();
+  const [groceriesShopping, send] = useGroceriesShopping({});
   const videoRef = React.useRef<HTMLVideoElement>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
   const inputValue = match(groceriesShopping, {
     FILTERED: ({ input }) => input,
     UNFILTERED: () => "",
   });
-  const groceriesToShop = groceriesShoppingSelectors.groceriesToShop(
-    dashboard.groceries
-  );
+  const groceriesToShop = selectors.groceriesToShop(dashboard.groceries);
   const sortedAndFilteredGroceries = match(groceriesShopping, {
     FILTERED: ({ input }) =>
-      groceriesShoppingSelectors.filteredGroceriesByInput(
-        groceriesToShop,
-        input
-      ),
+      selectors.filteredGroceriesByInput(groceriesToShop, input),
     UNFILTERED: () =>
-      groceriesShoppingSelectors.sortedGroceriesByNameAndCreated(
-        groceriesToShop,
-        now
-      ),
+      selectors.sortedGroceriesByNameAndCreated(groceriesToShop, now),
   });
   const videoUpdateCallback = React.useCallback(() => {
     const video = videoRef.current!;

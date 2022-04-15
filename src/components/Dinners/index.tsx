@@ -1,14 +1,15 @@
 import React from "react";
 import { ChevronLeftIcon, PlusIcon } from "@heroicons/react/outline";
-import { Dinners, selectors } from "../features/DashboardFeature/Feature";
+import * as selectors from "../../selectors";
+import { DinnerDTO } from "../../environment-interface/storage";
 
-export const DinnersView = ({
+export const Dinners = ({
   onBackClick,
   onAddDinnerClick,
   onDinnerClick,
   dinners,
 }: {
-  dinners: Dinners;
+  dinners: Record<string, DinnerDTO>;
   onBackClick: () => void;
   onAddDinnerClick: () => void;
   onDinnerClick: (id: string) => void;

@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 /* This example requires Tailwind CSS v2.0+ */
 import { Fragment } from "react";
 import { Dialog, Transition } from "@headlessui/react";
-import { SessionReducer } from "./reducer";
+import { SessionReducer } from "./useSession";
 import { CheckCircleIcon } from "@heroicons/react/outline";
 
 export const UpdateModal = ({

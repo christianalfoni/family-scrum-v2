@@ -141,7 +141,7 @@ export const createStorage = (emit: Emit<StorageEvent>): Storage => {
           user_2: [false, true, false, false, false, true, false],
         },
       },
-      dinners: [null, null, null, null, null, null, null],
+      dinners: [null, null, null, null, "dinner_0", null, null],
     },
     [nextWeekId]: {
       id: nextWeekId,
@@ -160,6 +160,7 @@ export const createStorage = (emit: Emit<StorageEvent>): Storage => {
   };
 
   return {
+    configureFamilyCollection() {},
     async fetchWeeks() {
       emit({
         type: "STORAGE:WEEKS_UPDATE",
@@ -168,10 +169,36 @@ export const createStorage = (emit: Emit<StorageEvent>): Storage => {
         previousWeek: weeks[previousWeekId],
       });
     },
-    storeDinner(_, dinner) {
+    storeDinner({
+      id,
+      description,
+      groceries,
+      instructions,
+      name,
+      preparationCheckList,
+    }) {
       dinners = {
         ...dinners,
-        [dinner.id]: dinner,
+        [id]: dinners[id]
+          ? {
+              ...dinners[id],
+              modified: Date.now(),
+              description,
+              groceries,
+              instructions,
+              name,
+              preparationCheckList,
+            }
+          : {
+              id,
+              description,
+              groceries,
+              instructions,
+              name,
+              preparationCheckList,
+              created: Date.now(),
+              modified: Date.now(),
+            },
       };
 
       emit({
@@ -179,8 +206,8 @@ export const createStorage = (emit: Emit<StorageEvent>): Storage => {
         dinners,
       });
     },
-    deleteDinner(_, dinner) {
-      delete dinners[dinner.id];
+    deleteDinner(id) {
+      delete dinners[id];
 
       dinners = {
         ...dinners,
@@ -188,17 +215,22 @@ export const createStorage = (emit: Emit<StorageEvent>): Storage => {
 
       emit({ type: "STORAGE:DINNERS_UPDATE", dinners });
     },
-    addGrocery(_, name) {
-      const newGrocery: GroceryDTO = {
-        id: `grocery_${Object.keys(groceries).length}`,
-        created: Date.now(),
-        modified: Date.now(),
-        name,
-      };
-
+    storeGrocery({ id, name, dinnerId }) {
       groceries = {
         ...groceries,
-        [newGrocery.id]: newGrocery,
+        [id]: groceries[id]
+          ? {
+              ...groceries[id],
+              modified: Date.now(),
+              name,
+            }
+          : {
+              id,
+              name,
+              created: Date.now(),
+              modified: Date.now(),
+              dinnerId,
+            },
       };
 
       emit({
@@ -209,16 +241,35 @@ export const createStorage = (emit: Emit<StorageEvent>): Storage => {
     createTodoId() {
       return `todo_${Object.keys(todos).length}`;
     },
-    createCheckListId() {
+    createCheckListItemId() {
       return `checklist_item_${Object.keys(checkListItems).length}`;
     },
     createDinnerId() {
       return `dinner_${Object.keys(dinners).length}`;
     },
-    storeTodo(_, todo, checkList) {
+    createGroceryId() {
+      return `grocery_${Object.keys(groceries).length}`;
+    },
+    storeTodo({ id, description, date, time }, checkList) {
       todos = {
         ...todos,
-        [todo.id]: todo,
+        [id]: todos[id]
+          ? {
+              ...todos[id],
+              description,
+              date,
+              time,
+              modified: Date.now(),
+            }
+          : {
+              id,
+              description,
+              created: Date.now(),
+              modified: Date.now(),
+              date,
+              time,
+              checkList: Boolean(checkList && checkList.length),
+            },
       };
 
       emit({
@@ -227,10 +278,24 @@ export const createStorage = (emit: Emit<StorageEvent>): Storage => {
       });
 
       if (checkList) {
+        const todoId = id;
         const newCheckListItems = checkList.reduce<{
           [itemId: string]: CheckListItemDTO;
-        }>((aggr, itemDoc) => {
-          aggr[itemDoc.id] = itemDoc;
+        }>((aggr, { id, title }) => {
+          aggr[id] = checkListItems[id]
+            ? {
+                ...checkListItems[id],
+                modified: Date.now(),
+                title,
+              }
+            : {
+                id,
+                created: Date.now(),
+                modified: Date.now(),
+                title,
+                completed: false,
+                todoId,
+              };
 
           return aggr;
         }, {});
@@ -246,7 +311,7 @@ export const createStorage = (emit: Emit<StorageEvent>): Storage => {
         });
       }
     },
-    deleteGrocery(_, id) {
+    deleteGrocery(id) {
       delete groceries[id];
 
       groceries = {
@@ -281,7 +346,7 @@ export const createStorage = (emit: Emit<StorageEvent>): Storage => {
         dinners,
       });
     },
-    archiveTodo(_, id) {
+    archiveTodo(id) {
       todos = {
         ...todos,
       };
@@ -294,14 +359,7 @@ export const createStorage = (emit: Emit<StorageEvent>): Storage => {
       });
     },
 
-    setWeekTaskActivity({
-      familyId,
-      weekId,
-      userId,
-      todoId,
-      weekdayIndex,
-      active,
-    }) {
+    setWeekTaskActivity({ weekId, userId, todoId, weekdayIndex, active }) {
       const weekTodoActivity: WeekTodoActivity = weeks[weekId].todos[todoId]?.[
         userId
       ] ?? [false, false, false, false, false, false, false];
@@ -331,7 +389,7 @@ export const createStorage = (emit: Emit<StorageEvent>): Storage => {
         previousWeek: weeks[previousWeekId],
       });
     },
-    toggleCheckListItem(familyId, userId, itemId) {
+    toggleCheckListItem(userId, itemId) {
       const checkListItem = checkListItems[itemId];
 
       checkListItems = {
@@ -353,7 +411,7 @@ export const createStorage = (emit: Emit<StorageEvent>): Storage => {
         checkListItemsByTodoId: createCheckListItemsByTodoId(checkListItems),
       });
     },
-    deleteChecklistItem(familyId, itemId) {
+    deleteChecklistItem(itemId) {
       checkListItems = {
         ...checkListItems,
       };
@@ -365,21 +423,23 @@ export const createStorage = (emit: Emit<StorageEvent>): Storage => {
         checkListItemsByTodoId: createCheckListItemsByTodoId(checkListItems),
       });
     },
-    addChecklistItem(familyId, todoId, title) {
-      const itemId = `CHECKLIST_ITEM_${
-        Object.keys(todos[todoId].checkList!).length
-      }`;
-
+    storeChecklistItem({ id, title, todoId }) {
       checkListItems = {
         ...checkListItems,
-        [itemId]: {
-          id: itemId,
-          todoId,
-          completed: false,
-          title,
-          created: Date.now(),
-          modified: Date.now(),
-        },
+        [id]: checkListItems[id]
+          ? {
+              ...checkListItems[id],
+              modified: Date.now(),
+              title,
+            }
+          : {
+              id,
+              todoId,
+              completed: false,
+              title,
+              created: Date.now(),
+              modified: Date.now(),
+            },
       };
 
       emit({

@@ -1,7 +1,6 @@
 import { createContext, useContext } from "react";
-import { useCommandEffect, useStateEffect } from "react-states";
-import { useEnvironment, useReducer } from "../../environment-interface";
-import { reducer, SessionReducer } from "./reducer";
+import { useEnvironment } from "../../environment-interface";
+import { SessionReducer, useSession as useSessionReducer } from "./useSession";
 import { SignInModal } from "./SignInModal";
 import { UpdateModal } from "./UpdateModal";
 
@@ -11,19 +10,7 @@ export const useSession = () => useContext(context);
 
 export const Session: React.FC = ({ children }) => {
   const { authentication, version } = useEnvironment();
-  const sessionReducer = useReducer("Session", reducer, {
-    state: "VERIFYING_AUTHENTICATION",
-  });
-
-  const [state] = sessionReducer;
-
-  useStateEffect(state, "SIGNING_IN", () => authentication.signIn());
-
-  useCommandEffect(state, "CHECK_VERSION", () => version.checkVersion());
-
-  useStateEffect(state, "SIGNED_IN", () => version.checkVersion());
-
-  useStateEffect(state, "UPDATING_VERSION", () => version.update());
+  const sessionReducer = useSessionReducer({});
 
   return (
     <context.Provider value={sessionReducer}>

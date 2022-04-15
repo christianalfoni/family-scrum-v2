@@ -6,5 +6,4 @@ export type VisibilityEvent =
       type: "VISIBILITY:HIDDEN";
     };
 
-export interface Visibility {
-}
+export interface Visibility {}

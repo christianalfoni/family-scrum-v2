@@ -9,14 +9,31 @@ import {
   XIcon,
 } from "@heroicons/react/outline";
 import { useTranslations } from "next-intl";
-import { useTodo } from "../features/TodoFeature";
 import { match } from "react-states";
 import { format } from "date-fns";
+import { useEditTodo } from "./useEditTodo";
+import {
+  CheckListItemsByTodoId,
+  TodoDTO,
+} from "../../environment-interface/storage";
 
-export const TodoView = ({ onBackClick }: { onBackClick: () => void }) => {
-  const [todo, send] = useTodo();
+export const EditTodo = ({
+  todo,
+  onBackClick,
+  checkListItemsByTodoId,
+}: {
+  todo?: TodoDTO;
+
+  checkListItemsByTodoId: CheckListItemsByTodoId;
+  onBackClick: () => void;
+}) => {
   const t = useTranslations("AddTodoView");
   const [newItemTitle, setNewItemTitle] = React.useState("");
+  const [state, dispatch] = useEditTodo({
+    todo,
+    checkListItemsByTodoId,
+    onExit: onBackClick,
+  });
 
   return (
     <div className="bg-white lg:min-w-0 lg:flex-1 min-h-screen">
@@ -36,17 +53,17 @@ export const TodoView = ({ onBackClick }: { onBackClick: () => void }) => {
         <textarea
           rows={3}
           onChange={(event) => {
-            send({
+            dispatch({
               type: "DESCRIPTION_CHANGED",
               description: event.target.value,
             });
           }}
           className="p-2 border-none block w-full focus:ring-blue-500 focus:border-blue-500 text-sm"
           placeholder="Description..."
-          value={todo.description}
+          value={state.description}
         />
         <div className="px-4 border-t border-gray-200  text-gray-500 text-lg font-medium ">
-          {match(todo.date, {
+          {match(state.date, {
             ACTIVE: ({ date }) => (
               <div className="flex items-center  h-20">
                 <CalendarIcon className="w-6 h-6 mr-2" />
@@ -55,7 +72,7 @@ export const TodoView = ({ onBackClick }: { onBackClick: () => void }) => {
                   type="date"
                   value={format(date, "yyyy-MM-dd")}
                   onChange={(event) => {
-                    send({
+                    dispatch({
                       type: "DATE_CHANGED",
                       date: new Date(event.target.value).getTime(),
                     });
@@ -63,7 +80,7 @@ export const TodoView = ({ onBackClick }: { onBackClick: () => void }) => {
                 />
                 <button
                   onClick={() => {
-                    send({
+                    dispatch({
                       type: "DATE_TOGGLED",
                     });
                   }}
@@ -76,7 +93,7 @@ export const TodoView = ({ onBackClick }: { onBackClick: () => void }) => {
             INACTIVE: () => (
               <button
                 onClick={() => {
-                  send({
+                  dispatch({
                     type: "DATE_TOGGLED",
                   });
                 }}
@@ -88,7 +105,7 @@ export const TodoView = ({ onBackClick }: { onBackClick: () => void }) => {
           })}
         </div>
         <div className="px-4 border-t border-gray-200 text-gray-500 text-lg font-medium ">
-          {match(todo.time, {
+          {match(state.time, {
             ACTIVE: ({ time }) => (
               <div className="flex items-center  h-20">
                 <ClockIcon className="w-6 h-6 mr-2" />
@@ -97,7 +114,7 @@ export const TodoView = ({ onBackClick }: { onBackClick: () => void }) => {
                   type="time"
                   value={time}
                   onChange={(event) => {
-                    send({
+                    dispatch({
                       type: "TIME_CHANGED",
                       time: event.target.value,
                     });
@@ -105,7 +122,7 @@ export const TodoView = ({ onBackClick }: { onBackClick: () => void }) => {
                 />
                 <button
                   onClick={() => {
-                    send({
+                    dispatch({
                       type: "TIME_TOGGLED",
                     });
                   }}
@@ -118,7 +135,7 @@ export const TodoView = ({ onBackClick }: { onBackClick: () => void }) => {
             INACTIVE: () => (
               <button
                 onClick={() => {
-                  send({
+                  dispatch({
                     type: "TIME_TOGGLED",
                   });
                 }}
@@ -130,7 +147,7 @@ export const TodoView = ({ onBackClick }: { onBackClick: () => void }) => {
           })}
         </div>
         <div className="px-4 border-t border-gray-200 text-gray-500 text-lg font-medium ">
-          {match(todo.checkList, {
+          {match(state.checkList, {
             ACTIVE: ({ items }) => (
               <div className="flex flex-col">
                 <div className="flex items-center  h-20">
@@ -153,7 +170,7 @@ export const TodoView = ({ onBackClick }: { onBackClick: () => void }) => {
                       type="button"
                       className="bg-white inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-light-blue-500"
                       onClick={() => {
-                        send({
+                        dispatch({
                           type: "CHECKLIST_ITEM_ADDED",
                           title: newItemTitle,
                         });
@@ -169,7 +186,7 @@ export const TodoView = ({ onBackClick }: { onBackClick: () => void }) => {
                   </span>
                   <button
                     onClick={() => {
-                      send({
+                      dispatch({
                         type: "CHECKLIST_TOGGLED",
                       });
                     }}
@@ -194,7 +211,7 @@ export const TodoView = ({ onBackClick }: { onBackClick: () => void }) => {
                         <span
                           className="p-2 text-gray-300"
                           onClick={() => {
-                            send({
+                            dispatch({
                               type: "CHECKLIST_ITEM_REMOVED",
                               index,
                             });
@@ -211,7 +228,7 @@ export const TodoView = ({ onBackClick }: { onBackClick: () => void }) => {
             INACTIVE: () => (
               <button
                 onClick={() => {
-                  send({
+                  dispatch({
                     type: "CHECKLIST_TOGGLED",
                   });
                 }}
@@ -226,12 +243,12 @@ export const TodoView = ({ onBackClick }: { onBackClick: () => void }) => {
         <div className="border-t border-gray-200 p-4 flex justify-center">
           <button
             type="submit"
-            disabled={match(todo, {
+            disabled={match(state, {
               INVALID: () => true,
               VALID: () => false,
             })}
             onClick={() => {
-              send({
+              dispatch({
                 type: "ADD_TODO",
               });
             }}
