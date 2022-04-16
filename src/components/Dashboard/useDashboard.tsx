@@ -8,17 +8,13 @@ import {
   TodoDTO,
   WeekDTO,
 } from "../../environment-interface/storage";
-import { mod } from "../../utils";
-import { getDay, isThisWeek } from "date-fns";
+
 import {
   createReducer,
   useEnvironment,
   useReducer,
 } from "../../environment-interface";
-import {
-  FamilyUserDTO,
-  UserDTO,
-} from "../../environment-interface/authentication";
+import { FamilyUserDTO } from "../../environment-interface/authentication";
 import { useSession } from "../Session";
 
 export type ViewState =
@@ -33,6 +29,7 @@ export type ViewState =
     }
   | {
       state: "PLAN_NEXT_WEEK";
+      subView: "DINNERS" | "TODOS";
     }
   | {
       state: "DINNERS";
@@ -73,10 +70,10 @@ type State =
       previousWeek: WeekDTO;
       currentWeek: WeekDTO;
       nextWeek: WeekDTO;
-      view: ViewState;
       user: FamilyUserDTO;
       checkListItemsByTodoId: CheckListItemsByTodoId;
       dinners: Record<string, DinnerDTO>;
+      viewStack: ViewState[];
     }
   | {
       state: "ERROR";
@@ -85,7 +82,14 @@ type State =
 
 export type Action =
   | {
-      type: "VIEW_SELECTED";
+      type: "PUSH_VIEW";
+      view: ViewState;
+    }
+  | {
+      type: "POP_VIEW";
+    }
+  | {
+      type: "REPLACE_VIEW";
       view: ViewState;
     }
   | {
@@ -98,6 +102,18 @@ export type Action =
     };
 
 export type DashboardReducer = StatesReducer<State, Action>;
+
+const isSameView = (viewA: any, viewB: any) => {
+  const viewAKeys = Object.keys(viewA);
+  const viewBKeys = Object.keys(viewB);
+
+  return (
+    viewAKeys.length === viewBKeys.length &&
+    viewAKeys.reduce<boolean>((aggr, key) => {
+      return aggr ? viewB[key] === viewA[key] : false;
+    }, true)
+  );
+};
 
 const evaluateLoadedState = (
   state: PickState<DashboardReducer, "LOADING">
@@ -114,9 +130,12 @@ const evaluateLoadedState = (
   ) {
     return {
       state: "LOADED",
-      view: {
-        state: "DASHBOARD",
-      },
+      viewStack: [
+        {
+          state: "DASHBOARD",
+        },
+      ],
+
       currentWeek: state.currentWeek,
       family: state.family,
       groceries: state.groceries,
@@ -226,7 +245,11 @@ const reducer = createReducer<DashboardReducer>({
         ...state,
         family,
       }),
-    "STORAGE:GROCERIES_UPDATE": ({ state, state: { groceries }, transition }) =>
+    "STORAGE:GROCERIES_UPDATE": ({
+      state,
+      action: { groceries },
+      transition,
+    }) =>
       transition({
         ...state,
         groceries,
@@ -261,10 +284,28 @@ const reducer = createReducer<DashboardReducer>({
         ...state,
         checkListItemsByTodoId,
       }),
-    VIEW_SELECTED: ({ state, action: { view }, transition }) =>
+    PUSH_VIEW: ({ state, action: { view }, transition, noop }) => {
+      const currentView = state.viewStack[state.viewStack.length - 1];
+
+      return isSameView(view, currentView)
+        ? noop()
+        : transition({
+            ...state,
+            viewStack: state.viewStack.concat(view),
+          });
+    },
+    REPLACE_VIEW: ({ state, transition, action: { view } }) =>
       transition({
         ...state,
-        view,
+        viewStack: [
+          ...state.viewStack.slice(0, state.viewStack.length - 1),
+          view,
+        ],
+      }),
+    POP_VIEW: ({ state, transition }) =>
+      transition({
+        ...state,
+        viewStack: state.viewStack.slice(0, state.viewStack.length - 1),
       }),
   },
   ERROR: {},

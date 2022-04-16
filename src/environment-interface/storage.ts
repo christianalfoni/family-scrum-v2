@@ -181,6 +181,25 @@ export type StorageEvent =
   | {
       type: "STORAGE:CHECKLIST_ITEMS_UPDATE";
       checkListItemsByTodoId: CheckListItemsByTodoId;
+    }
+  | {
+      type: "STORAGE:STORE_IMAGE_SUCCESS";
+      ref: string;
+    }
+  | {
+      type: "STORAGE:STORE_IMAGE_ERROR";
+      ref: string;
+      error: string;
+    }
+  | {
+      type: "STORAGE:FETCH_IMAGE_SUCCESS";
+      ref: string;
+      src: string;
+    }
+  | {
+      type: "STORAGE:FETCH_IMAGE_ERROR";
+      ref: string;
+      error: string;
     };
 
 export interface Storage {
@@ -188,6 +207,7 @@ export interface Storage {
   createTodoId(): string;
   createCheckListItemId(): string;
   createGroceryId(): string;
+  getDinnerImageRef(id: string): string;
   configureFamilyCollection(familyId: string): void;
   storeDinner(
     dinner: Pick<
@@ -198,7 +218,8 @@ export interface Storage {
       | "instructions"
       | "name"
       | "preparationCheckList"
-    >
+    >,
+    imageSrc?: string
   ): void;
   deleteDinner(id: string): void;
   fetchFamilyData(): void;
@@ -227,4 +248,5 @@ export interface Storage {
   storeChecklistItem(
     checkListItem: Pick<CheckListItemDTO, "id" | "title" | "todoId">
   ): void;
+  fetchImage(ref: string): void;
 }

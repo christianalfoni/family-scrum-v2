@@ -130,14 +130,25 @@ export const filteredGroceriesByInput = (
   if (input) {
     const lowerCaseInput = input.toLocaleLowerCase();
 
-    return groceries.filter((grocery) => {
-      const lowerCaseGroceryName = grocery.name.toLowerCase();
+    return groceries
+      .filter((grocery) => {
+        const lowerCaseGroceryName = grocery.name.toLowerCase();
 
-      return (
-        lowerCaseGroceryName.includes(lowerCaseInput) ||
-        levenshtein.get(grocery.name.toLowerCase(), input.toLowerCase()) < 3
-      );
-    });
+        return (
+          lowerCaseGroceryName.includes(lowerCaseInput) ||
+          levenshtein.get(grocery.name.toLowerCase(), input.toLowerCase()) < 3
+        );
+      })
+      .sort((a, b) => {
+        if (a.name.startsWith(input) && !b.name.startsWith(input)) {
+          return -1;
+        }
+        if (!a.name.startsWith(input) && b.name.startsWith(input)) {
+          return 1;
+        }
+
+        return 0;
+      });
   }
 
   return groceries;

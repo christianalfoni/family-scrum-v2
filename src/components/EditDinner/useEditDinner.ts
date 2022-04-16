@@ -6,6 +6,7 @@ import {
   useReducer,
 } from "../../environment-interface";
 import { DinnerDTO } from "../../environment-interface/storage";
+import { useImage } from "./useImage";
 
 export type Dinner = DinnerDTO;
 
@@ -26,9 +27,14 @@ type BaseState = {
 type State = BaseState & {
   state: "EDITING";
   dinner: Dinner;
+  imageSrc?: string;
 };
 
 type Action =
+  | {
+      type: "ADD_IMAGE_SOURCE";
+      src: string;
+    }
   | {
       type: "NAME_CHANGED";
       name: string;
@@ -223,12 +229,17 @@ const reducer = createReducer<DinnerReducer>({
         validation: validateDinner(dinner),
       });
     },
+    ADD_IMAGE_SOURCE: ({ state, action: { src }, transition }) =>
+      transition({
+        ...state,
+        imageSrc: src,
+      }),
     SAVE: ({ state, transition, noop }) =>
       state.validation.state === "VALID"
         ? transition(state, {
             cmd: "$CALL_ENVIRONMENT",
             target: "storage.storeDinner",
-            params: [state.dinner],
+            params: [state.dinner, state.imageSrc],
           })
         : noop(),
   },
@@ -271,11 +282,27 @@ export const useEditDinner = ({
     }
   );
 
-  const [state] = dinnerReducer;
+  const [state, dispatch] = dinnerReducer;
+
+  const imageReducer = useImage({
+    ref: storage.getDinnerImageRef(state.dinner.id),
+  });
+
+  const [imageState] = imageReducer;
 
   useCommandEffect(state, "EXIT", () => {
     onExit();
   });
 
-  return dinnerReducer;
+  useStateEffect(imageState, "CAPTURED", ({ src }) => {
+    dispatch({
+      type: "ADD_IMAGE_SOURCE",
+      src,
+    });
+  });
+
+  return {
+    dinner: dinnerReducer,
+    image: imageReducer,
+  };
 };

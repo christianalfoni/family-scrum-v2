@@ -20,8 +20,9 @@ export const Dashboard = () => {
         LOADING: () => <DashboardSkeleton />,
         REQUIRING_AUTHENTICATION: () => <DashboardSkeleton />,
         LOADED: (loadedDashboard) => {
-          const { view, todos, dinners, user, checkListItemsByTodoId } =
+          const { viewStack, todos, dinners, user, checkListItemsByTodoId } =
             loadedDashboard;
+          const view = viewStack[viewStack.length - 1];
 
           return match(view, {
             DASHBOARD: () => (
@@ -29,7 +30,7 @@ export const Dashboard = () => {
                 dashboard={loadedDashboard}
                 selectView={(view) => {
                   dispatch({
-                    type: "VIEW_SELECTED",
+                    type: "PUSH_VIEW",
                     view,
                   });
                 }}
@@ -40,10 +41,7 @@ export const Dashboard = () => {
                 dashboard={loadedDashboard}
                 onBackClick={() =>
                   dispatch({
-                    type: "VIEW_SELECTED",
-                    view: {
-                      state: "DASHBOARD",
-                    },
+                    type: "POP_VIEW",
                   })
                 }
               />
@@ -56,15 +54,12 @@ export const Dashboard = () => {
                 checkListItemsByTodoId={checkListItemsByTodoId}
                 onBackClick={() =>
                   dispatch({
-                    type: "VIEW_SELECTED",
-                    view: {
-                      state: "DASHBOARD",
-                    },
+                    type: "POP_VIEW",
                   })
                 }
                 onTodoClick={(id) => {
                   dispatch({
-                    type: "VIEW_SELECTED",
+                    type: "PUSH_VIEW",
                     view: {
                       state: "EDIT_TODO",
                       id,
@@ -73,14 +68,33 @@ export const Dashboard = () => {
                 }}
               />
             ),
-            PLAN_NEXT_WEEK: () => (
+            PLAN_NEXT_WEEK: ({ subView }) => (
               <PlanNextWeek
+                view={subView}
                 onTodoClick={(id) => {
                   dispatch({
-                    type: "VIEW_SELECTED",
+                    type: "PUSH_VIEW",
                     view: {
                       state: "EDIT_TODO",
                       id,
+                    },
+                  });
+                }}
+                onPlanDinnersClick={() => {
+                  dispatch({
+                    type: "REPLACE_VIEW",
+                    view: {
+                      state: "PLAN_NEXT_WEEK",
+                      subView: "DINNERS",
+                    },
+                  });
+                }}
+                onPlanTodosClick={() => {
+                  dispatch({
+                    type: "REPLACE_VIEW",
+                    view: {
+                      state: "PLAN_NEXT_WEEK",
+                      subView: "TODOS",
                     },
                   });
                 }}
@@ -88,10 +102,7 @@ export const Dashboard = () => {
                 user={user}
                 onBackClick={() =>
                   dispatch({
-                    type: "VIEW_SELECTED",
-                    view: {
-                      state: "DASHBOARD",
-                    },
+                    type: "POP_VIEW",
                   })
                 }
               />
@@ -101,7 +112,7 @@ export const Dashboard = () => {
                 dinners={dinners}
                 onDinnerClick={(id) => {
                   dispatch({
-                    type: "VIEW_SELECTED",
+                    type: "PUSH_VIEW",
                     view: {
                       state: "EDIT_DINNER",
                       id,
@@ -110,7 +121,7 @@ export const Dashboard = () => {
                 }}
                 onAddDinnerClick={() => {
                   dispatch({
-                    type: "VIEW_SELECTED",
+                    type: "PUSH_VIEW",
                     view: {
                       state: "EDIT_DINNER",
                     },
@@ -118,10 +129,7 @@ export const Dashboard = () => {
                 }}
                 onBackClick={() => {
                   dispatch({
-                    type: "VIEW_SELECTED",
-                    view: {
-                      state: "DASHBOARD",
-                    },
+                    type: "POP_VIEW",
                   });
                 }}
               />
@@ -131,10 +139,7 @@ export const Dashboard = () => {
                 dinner={id ? dinners[id] : undefined}
                 onBackClick={() => {
                   dispatch({
-                    type: "VIEW_SELECTED",
-                    view: {
-                      state: "DINNERS",
-                    },
+                    type: "POP_VIEW",
                   });
                 }}
               />
@@ -145,10 +150,7 @@ export const Dashboard = () => {
                 checkListItemsByTodoId={checkListItemsByTodoId}
                 onBackClick={() => {
                   dispatch({
-                    type: "VIEW_SELECTED",
-                    view: {
-                      state: "DASHBOARD",
-                    },
+                    type: "POP_VIEW",
                   });
                 }}
               />

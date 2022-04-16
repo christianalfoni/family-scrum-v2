@@ -4,34 +4,32 @@ import {
   HeartIcon,
 } from "@heroicons/react/outline";
 import { useTranslations } from "next-intl";
-import { match, PickState } from "react-states";
+import { PickState } from "react-states";
 import { FamilyUserDTO } from "../../environment-interface/authentication";
-import {
-  CheckListItemsByTodoId,
-  DinnerDTO,
-  FamilyDTO,
-  TodoDTO,
-  WeekDinnersDTO,
-  WeekDTO,
-} from "../../environment-interface/storage";
 import { DashboardReducer } from "../Dashboard/useDashboard";
 import { usePlanNextWeek } from "./usePlanNextWeek";
 import { PlanNextWeekDinners } from "./PlanNextWeekDinners";
 import { PlanNextWeekTodos } from "./PlanNextWeekTodos";
 
 export const PlanNextWeek = ({
+  view,
   user,
   onBackClick,
   onTodoClick,
   dashboard,
+  onPlanDinnersClick,
+  onPlanTodosClick,
 }: {
+  view: "DINNERS" | "TODOS";
   dashboard: PickState<DashboardReducer, "LOADED">;
   onTodoClick: (id: string) => void;
+  onPlanDinnersClick: () => void;
+  onPlanTodosClick: () => void;
   user: FamilyUserDTO;
   onBackClick: () => void;
 }) => {
   const { dinners, nextWeek } = dashboard;
-  const [state, dispatch] = usePlanNextWeek({
+  const [, dispatch] = usePlanNextWeek({
     user,
     weekId: nextWeek.id,
   });
@@ -53,12 +51,7 @@ export const PlanNextWeek = ({
           <div className="flex shadow-sm flex-2">
             <button
               type="button"
-              onClick={() => {
-                dispatch({
-                  type: "SELECT_VIEW",
-                  view: "PLAN_DINNERS",
-                });
-              }}
+              onClick={onPlanDinnersClick}
               className="flex-1 relative inline-flex items-center px-4 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-900 hover:bg-gray-50 focus:z-10 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600"
             >
               <HeartIcon
@@ -69,12 +62,7 @@ export const PlanNextWeek = ({
             </button>
             <button
               type="button"
-              onClick={() => {
-                dispatch({
-                  type: "SELECT_VIEW",
-                  view: "PLAN_TODOS",
-                });
-              }}
+              onClick={onPlanTodosClick}
               className="flex-1 inline-flex -ml-px relative items-center px-4 py-2 rounded-r-md border border-gray-300 bg-gray-50 text-sm font-medium text-gray-900 hover:bg-gray-50 focus:z-10 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600"
             >
               <CheckCircleIcon
@@ -87,29 +75,26 @@ export const PlanNextWeek = ({
           <span className="flex-1" />
         </div>
       </div>
-      {match(state, {
-        PLAN_DINNERS: () => (
-          <PlanNextWeekDinners
-            dinners={dinners}
-            weekDinners={nextWeek.dinners}
-            onChangeDinner={(weekdayIndex, dinnerId) => {
-              dispatch({
-                type: "CHANGE_WEEKDAY_DINNER",
-                dinnerId,
-                weekdayIndex,
-              });
-            }}
-          />
-        ),
-        PLAN_TODOS: () => (
-          <PlanNextWeekTodos
-            onTodoClick={onTodoClick}
-            dashboard={dashboard}
-            planNextWeekDispatcher={dispatch}
-            user={user}
-          />
-        ),
-      })}
+      {view === "DINNERS" ? (
+        <PlanNextWeekDinners
+          dinners={dinners}
+          weekDinners={nextWeek.dinners}
+          onChangeDinner={(weekdayIndex, dinnerId) => {
+            dispatch({
+              type: "CHANGE_WEEKDAY_DINNER",
+              dinnerId,
+              weekdayIndex,
+            });
+          }}
+        />
+      ) : (
+        <PlanNextWeekTodos
+          onTodoClick={onTodoClick}
+          dashboard={dashboard}
+          planNextWeekDispatcher={dispatch}
+          user={user}
+        />
+      )}
     </div>
   );
 };

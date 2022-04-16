@@ -20,7 +20,11 @@ export const createCapture = (emit: Emit<CaptureEvent>): Capture => {
         navigator.mediaDevices
           .getUserMedia({ video: { facingMode: "environment" } })
           .then((stream) => {
+            console.log("STREAMING!", video);
             currentStream = video.srcObject = stream;
+            video.onloadedmetadata = function (e) {
+              video.play();
+            };
           })
           .catch((error) => {
             emit({

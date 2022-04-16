@@ -197,7 +197,7 @@ export const EditTodo = ({
                 </div>
                 {items.length ? (
                   <ul className="my-2">
-                    {items.map((title, index) => (
+                    {items.map(({ title }, index) => (
                       <li
                         key={index}
                         className="flex items-center text-lg py-1 px-1"

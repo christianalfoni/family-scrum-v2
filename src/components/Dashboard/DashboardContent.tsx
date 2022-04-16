@@ -212,6 +212,7 @@ export const DashboardContent = ({
           onClick={() => {
             selectView({
               state: "PLAN_NEXT_WEEK",
+              subView: "DINNERS",
             });
           }}
           color="bg-green-500"

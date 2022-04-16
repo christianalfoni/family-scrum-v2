@@ -169,14 +169,10 @@ export const createStorage = (emit: Emit<StorageEvent>): Storage => {
         previousWeek: weeks[previousWeekId],
       });
     },
-    storeDinner({
-      id,
-      description,
-      groceries,
-      instructions,
-      name,
-      preparationCheckList,
-    }) {
+    storeDinner(
+      { id, description, groceries, instructions, name, preparationCheckList },
+      imageSrc
+    ) {
       dinners = {
         ...dinners,
         [id]: dinners[id]
@@ -205,6 +201,13 @@ export const createStorage = (emit: Emit<StorageEvent>): Storage => {
         type: "STORAGE:DINNERS_UPDATE",
         dinners,
       });
+
+      if (imageSrc) {
+        emit({
+          type: "STORAGE:STORE_IMAGE_SUCCESS",
+          ref: this.getDinnerImageRef(id),
+        });
+      }
     },
     deleteDinner(id) {
       delete dinners[id];
@@ -455,6 +458,16 @@ export const createStorage = (emit: Emit<StorageEvent>): Storage => {
         nextWeek: weeks[nextWeekId],
         previousWeek: weeks[previousWeekId],
       });
+    },
+    fetchImage(ref) {
+      emit({
+        type: "STORAGE:FETCH_IMAGE_SUCCESS",
+        ref,
+        src: "dinner_1.jpeg",
+      });
+    },
+    getDinnerImageRef(id) {
+      return `dinners/${id}`;
     },
   };
 };

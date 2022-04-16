@@ -7,19 +7,10 @@ import {
 } from "../../environment-interface";
 import { FamilyUserDTO } from "../../environment-interface/authentication";
 
-type BaseState = {
+type State = {
+  state: "PLANNING";
   userId: string;
 };
-
-type State = BaseState &
-  (
-    | {
-        state: "PLAN_DINNERS";
-      }
-    | {
-        state: "PLAN_TODOS";
-      }
-  );
 
 type Action =
   | {
@@ -33,10 +24,6 @@ type Action =
       type: "CHANGE_WEEKDAY_DINNER";
       weekdayIndex: number;
       dinnerId: string | null;
-    }
-  | {
-      type: "SELECT_VIEW";
-      view: "PLAN_DINNERS" | "PLAN_TODOS";
     };
 
 type Command =
@@ -55,7 +42,7 @@ type Command =
 export type PlanNextWeekReducer = StatesReducer<State, Action, Command>;
 
 const reducer = createReducer<PlanNextWeekReducer>({
-  PLAN_DINNERS: {
+  PLANNING: {
     CHANGE_WEEKDAY_DINNER: ({
       state,
       action: { dinnerId, weekdayIndex },
@@ -66,15 +53,6 @@ const reducer = createReducer<PlanNextWeekReducer>({
         dinnerId,
         weekdayIndex,
       }),
-    SELECT_VIEW: ({ state, action: { view }, transition, noop }) =>
-      view === "PLAN_TODOS"
-        ? transition({
-            ...state,
-            state: "PLAN_TODOS",
-          })
-        : noop(),
-  },
-  PLAN_TODOS: {
     TOGGLE_WEEKDAY: ({
       state,
       action: { userId, todoId, weekdayIndex, active },
@@ -87,13 +65,6 @@ const reducer = createReducer<PlanNextWeekReducer>({
             todoId,
             weekdayIndex,
             active,
-          })
-        : noop(),
-    SELECT_VIEW: ({ state, action: { view }, transition, noop }) =>
-      view === "PLAN_DINNERS"
-        ? transition({
-            ...state,
-            state: "PLAN_DINNERS",
           })
         : noop(),
   },
@@ -113,7 +84,7 @@ export const usePlanNextWeek = ({
     "PlanWeek",
     reducer,
     initialState || {
-      state: "PLAN_DINNERS",
+      state: "PLANNING",
       userId: user.id,
     }
   );

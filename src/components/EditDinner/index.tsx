@@ -10,20 +10,44 @@ import {
 import { match } from "react-states";
 import { DinnerDTO } from "../../environment-interface/storage";
 import { useEditDinner } from "./useEditDinner";
+import { useEnvironment } from "../../environment-interface";
 
 export const EditDinner = ({
   onBackClick,
-
   dinner,
 }: {
   dinner?: DinnerDTO;
-
   onBackClick: () => void;
 }) => {
-  const [state, dispatch] = useEditDinner({
+  const {
+    dinner: [state, dispatch],
+    image: [imageState, imageDispatch],
+  } = useEditDinner({
     dinner,
     onExit: onBackClick,
   });
+
+  const imageWrapperClassName =
+    "flex h-40 bg-gray-500 items-center justify-center w-full";
+
+  const renderImageFromSource = ({ src }: { src: string }) => (
+    <div
+      className={imageWrapperClassName}
+      style={{
+        backgroundImage: `url(${src})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center center",
+      }}
+      onClick={() => {
+        imageDispatch({
+          type: "START_CAPTURE",
+          videoId: state.dinner.id,
+        });
+      }}
+    >
+      <CameraIcon className="w-6 h-6 text-white" />
+    </div>
+  );
 
   return (
     <div className="bg-white flex flex-col h-screen">
@@ -42,9 +66,31 @@ export const EditDinner = ({
         </div>
       </div>
       <div className="h-full overflow-y-scroll">
-        <div className="flex h-32 bg-gray-500 items-center justify-center">
-          <CameraIcon className="w-6 h-6 text-white" />
-        </div>
+        {match(imageState, {
+          LOADING: () => (
+            <div className={imageWrapperClassName}>Loading...</div>
+          ),
+          LOADED: renderImageFromSource,
+          CAPTURED: renderImageFromSource,
+          CAPTURING: () => (
+            <video
+              id={state.dinner.id}
+              className={imageWrapperClassName}
+              onClick={() => {
+                imageDispatch({
+                  type: "CAPTURE",
+                  videoId: state.dinner.id,
+                });
+              }}
+            ></video>
+          ),
+          NOT_FOUND: () => (
+            <div className={imageWrapperClassName}>
+              <CameraIcon className="w-6 h-6 text-white" />
+            </div>
+          ),
+        })}
+
         <div className="p-4 flex flex-col">
           <div className="col-span-12 sm:col-span-6">
             <label
@@ -93,7 +139,6 @@ export const EditDinner = ({
                 <CollectionIcon className="w-6 h-6 mr-2" />
                 <div className="flex-grow">
                   <input
-                    autoFocus
                     type="text"
                     value={state.newIngredientName}
                     onChange={(event) => {
@@ -164,7 +209,6 @@ export const EditDinner = ({
                 <ClipboardCheckIcon className="w-6 h-6 mr-2" />
                 <div className="flex-grow">
                   <input
-                    autoFocus
                     type="text"
                     value={state.newPreparationDescription}
                     onChange={(event) => {
