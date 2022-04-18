@@ -6,7 +6,7 @@ import {
   useReducer,
 } from "../../environment-interface";
 import { DinnerDTO } from "../../environment-interface/storage";
-import { useImage } from "./useImage";
+import { useImage } from "../../useImage";
 
 export type Dinner = DinnerDTO;
 
@@ -236,11 +236,17 @@ const reducer = createReducer<DinnerReducer>({
       }),
     SAVE: ({ state, transition, noop }) =>
       state.validation.state === "VALID"
-        ? transition(state, {
-            cmd: "$CALL_ENVIRONMENT",
-            target: "storage.storeDinner",
-            params: [state.dinner, state.imageSrc],
-          })
+        ? transition(
+            state,
+            {
+              cmd: "$CALL_ENVIRONMENT",
+              target: "storage.storeDinner",
+              params: [state.dinner, state.imageSrc],
+            },
+            {
+              cmd: "EXIT",
+            }
+          )
         : noop(),
   },
 });

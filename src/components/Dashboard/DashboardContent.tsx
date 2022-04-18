@@ -16,8 +16,34 @@ import { addDays } from "date-fns";
 import { PickState } from "react-states";
 import { DashboardReducer, ViewState } from "./useDashboard";
 import * as selectors from "../../selectors";
+import { DinnerDTO } from "../../environment-interface/storage";
+import { useEnvironment } from "../../environment-interface";
+import { useImage } from "../../useImage";
 
 SwiperCore.use([Controller]);
+
+const WeekdayDinner = ({ dinner }: { dinner: DinnerDTO }) => {
+  const { storage } = useEnvironment();
+  const [imageState] = useImage({
+    ref: storage.getDinnerImageRef(dinner.id),
+  });
+
+  return (
+    <li key="DINNER">
+      <div className="flex items-center space-x-3 h-20">
+        <div className="flex-shrink-0 h-16 w-16">
+          {imageState.state === "LOADED" ? (
+            <img className="h-16 w-16 rounded" src={imageState.src} alt="" />
+          ) : null}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-md font-medium text-gray-900">{dinner.name}</p>
+          <p className="text-sm text-gray-500">{dinner.description}</p>
+        </div>
+      </div>
+    </li>
+  );
+};
 
 const MenuCard = ({
   color,
@@ -184,7 +210,6 @@ export const DashboardContent = ({
     <>
       <ul className="flex flex-col px-6 mb-2 mt-6">
         <MenuCard
-          disabled={!shopCount}
           Icon={ShoppingCartIcon}
           onClick={() => {
             selectView({
@@ -255,25 +280,7 @@ export const DashboardContent = ({
                   {
                     <ul className="mt-2 ">
                       {dinner ? (
-                        <li key="DINNER">
-                          <div className="flex items-center space-x-3 h-20">
-                            <div className="flex-shrink-0">
-                              <img
-                                className="h-16 w-16 rounded"
-                                src="dinner_1.jpeg"
-                                alt=""
-                              />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <p className="text-md font-medium text-gray-900">
-                                {dinner.name}
-                              </p>
-                              <p className="text-sm text-gray-500">
-                                {dinner.description}
-                              </p>
-                            </div>
-                          </div>
-                        </li>
+                        <WeekdayDinner key="WEEKDAY_DINNER" dinner={dinner} />
                       ) : null}
                       {eventsByWeekday[index].map((todo) => (
                         <li

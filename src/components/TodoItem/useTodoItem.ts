@@ -157,6 +157,19 @@ const reducer = createReducer<TodoItemReducer>({
               state: "COLLAPSED",
             },
           }),
+    SHOW_ADD_CHECKLIST_ITEM: ({ state, transition, noop }) =>
+      state.checkList.state === "EXPANDED"
+        ? transition({
+            ...state,
+            checkList: {
+              ...state.checkList,
+              addCheckListItem: {
+                state: "ACTIVE",
+                newItemTitle: "",
+              },
+            },
+          })
+        : noop(),
   },
 });
 
@@ -200,7 +213,7 @@ export const useTodoItem = ({
   });
 
   useCommandEffect(state, "ADD_CHECKLIST_ITEM", ({ title }) => {
-    storage.storeChecklistItem({
+    storage.addChecklistItem({
       id: storage.createCheckListItemId(),
       todoId: todo.id,
       title,

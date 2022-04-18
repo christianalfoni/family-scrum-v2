@@ -2,6 +2,42 @@ import React from "react";
 import { ChevronLeftIcon, PlusIcon } from "@heroicons/react/outline";
 import * as selectors from "../../selectors";
 import { DinnerDTO } from "../../environment-interface/storage";
+import { useImage } from "../../useImage";
+import { useEnvironment } from "../../environment-interface";
+
+const Dinner = ({
+  dinner,
+  onClick,
+}: {
+  dinner: DinnerDTO;
+  onClick: (id: string) => void;
+}) => {
+  const { storage } = useEnvironment();
+  const [imageState] = useImage({
+    ref: storage.getDinnerImageRef(dinner.id),
+  });
+
+  return (
+    <li
+      key={dinner.id}
+      onClick={() => {
+        onClick(dinner.id);
+      }}
+    >
+      <div className="flex items-center py-4 px-8 space-x-3 h-24">
+        <div className="flex-shrink-0 h-16 w-16">
+          {imageState.state === "LOADED" ? (
+            <img className="h-16 w-16 rounded" src={imageState.src} alt="" />
+          ) : null}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-md font-medium text-gray-900">{dinner.name}</p>
+          <p className="text-sm text-gray-500">{dinner.description}</p>
+        </div>
+      </div>
+    </li>
+  );
+};
 
 export const Dinners = ({
   onBackClick,
@@ -39,28 +75,7 @@ export const Dinners = ({
       {sortedDinners.length ? (
         <ul className="relative z-0 divide-y divide-gray-200 border-b border-gray-200 overflow-y-scroll">
           {sortedDinners.map((dinner) => (
-            <li
-              key={dinner.id}
-              onClick={() => {
-                onDinnerClick(dinner.id);
-              }}
-            >
-              <div className="flex items-center py-4 px-8 space-x-3 h-24">
-                <div className="flex-shrink-0">
-                  <img
-                    className="h-16 w-16 rounded"
-                    src="dinner_1.jpeg"
-                    alt=""
-                  />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-md font-medium text-gray-900">
-                    {dinner.name}
-                  </p>
-                  <p className="text-sm text-gray-500">{dinner.description}</p>
-                </div>
-              </div>
-            </li>
+            <Dinner key={dinner.id} dinner={dinner} onClick={onDinnerClick} />
           ))}
         </ul>
       ) : (

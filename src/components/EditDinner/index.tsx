@@ -10,7 +10,6 @@ import {
 import { match } from "react-states";
 import { DinnerDTO } from "../../environment-interface/storage";
 import { useEditDinner } from "./useEditDinner";
-import { useEnvironment } from "../../environment-interface";
 
 export const EditDinner = ({
   onBackClick,
@@ -28,7 +27,7 @@ export const EditDinner = ({
   });
 
   const imageWrapperClassName =
-    "flex h-40 bg-gray-500 items-center justify-center w-full";
+    "flex h-40 bg-gray-500 items-center justify-center w-full text-gray-300";
 
   const renderImageFromSource = ({ src }: { src: string }) => (
     <div
@@ -85,7 +84,15 @@ export const EditDinner = ({
             ></video>
           ),
           NOT_FOUND: () => (
-            <div className={imageWrapperClassName}>
+            <div
+              className={imageWrapperClassName}
+              onClick={() => {
+                imageDispatch({
+                  type: "START_CAPTURE",
+                  videoId: state.dinner.id,
+                });
+              }}
+            >
               <CameraIcon className="w-6 h-6 text-white" />
             </div>
           ),

@@ -6,6 +6,28 @@ import * as selectors from "../../selectors";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { weekdays } from "../../utils";
 import { DinnerDTO, WeekDinnersDTO } from "../../environment-interface/storage";
+import { useEnvironment } from "../../environment-interface";
+import { useImage } from "../../useImage";
+
+const DinnerSlide = ({ dinner }: { dinner: DinnerDTO }) => {
+  const { storage } = useEnvironment();
+  const [imageState] = useImage({
+    ref: storage.getDinnerImageRef(dinner.id),
+  });
+  return (
+    <div className="flex items-center py-4 px-8 space-x-3 h-24">
+      <div className="flex-shrink-0 h-16 w-16">
+        {imageState.state === "LOADED" ? (
+          <img className="h-16 w-16 rounded" src={imageState.src} alt="" />
+        ) : null}
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-md font-medium text-gray-900">{dinner.name}</p>
+        <p className="text-sm text-gray-500">{dinner.description}</p>
+      </div>
+    </div>
+  );
+};
 
 export const DinnerItem = ({
   weekday,
@@ -64,17 +86,7 @@ export const DinnerItem = ({
         </SwiperSlide>
         {availableDinners.map((dinner) => (
           <SwiperSlide key={dinner.id}>
-            <div className="flex items-center py-4 px-8 space-x-3 h-24">
-              <div className="flex-shrink-0">
-                <img className="h-16 w-16 rounded" src="dinner_1.jpeg" alt="" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-md font-medium text-gray-900">
-                  {dinner.name}
-                </p>
-                <p className="text-sm text-gray-500">{dinner.description}</p>
-              </div>
-            </div>
+            <DinnerSlide dinner={dinner} />
           </SwiperSlide>
         ))}
         <div

@@ -1,6 +1,5 @@
 import firebase from "firebase/app";
 import {
-  BarcodeDTO,
   CheckListItemDTO,
   FamilyDTO,
   GroceryDTO,
@@ -9,20 +8,20 @@ import {
   WeekDTO,
   WeekTodoActivity,
   StorageEvent,
+  DinnerDTO,
+  WeekDinnersDTO,
 } from "../../environment-interface/storage";
 import {
   getCurrentWeekId,
   getNextWeekId,
   getPreviousWeekId,
 } from "../../utils";
-import debounce from "lodash.debounce";
 import { createCheckListItemsByTodoId } from "./utils";
 import { Emit } from "react-states";
 
 const FAMILY_DATA_COLLECTION = "familyData";
 const GROCERIES_COLLECTION = "groceries";
 const TODOS_COLLECTION = "todos";
-const BARCODES_COLLECTION = "barcodes";
 const CHECKLIST_ITEMS_COLLECTION = "checkListItems";
 const DINNERS_COLLECTION = "dinners";
 
@@ -37,57 +36,15 @@ export const createStorage = (
     [groceryId: string]: GroceryDTO;
   } = {};
 
-  let todos: {
-    [todoId: string]: TodoDTO;
-  } = {};
+  let todos: Record<string, TodoDTO> = {};
 
-  let checkListItems: {
-    [itemId: string]: CheckListItemDTO;
-  } = {};
+  let checkListItems: Record<string, CheckListItemDTO> = {};
 
-  let weeks: {
-    [weekId: string]: WeekDTO;
-  } = {};
+  let weeks: Record<string, WeekDTO> = {};
 
-  let barcodes: {
-    [barcodeId: string]: BarcodeDTO;
-  } = {};
+  let dinners: Record<string, DinnerDTO> = {};
 
-  const debouncedShopCount = debounce(
-    (
-      groceryDocRef: firebase.firestore.DocumentReference<firebase.firestore.DocumentData>,
-      shopCount: number
-    ) => {
-      app
-        .firestore()
-        .runTransaction((transaction) =>
-          transaction.get(groceryDocRef).then((groceryDoc) => {
-            const data = groceryDoc.data();
-
-            if (!data) {
-              return emit({
-                type: "STORAGE:INCREASE_GROCERY_SHOP_COUNT_ERROR",
-                id: groceryDocRef.id,
-                error: "Document does not exist",
-              });
-            }
-
-            transaction.update(groceryDocRef, {
-              modified: firebase.firestore.FieldValue.serverTimestamp(),
-              shopCount,
-            });
-          })
-        )
-        .catch((error) => {
-          emit({
-            type: "STORAGE:INCREASE_GROCERY_SHOP_COUNT_ERROR",
-            id: groceryDocRef.id,
-            error: error.messsage,
-          });
-        });
-    },
-    1000
-  );
+  let images: Record<string, string> = {};
 
   const onSnapshot = <T extends { [id: string]: { id: string } }>(
     query: firebase.firestore.Query<firebase.firestore.DocumentData>,
@@ -109,8 +66,8 @@ export const createStorage = (
               [id]: {
                 ...data,
                 id,
-                created: data.created.toMillis(),
-                modified: data.modified.toMillis(),
+                created: data.created.toMillis?.() ?? data.created,
+                modified: data.modified.toMillis?.() ?? data.modified,
               },
             };
             break;
@@ -125,8 +82,8 @@ export const createStorage = (
               [id]: {
                 ...updatedData[id],
                 ...data,
-                modified: data.modified.toMillis(),
-                created: data.created.toMillis(),
+                modified: data.modified.toMillis?.() ?? data.modified,
+                created: data.created.toMillis?.() ?? data.created,
               },
             };
             break;
@@ -145,21 +102,211 @@ export const createStorage = (
     });
   };
 
-  return {
-    fetchFamilyData(familyId) {
-      const familyDocRef = app
-        .firestore()
-        .collection(FAMILY_DATA_COLLECTION)
-        .doc(familyId);
+  let getFamilyDoc =
+    (): firebase.firestore.DocumentReference<firebase.firestore.DocumentData> => {
+      throw new Error("No family collection configured");
+    };
 
-      const groceriesCollection = familyDocRef.collection(GROCERIES_COLLECTION);
-      const todosCollection = familyDocRef.collection(TODOS_COLLECTION);
-      const checkListItemsCollection = familyDocRef.collection(
+  return {
+    configureFamilyCollection(familyId) {
+      getFamilyDoc = () => {
+        return app.firestore().collection(FAMILY_DATA_COLLECTION).doc(familyId);
+      };
+    },
+    createCheckListItemId() {
+      return getFamilyDoc().collection(CHECKLIST_ITEMS_COLLECTION).doc().id;
+    },
+    createDinnerId() {
+      return getFamilyDoc().collection(DINNERS_COLLECTION).doc().id;
+    },
+    createGroceryId() {
+      return getFamilyDoc().collection(GROCERIES_COLLECTION).doc().id;
+    },
+    createTodoId() {
+      return getFamilyDoc().collection(TODOS_COLLECTION).doc().id;
+    },
+    getDinnerImageRef(id) {
+      return `dinners/${id}`;
+    },
+    deleteDinner(id) {
+      const dinner = dinners[id];
+
+      dinners = {
+        ...dinners,
+      };
+
+      delete dinners[id];
+
+      emit({
+        type: "STORAGE:DINNERS_UPDATE",
+        dinners,
+      });
+
+      getFamilyDoc()
+        .collection(DINNERS_COLLECTION)
+        .doc(id)
+        .delete()
+        .catch(() => {
+          emit({
+            type: "STORAGE:DELETE_DINNER_ERROR",
+            dinner,
+          });
+        });
+    },
+    fetchImage(ref) {
+      if (images[ref]) {
+        emit({
+          type: "STORAGE:FETCH_IMAGE_SUCCESS",
+          ref,
+          src: images[ref],
+        });
+        return;
+      }
+
+      app
+        .storage()
+        .ref(ref + ".png")
+        .getDownloadURL()
+        .then((src) => {
+          images[ref] = src;
+          emit({
+            type: "STORAGE:FETCH_IMAGE_SUCCESS",
+            ref,
+            src,
+          });
+        })
+        .catch((error) => {
+          emit({
+            type: "STORAGE:FETCH_IMAGE_ERROR",
+            ref,
+            error: error.message,
+          });
+        });
+    },
+    setWeekDinner({ dinnerId, weekId, weekdayIndex }) {
+      const week = weeks[weekId];
+      const updatedWeek: WeekDTO = {
+        ...week,
+        dinners: [
+          ...week.dinners.slice(0, weekdayIndex),
+          dinnerId,
+          ...week.dinners.slice(weekdayIndex + 1),
+        ] as WeekDinnersDTO,
+      };
+
+      weeks = {
+        ...weeks,
+        [weekId]: updatedWeek,
+      };
+
+      emit({
+        type: "STORAGE:WEEKS_UPDATE",
+        currentWeek: weeks[getCurrentWeekId()],
+        nextWeek: weeks[getNextWeekId()],
+        previousWeek: weeks[getPreviousWeekId()],
+      });
+      const { dinners } = updatedWeek;
+      getFamilyDoc()
+        .collection(WEEKS_COLLECTION)
+        .doc(weekId)
+        .set(
+          {
+            dinners,
+          },
+          {
+            merge: true,
+          }
+        )
+        .catch((error) => {
+          emit({
+            type: "STORAGE:SET_WEEK_DINNER_ERROR",
+            error: error.message,
+            weekId,
+          });
+        });
+    },
+    storeDinner(
+      { id, description, groceries, instructions, name, preparationCheckList },
+      imageSrc
+    ) {
+      const dinner: DinnerDTO = dinners[id]
+        ? {
+            ...dinners[id],
+            name,
+            description,
+            groceries,
+            instructions,
+            preparationCheckList,
+            modified: Date.now(),
+          }
+        : {
+            id,
+            description,
+            groceries,
+            instructions,
+            name,
+            preparationCheckList,
+            created: Date.now(),
+            modified: Date.now(),
+          };
+
+      dinners = {
+        ...dinners,
+        [id]: dinner,
+      };
+
+      emit({
+        type: "STORAGE:DINNERS_UPDATE",
+        dinners,
+      });
+
+      const { id: _, ...data } = dinner;
+
+      getFamilyDoc()
+        .collection(DINNERS_COLLECTION)
+        .doc(id)
+        .set(data)
+        .catch(() => {
+          emit({
+            type: "STORAGE:STORE_DINNER_ERROR",
+            dinner,
+          });
+        });
+
+      if (imageSrc) {
+        const imageRef = this.getDinnerImageRef(id);
+
+        images[imageRef] = imageSrc;
+
+        app
+          .storage()
+          .ref(imageRef + ".png")
+          .putString(imageSrc, "data_url")
+          .then(() => {
+            emit({
+              type: "STORAGE:STORE_IMAGE_SUCCESS",
+              ref: imageRef,
+            });
+          })
+          .catch((error) => {
+            emit({
+              type: "STORAGE:STORE_IMAGE_ERROR",
+              error: error.message,
+              ref: imageRef,
+            });
+          });
+      }
+    },
+    fetchFamilyData() {
+      const groceriesCollection =
+        getFamilyDoc().collection(GROCERIES_COLLECTION);
+      const todosCollection = getFamilyDoc().collection(TODOS_COLLECTION);
+      const checkListItemsCollection = getFamilyDoc().collection(
         CHECKLIST_ITEMS_COLLECTION
       );
-      const barcodesCollection = familyDocRef.collection(BARCODES_COLLECTION);
+      const dinnerCollection = getFamilyDoc().collection(DINNERS_COLLECTION);
 
-      familyDocRef.onSnapshot((snapshot) => {
+      getFamilyDoc().onSnapshot((snapshot) => {
         emit({
           type: "STORAGE:FAMILY_UPDATE",
           family: {
@@ -195,18 +342,6 @@ export const createStorage = (
       );
 
       onSnapshot(
-        barcodesCollection,
-        () => barcodes,
-        (updatedBarcodes) => {
-          barcodes = updatedBarcodes;
-          emit({
-            type: "STORAGE:BARCODES_UPDATE",
-            barcodes: updatedBarcodes,
-          });
-        }
-      );
-
-      onSnapshot(
         checkListItemsCollection,
         () => checkListItems,
         (updatedCheckListItems) => {
@@ -218,26 +353,42 @@ export const createStorage = (
           });
         }
       );
+
+      onSnapshot(
+        dinnerCollection,
+        () => dinners,
+        (updatedDinners) => {
+          dinners = updatedDinners;
+          emit({
+            type: "STORAGE:DINNERS_UPDATE",
+            dinners,
+          });
+        }
+      );
     },
 
-    addGrocery(familyId, name) {
-      const groceriesCollection = app
-        .firestore()
-        .collection(FAMILY_DATA_COLLECTION)
-        .doc(familyId)
-        .collection(GROCERIES_COLLECTION);
+    storeGrocery({ id, name, dinnerId }) {
+      const groceriesCollection =
+        getFamilyDoc().collection(GROCERIES_COLLECTION);
 
-      const doc = groceriesCollection.doc();
+      const grocery: GroceryDTO = groceries[id]
+        ? {
+            ...groceries[id],
+            name,
+            modified: Date.now(),
+            dinnerId,
+          }
+        : {
+            id,
+            name,
+            created: Date.now(),
+            modified: Date.now(),
+            dinnerId,
+          };
 
       groceries = {
         ...groceries,
-        [doc.id]: {
-          id: doc.id,
-          name,
-          created: Date.now(),
-          modified: Date.now(),
-          shopCount: 0,
-        },
+        [id]: grocery,
       };
 
       emit({
@@ -245,46 +396,46 @@ export const createStorage = (
         groceries,
       });
 
-      doc
-        .set({
-          created: firebase.firestore.FieldValue.serverTimestamp(),
-          modified: firebase.firestore.FieldValue.serverTimestamp(),
-          shopCount: 0,
-          name,
-        })
-        .catch((error) => {
+      const { id: _, ...data } = grocery;
+
+      groceriesCollection
+        .doc(id)
+        .set(data)
+        .catch(() => {
           emit({
-            type: "STORAGE:ADD_GROCERY_ERROR",
-            name,
-            error: error.message,
+            type: "STORAGE:STORE_GROCERY_ERROR",
+            grocery,
           });
         });
     },
-    addTodo(familyId, description, metadata) {
-      const todosCollection = app
-        .firestore()
-        .collection(FAMILY_DATA_COLLECTION)
-        .doc(familyId)
-        .collection(TODOS_COLLECTION);
-      const checkListItemsCollection = app
-        .firestore()
-        .collection(FAMILY_DATA_COLLECTION)
-        .doc(familyId)
-        .collection(CHECKLIST_ITEMS_COLLECTION);
-      const todoDoc = todosCollection.doc();
-      const hasCheckList = Boolean(metadata?.checkList);
+    storeTodo({ id, description, date, time }, checkList) {
+      const todosCollection = getFamilyDoc().collection(TODOS_COLLECTION);
+      const checkListItemsCollection = getFamilyDoc().collection(
+        CHECKLIST_ITEMS_COLLECTION
+      );
+
+      const todo: TodoDTO = todos[id]
+        ? {
+            ...todos[id],
+            modified: Date.now(),
+            description,
+            date,
+            time,
+            checkList: Boolean(checkList),
+          }
+        : {
+            id,
+            created: Date.now(),
+            modified: Date.now(),
+            description,
+            date,
+            time,
+            checkList: Boolean(checkList),
+          };
 
       todos = {
         ...todos,
-        [todoDoc.id]: {
-          id: todoDoc.id,
-          created: Date.now(),
-          modified: Date.now(),
-          description,
-          date: metadata?.date,
-          time: metadata?.time,
-          ...(hasCheckList ? { checkList: true } : undefined),
-        },
+        [id]: todo,
       };
 
       emit({
@@ -292,85 +443,78 @@ export const createStorage = (
         todos,
       });
 
-      if (hasCheckList) {
-        const checkList = metadata?.checkList!;
-        const checkListItemDocs = checkList.map(() =>
-          checkListItemsCollection.doc()
+      if (checkList) {
+        const changedCheckListItems = checkList.filter(
+          (item) =>
+            !checkListItems[item.id] || checkListItems[id].title === item.title
         );
-
-        const newCheckListItems = checkListItemDocs.reduce<{
+        checkListItems = changedCheckListItems.reduce<{
           [itemId: string]: CheckListItemDTO;
-        }>((aggr, itemDoc, index) => {
-          aggr[itemDoc.id] = {
-            id: itemDoc.id,
-            completed: false,
-            created: Date.now(),
-            modified: Date.now(),
-            title: checkList[index],
-            todoId: todoDoc.id,
-          };
-          return aggr;
-        }, {});
+        }>(
+          (aggr, item, index) => {
+            const checkListItem: CheckListItemDTO = aggr[item.id]
+              ? {
+                  ...aggr[item.id],
+                  modified: Date.now(),
+                  title: checkList[index].title,
+                }
+              : {
+                  id: item.id,
+                  completed: false,
+                  created: Date.now(),
+                  modified: Date.now(),
+                  title: checkList[index].title,
+                  todoId: id,
+                };
 
-        checkListItems = {
-          ...checkListItems,
-          ...newCheckListItems,
-        };
+            aggr[item.id] = checkListItem;
+
+            return aggr;
+          },
+          {
+            ...checkListItems,
+          }
+        );
 
         emit({
           type: "STORAGE:CHECKLIST_ITEMS_UPDATE",
           checkListItemsByTodoId: createCheckListItemsByTodoId(checkListItems),
         });
 
-        checkListItemDocs.forEach((doc, index) =>
-          doc
-            .set({
-              todoId: todoDoc.id,
-              title: checkList[index],
-              completed: false,
-              created: firebase.firestore.FieldValue.serverTimestamp(),
-              modified: firebase.firestore.FieldValue.serverTimestamp(),
-            })
+        changedCheckListItems.forEach((item, index) => {
+          const { id, ...data } = checkListItems[item.id];
+
+          checkListItemsCollection
+            .doc(id)
+            .set(data)
             .catch((error) => {
               emit({
                 type: "STORAGE:ADD_CHECKLIST_ITEM_ERROR",
-                title: checkList[index],
-                todoId: todoDoc.id,
                 error: error.message,
+                title: item.title,
+                todoId: id,
               });
-            })
-        );
+            });
+        });
       }
 
-      todoDoc
-        .set({
-          created: firebase.firestore.FieldValue.serverTimestamp(),
-          modified: firebase.firestore.FieldValue.serverTimestamp(),
-          description,
-          ...(hasCheckList ? { checkList: true } : undefined),
-          ...(metadata?.date ? { date: metadata?.date } : undefined),
-          ...(metadata?.time ? { time: metadata?.time } : undefined),
-        })
+      const { id: _, ...data } = todo;
+
+      todosCollection
+        .doc(id)
+        .set(data)
         .catch((error) => {
           emit({
-            type: "STORAGE:ADD_TODO_ERROR",
-            description,
-            error: error.message,
+            type: "STORAGE:STORE_TODO_ERROR",
+            todo,
           });
         });
     },
-    archiveTodo(familyId, id) {
-      const todoDocRef = app
-        .firestore()
-        .collection(FAMILY_DATA_COLLECTION)
-        .doc(familyId)
-        .collection(TODOS_COLLECTION)
-        .doc(id);
-      const checkListItemsCollection = app
-        .firestore()
-        .collection(FAMILY_DATA_COLLECTION)
-        .doc(familyId)
-        .collection(CHECKLIST_ITEMS_COLLECTION);
+    archiveTodo(id) {
+      const todoDocRef = getFamilyDoc().collection(TODOS_COLLECTION).doc(id);
+      const checkListItemsCollection = getFamilyDoc().collection(
+        CHECKLIST_ITEMS_COLLECTION
+      );
 
       todos = {
         ...todos,
@@ -409,29 +553,14 @@ export const createStorage = (
           });
         });
     },
-    deleteGrocery(familyId, id) {
-      const groceryDocRef = app
-        .firestore()
-        .collection(FAMILY_DATA_COLLECTION)
-        .doc(familyId)
+    deleteGrocery(id) {
+      const groceryDocRef = getFamilyDoc()
         .collection(GROCERIES_COLLECTION)
         .doc(id);
 
       groceries = {
         ...groceries,
       };
-
-      const barcodeLinks = Object.values(barcodes).filter(
-        (barcode) => barcode.groceryId === id
-      );
-
-      if (barcodeLinks.length) {
-        return emit({
-          type: "STORAGE:DELETE_GROCERY_ERROR",
-          id,
-          error: "Please unlink all barcodes first",
-        });
-      }
 
       delete groceries[id];
 
@@ -448,64 +577,7 @@ export const createStorage = (
         });
       });
     },
-    increaseGroceryShopCount(familyId, id) {
-      const groceryDocRef = app
-        .firestore()
-        .collection(FAMILY_DATA_COLLECTION)
-        .doc(familyId)
-        .collection(GROCERIES_COLLECTION)
-        .doc(id);
-
-      groceries = {
-        ...groceries,
-        [id]: {
-          ...groceries[id],
-          shopCount: groceries[id].shopCount + 1,
-        },
-      };
-
-      emit({
-        type: "STORAGE:GROCERIES_UPDATE",
-        groceries,
-      });
-
-      debouncedShopCount(groceryDocRef, groceries[id].shopCount);
-    },
-    resetGroceryShopCount(familyId, id) {
-      const groceryDocRef = app
-        .firestore()
-        .collection(FAMILY_DATA_COLLECTION)
-        .doc(familyId)
-        .collection(GROCERIES_COLLECTION)
-        .doc(id);
-
-      groceries = {
-        ...groceries,
-        [id]: {
-          ...groceries[id],
-          shopCount: 0,
-        },
-      };
-
-      emit({
-        type: "STORAGE:GROCERIES_UPDATE",
-        groceries,
-      });
-
-      groceryDocRef
-        .update({
-          modified: firebase.firestore.FieldValue.serverTimestamp(),
-          shopCount: 0,
-        })
-        .catch((error) => {
-          emit({
-            type: "STORAGE:RESET_GROCERY_SHOP_COUNT_ERROR",
-            id,
-            error: error.message,
-          });
-        });
-    },
-    fetchWeeks(familyId, userId) {
+    fetchWeeks(userId) {
       const weekIds = [
         getPreviousWeekId(),
         getCurrentWeekId(),
@@ -514,26 +586,60 @@ export const createStorage = (
         // might be called multiple times
       ].filter((weekId) => !(weekId in weeks));
 
-      const weeksCollection = app
-        .firestore()
-        .collection(FAMILY_DATA_COLLECTION)
-        .doc(familyId)
-        .collection(WEEKS_COLLECTION);
+      const weeksCollection = getFamilyDoc().collection(WEEKS_COLLECTION);
 
       weekIds.forEach((weekId) => {
         const weekDocRef = weeksCollection.doc(weekId);
+
+        weekDocRef.onSnapshot((snapshot) => {
+          weeks = {
+            ...weeks,
+            [weekId]: {
+              ...weeks[weekId],
+              id: weekId,
+              dinners: snapshot.data()?.dinners ?? [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+              ],
+              todos: weeks[weekId]?.todos ?? {},
+            },
+          };
+
+          emit({
+            type: "STORAGE:WEEKS_UPDATE",
+            previousWeek: weeks[getPreviousWeekId()],
+            currentWeek: weeks[getCurrentWeekId()],
+            nextWeek: weeks[getNextWeekId()],
+          });
+        });
 
         weekDocRef.collection(WEEKS_TODOS_COLLECTION).onSnapshot((snapshot) => {
           weeks = {
             ...weeks,
             [weekId]: {
               ...weeks[weekId],
+              id: weekId,
+              dinners: weeks[weekId]?.dinners ?? [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+              ],
               todos: snapshot.docs.reduce<{
                 [id: string]: { [userId: string]: WeekTodoActivity };
               }>((aggr, doc) => {
                 const data = doc.data({ serverTimestamps: "estimate" });
                 aggr[doc.id] = {
                   ...data.activityByUserId,
+                  // If other users are updated, we want to keep a reference to our optimistic version
                   [userId]: weeks[weekId]?.todos[doc.id]?.[userId] ?? [
                     false,
                     false,
@@ -558,53 +664,9 @@ export const createStorage = (
           });
         });
       });
-
-      Promise.all(
-        weekIds.map((weekId) =>
-          weeksCollection.doc(weekId).collection(WEEKS_TODOS_COLLECTION).get()
-        )
-      )
-        .then((todosByWeekId) => {
-          weeks = {
-            ...weeks,
-          };
-
-          weekIds.forEach((weekId, index) => {
-            weeks[weekId] = {
-              id: weekId,
-              todos: {},
-            };
-            todosByWeekId[index].forEach((todoDoc) => {
-              weeks[weekId].todos[todoDoc.id] = todoDoc.data().activityByUserId;
-            });
-          });
-
-          emit({
-            type: "STORAGE:WEEKS_UPDATE",
-            previousWeek: weeks[getPreviousWeekId()],
-            currentWeek: weeks[getCurrentWeekId()],
-            nextWeek: weeks[getNextWeekId()],
-          });
-        })
-        .catch((error) => {
-          emit({
-            type: "STORAGE:FETCH_WEEKS_ERROR",
-            error: error.message,
-          });
-        });
     },
-    setWeekTaskActivity({
-      familyId,
-      weekId,
-      todoId,
-      userId,
-      weekdayIndex,
-      active,
-    }) {
-      const todoDocRef = app
-        .firestore()
-        .collection(FAMILY_DATA_COLLECTION)
-        .doc(familyId)
+    setWeekTaskActivity({ weekId, todoId, userId, weekdayIndex, active }) {
+      const todoDocRef = getFamilyDoc()
         .collection(WEEKS_COLLECTION)
         .doc(weekId)
         .collection(WEEKS_TODOS_COLLECTION)
@@ -661,185 +723,18 @@ export const createStorage = (
         })
       );
     },
-    linkBarcode(familyId, barcodeId, groceryId) {
-      barcodes = {
-        ...barcodes,
-        [barcodeId]: {
-          ...barcodes[barcodeId],
-          groceryId,
-        },
+    addChecklistItem({ id, todoId, title }) {
+      const item: CheckListItemDTO = {
+        id: id,
+        completed: false,
+        created: Date.now(),
+        modified: Date.now(),
+        title,
+        todoId,
       };
-
-      emit({
-        type: "STORAGE:BARCODES_UPDATE",
-        barcodes,
-      });
-
-      const barcodeDoc = app
-        .firestore()
-        .collection(FAMILY_DATA_COLLECTION)
-        .doc(familyId)
-        .collection(BARCODES_COLLECTION)
-        .doc(barcodeId);
-
-      barcodeDoc
-        .update({
-          modified: firebase.firestore.FieldValue.serverTimestamp(),
-          groceryId,
-        })
-        .catch((error) => {
-          emit({
-            type: "STORAGE:LINK_BARCODE_ERROR",
-            error: error.message,
-          });
-        });
-    },
-    unlinkBarcode(familyId, barcodeId) {
-      barcodes = {
-        ...barcodes,
-        [barcodeId]: {
-          ...barcodes[barcodeId],
-          groceryId: null,
-        },
-      };
-
-      emit({
-        type: "STORAGE:BARCODES_UPDATE",
-        barcodes,
-      });
-
-      const barcodeDoc = app
-        .firestore()
-        .collection(FAMILY_DATA_COLLECTION)
-        .doc(familyId)
-        .collection(BARCODES_COLLECTION)
-        .doc(barcodeId);
-
-      barcodeDoc
-        .update({
-          modified: firebase.firestore.FieldValue.serverTimestamp(),
-          groceryId: null,
-        })
-        .catch((error) => {
-          emit({
-            type: "STORAGE:LINK_BARCODE_ERROR",
-            error: error.message,
-          });
-        });
-    },
-    shopGrocery(familyId, id, shoppingListLength) {
-      const groceryDocRef = app
-        .firestore()
-        .collection(FAMILY_DATA_COLLECTION)
-        .doc(familyId)
-        .collection(GROCERIES_COLLECTION)
-        .doc(id);
-
-      const currentShoppingListLength = Object.values(groceries).filter(
-        (grocery) => Boolean(grocery.shopCount)
-      ).length;
-
-      groceries = {
-        ...groceries,
-        [id]: {
-          ...groceries[id],
-          shopCount: 0,
-          shopHistory: {
-            ...groceries[id].shopHistory,
-            [shoppingListLength]: currentShoppingListLength,
-          },
-        },
-      };
-
-      emit({
-        type: "STORAGE:GROCERIES_UPDATE",
-        groceries,
-      });
-
-      app
-        .firestore()
-        .runTransaction((transaction) =>
-          transaction.get(groceryDocRef).then((groceryDoc) => {
-            const data = groceryDoc.data();
-
-            if (!data) {
-              return emit({
-                type: "STORAGE:SHOP_GROCERY_ERROR",
-                id: groceryDocRef.id,
-                error: "Document does not exist",
-              });
-            }
-
-            transaction.update(groceryDocRef, {
-              modified: firebase.firestore.FieldValue.serverTimestamp(),
-              shopCount: 0,
-              shopHistory: {
-                ...data.shopHistory,
-                [shoppingListLength]: currentShoppingListLength,
-              },
-            });
-          })
-        )
-        .catch((error) => {
-          emit({
-            type: "STORAGE:SHOP_GROCERY_ERROR",
-            id: groceryDocRef.id,
-            error: error.messsage,
-          });
-        });
-    },
-    addImageToGrocery(familyId, id, src) {
-      const groceryDocRef = app
-        .firestore()
-        .collection(FAMILY_DATA_COLLECTION)
-        .doc(familyId)
-        .collection(GROCERIES_COLLECTION)
-        .doc(id);
-
-      groceries = {
-        ...groceries,
-        [id]: {
-          ...groceries[id],
-          image: src,
-        },
-      };
-
-      emit({
-        type: "STORAGE:GROCERIES_UPDATE",
-        groceries,
-      });
-
-      groceryDocRef
-        .update({
-          modified: firebase.firestore.FieldValue.serverTimestamp(),
-          image: src,
-        })
-        .catch((error) => {
-          emit({
-            type: "STORAGE:ADD_IMAGE_TO_GROCERY_ERROR",
-            groceryId: id,
-            error: error.message,
-          });
-        });
-    },
-    addChecklistItem(familyId, todoId, title) {
-      const doc = app
-        .firestore()
-        .collection(FAMILY_DATA_COLLECTION)
-        .doc(familyId)
-        .collection(CHECKLIST_ITEMS_COLLECTION)
-        .doc();
-
       checkListItems = {
         ...checkListItems,
-        [doc.id]: {
-          id: doc.id,
-          completed: false,
-          created: Date.now(),
-          modified: Date.now(),
-          title,
-          todoId,
-        },
+        [id]: item,
       };
 
       emit({
@@ -847,14 +742,11 @@ export const createStorage = (
         checkListItemsByTodoId: createCheckListItemsByTodoId(checkListItems),
       });
 
-      doc
-        .set({
-          completed: false,
-          created: firebase.firestore.FieldValue.serverTimestamp(),
-          modified: firebase.firestore.FieldValue.serverTimestamp(),
-          title,
-          todoId,
-        })
+      const { id: _, ...data } = item;
+      getFamilyDoc()
+        .collection(CHECKLIST_ITEMS_COLLECTION)
+        .doc(id)
+        .set(data)
         .catch((error) => {
           emit({
             type: "STORAGE:ADD_CHECKLIST_ITEM_ERROR",
@@ -864,11 +756,8 @@ export const createStorage = (
           });
         });
     },
-    deleteChecklistItem(familyId, itemId) {
-      const doc = app
-        .firestore()
-        .collection(FAMILY_DATA_COLLECTION)
-        .doc(familyId)
+    deleteChecklistItem(itemId) {
+      const doc = getFamilyDoc()
         .collection(CHECKLIST_ITEMS_COLLECTION)
         .doc(itemId);
 
@@ -891,11 +780,8 @@ export const createStorage = (
         });
       });
     },
-    toggleCheckListItem(familyId, userId, itemId) {
-      const doc = app
-        .firestore()
-        .collection(FAMILY_DATA_COLLECTION)
-        .doc(familyId)
+    toggleCheckListItem(userId, itemId) {
+      const doc = getFamilyDoc()
         .collection(CHECKLIST_ITEMS_COLLECTION)
         .doc(itemId);
 

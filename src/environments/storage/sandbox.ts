@@ -9,6 +9,7 @@ import {
   WeekTodoActivity,
   DinnerDTO,
   StorageEvent,
+  WeekDinnersDTO,
 } from "../../environment-interface/storage";
 import {
   getCurrentWeekId,
@@ -426,7 +427,7 @@ export const createStorage = (emit: Emit<StorageEvent>): Storage => {
         checkListItemsByTodoId: createCheckListItemsByTodoId(checkListItems),
       });
     },
-    storeChecklistItem({ id, title, todoId }) {
+    addChecklistItem({ id, title, todoId }) {
       checkListItems = {
         ...checkListItems,
         [id]: checkListItems[id]
@@ -451,7 +452,19 @@ export const createStorage = (emit: Emit<StorageEvent>): Storage => {
       });
     },
     setWeekDinner({ weekId, weekdayIndex, dinnerId }) {
-      weeks[weekId].dinners[weekdayIndex] = dinnerId || null;
+      const week = weeks[weekId];
+      weeks = {
+        ...weeks,
+        [weekId]: {
+          ...week,
+          dinners: [
+            ...week.dinners.slice(0, weekdayIndex),
+            dinnerId,
+            ...week.dinners.slice(weekdayIndex + 1),
+          ] as WeekDinnersDTO,
+        },
+      };
+
       emit({
         type: "STORAGE:WEEKS_UPDATE",
         currentWeek: weeks[currentWeekId],

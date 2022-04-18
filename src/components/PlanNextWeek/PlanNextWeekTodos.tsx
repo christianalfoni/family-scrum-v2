@@ -112,14 +112,7 @@ export const PlanNextWeekTodos = ({
   planNextWeekDispatcher: StatesDispatcher<PlanNextWeekReducer>;
   onTodoClick: (id: string) => void;
 }) => {
-  const {
-    family,
-    todos,
-    currentWeek,
-    nextWeek,
-    previousWeek,
-    checkListItemsByTodoId,
-  } = dashboard;
+  const { family, todos, currentWeek, previousWeek } = dashboard;
   const t = useTranslations("PlanWeekView");
   const sortedTodos = selectors.todosByType(
     todos,

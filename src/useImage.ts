@@ -4,7 +4,7 @@ import {
   createReducerHandlers,
   useEnvironment,
   useReducer,
-} from "../../environment-interface";
+} from "./environment-interface";
 
 type BaseState = {
   ref: string;
@@ -110,13 +110,13 @@ const reducer = createReducer<ImageReducer>({
         {
           cmd: "$CALL_ENVIRONMENT",
           target: "capture.capture",
-          params: [videoId, 500, 500],
+          params: [videoId, 100, 100],
         }
       ),
     "CAPTURE:CAPTURED": ({ state, action: { src }, transition }) =>
       transition({
         ...state,
-        state: "LOADED",
+        state: "CAPTURED",
         src,
       }),
   },

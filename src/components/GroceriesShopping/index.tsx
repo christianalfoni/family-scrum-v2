@@ -24,13 +24,15 @@ export const GroceriesShopping = ({
   const t = useTranslations("GroceriesShoppingView");
   const [now] = React.useState(Date.now());
   const [groceriesShopping, send] = useGroceriesShopping({});
+  const groceriesToShop = selectors.groceriesToShop(dashboard.groceries);
+  const [initialGroceriesLength] = React.useState(groceriesToShop.length);
   const videoRef = React.useRef<HTMLVideoElement>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
   const inputValue = match(groceriesShopping, {
     FILTERED: ({ input }) => input,
     UNFILTERED: () => "",
   });
-  const groceriesToShop = selectors.groceriesToShop(dashboard.groceries);
+
   const sortedAndFilteredGroceries = match(groceriesShopping, {
     FILTERED: ({ input }) =>
       selectors.filteredGroceriesByInput(groceriesToShop, input),
@@ -46,14 +48,14 @@ export const GroceriesShopping = ({
   }, []);
 
   useEffect(() => {
-    if (!groceriesToShop.length) {
+    if (!groceriesToShop.length && initialGroceriesLength) {
       confetti({
         particleCount: 100,
         spread: 70,
         origin: { y: 0.6 },
       });
     }
-  }, [groceriesToShop.length]);
+  }, [groceriesToShop.length, initialGroceriesLength]);
 
   return (
     <div className="bg-white flex flex-col h-screen">

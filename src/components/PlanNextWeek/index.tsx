@@ -55,7 +55,9 @@ export const PlanNextWeek = ({
               className="flex-1 relative inline-flex items-center px-4 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-900 hover:bg-gray-50 focus:z-10 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600"
             >
               <HeartIcon
-                className="mr-1 h-5 w-5 text-red-400"
+                className={`mr-1 h-5 w-5 ${
+                  view === "DINNERS" ? "text-red-400" : "text-gray-400"
+                }`}
                 aria-hidden="true"
               />
               <span>{t("dinners")}</span>
@@ -66,7 +68,9 @@ export const PlanNextWeek = ({
               className="flex-1 inline-flex -ml-px relative items-center px-4 py-2 rounded-r-md border border-gray-300 bg-gray-50 text-sm font-medium text-gray-900 hover:bg-gray-50 focus:z-10 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600"
             >
               <CheckCircleIcon
-                className="mr-1 h-5 w-5 text-gray-400"
+                className={`mr-1 h-5 w-5 ${
+                  view === "TODOS" ? "text-green-400" : "text-gray-400"
+                }`}
                 aria-hidden="true"
               />
               <span>{t("todos")}</span>

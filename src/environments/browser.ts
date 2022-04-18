@@ -2,6 +2,7 @@ import firebase from "firebase/app";
 import "firebase/firestore";
 import "firebase/auth";
 import "firebase/analytics";
+import "firebase/storage";
 
 import { createEnvironment } from "../environment-interface";
 import { createAuthentication } from "./authentication/browser";

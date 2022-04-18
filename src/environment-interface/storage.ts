@@ -124,6 +124,10 @@ export type StorageEvent =
       dinner: DinnerDTO;
     }
   | {
+      type: "STORAGE:DELETE_DINNER_ERROR";
+      dinner: DinnerDTO;
+    }
+  | {
       type: "STORAGE:STORE_TODO_SUCCESS";
       id: string;
     }
@@ -160,6 +164,11 @@ export type StorageEvent =
       weekId: string;
       todoId: string;
       userId: string;
+      error: string;
+    }
+  | {
+      type: "STORAGE:SET_WEEK_DINNER_ERROR";
+      weekId: string;
       error: string;
     }
   | {
@@ -245,7 +254,7 @@ export interface Storage {
   }): void;
   toggleCheckListItem(userId: string, itemId: string): void;
   deleteChecklistItem(id: string): void;
-  storeChecklistItem(
+  addChecklistItem(
     checkListItem: Pick<CheckListItemDTO, "id" | "title" | "todoId">
   ): void;
   fetchImage(ref: string): void;
