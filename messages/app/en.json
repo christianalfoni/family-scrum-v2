@@ -48,7 +48,9 @@
     "todos": "Todos"
   },
   "GroceriesShoppingView": {
-    "shoppingList": "Shopping list"
+    "shoppingList": "Shopping list",
+    "filterNewGrocery": "Filter/New Grocery",
+    "add": "Add"
   },
   "CheckListsView": {
     "checkLists": "Checklists",
