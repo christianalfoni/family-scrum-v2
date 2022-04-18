@@ -4,15 +4,11 @@ module.exports = {
   purge: {
     content: [
       "./src/pages/**/*.{js,ts,jsx,tsx}",
-      "./src/overview-components/**/*.{js,ts,jsx,tsx}",
-      "./src/app-components/**/*.{js,ts,jsx,tsx}",
-      "./src/common-components/**/*.{js,ts,jsx,tsx}",
+      "./src/components/**/*.{js,ts,jsx,tsx}",
     ],
     options: {
-      safelist: [
-        
-      ]
-    }
+      safelist: [],
+    },
   },
   darkMode: false, // or 'media' or 'class'
   theme: {
