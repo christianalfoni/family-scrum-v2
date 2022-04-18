@@ -1,4 +1,4 @@
-import { CheckListItemDTO } from ".";
+import { CheckListItemDTO } from "../../environment-interface/storage";
 
 export const createCheckListItemsByTodoId = (checkListItems: {
   [itemId: string]: CheckListItemDTO;
