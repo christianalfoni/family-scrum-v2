@@ -1,6 +1,6 @@
 import { match } from "react-states";
 
-import { useDashboard } from "./useDashboard";
+import { useDashboard, viewStates } from "./useDashboard";
 import { GroceriesShopping } from "../GroceriesShopping";
 import { DashboardContent, DashboardSkeleton } from "./DashboardContent";
 import { CheckLists } from "../CheckLists";
@@ -20,138 +20,41 @@ export const Dashboard = () => {
         LOADING: () => <DashboardSkeleton />,
         REQUIRING_AUTHENTICATION: () => <DashboardSkeleton />,
         LOADED: (loadedDashboard) => {
-          const { viewStack, todos, dinners, user, checkListItemsByTodoId } =
+          const { viewStack, user, data, POP_VIEW, PUSH_VIEW, REPLACE_VIEW } =
             loadedDashboard;
           const view = viewStack[viewStack.length - 1];
 
           return match(view, {
             DASHBOARD: () => (
-              <DashboardContent
-                dashboard={loadedDashboard}
-                selectView={(view) => {
-                  dispatch({
-                    type: "PUSH_VIEW",
-                    view,
-                  });
-                }}
-              />
+              <DashboardContent dashboard={[loadedDashboard, dispatch]} />
             ),
             GROCERIES_SHOPPING: () => (
-              <GroceriesShopping
-                dashboard={loadedDashboard}
-                onBackClick={() =>
-                  dispatch({
-                    type: "POP_VIEW",
-                  })
-                }
-              />
+              <GroceriesShopping dashboard={[loadedDashboard, dispatch]} />
             ),
-
             CHECKLISTS: () => (
-              <CheckLists
-                todos={todos}
-                user={user}
-                checkListItemsByTodoId={checkListItemsByTodoId}
-                onBackClick={() =>
-                  dispatch({
-                    type: "POP_VIEW",
-                  })
-                }
-                onTodoClick={(id) => {
-                  dispatch({
-                    type: "PUSH_VIEW",
-                    view: {
-                      state: "EDIT_TODO",
-                      id,
-                    },
-                  });
-                }}
-              />
+              <CheckLists dashboard={[loadedDashboard, dispatch]} />
             ),
             PLAN_NEXT_WEEK: ({ subView }) => (
               <PlanNextWeek
+                dashboard={[loadedDashboard, dispatch]}
                 view={subView}
-                onTodoClick={(id) => {
-                  dispatch({
-                    type: "PUSH_VIEW",
-                    view: {
-                      state: "EDIT_TODO",
-                      id,
-                    },
-                  });
-                }}
-                onPlanDinnersClick={() => {
-                  dispatch({
-                    type: "REPLACE_VIEW",
-                    view: {
-                      state: "PLAN_NEXT_WEEK",
-                      subView: "DINNERS",
-                    },
-                  });
-                }}
-                onPlanTodosClick={() => {
-                  dispatch({
-                    type: "REPLACE_VIEW",
-                    view: {
-                      state: "PLAN_NEXT_WEEK",
-                      subView: "TODOS",
-                    },
-                  });
-                }}
-                dashboard={loadedDashboard}
-                user={user}
-                onBackClick={() =>
-                  dispatch({
-                    type: "POP_VIEW",
-                  })
-                }
               />
             ),
-            DINNERS: () => (
-              <Dinners
-                dinners={dinners}
-                onDinnerClick={(id) => {
-                  dispatch({
-                    type: "PUSH_VIEW",
-                    view: {
-                      state: "EDIT_DINNER",
-                      id,
-                    },
-                  });
-                }}
-                onAddDinnerClick={() => {
-                  dispatch({
-                    type: "PUSH_VIEW",
-                    view: {
-                      state: "EDIT_DINNER",
-                    },
-                  });
-                }}
-                onBackClick={() => {
-                  dispatch({
-                    type: "POP_VIEW",
-                  });
-                }}
-              />
-            ),
+            DINNERS: () => <Dinners dashboard={[loadedDashboard, dispatch]} />,
             EDIT_DINNER: ({ id }) => (
               <EditDinner
-                dinner={id ? dinners[id] : undefined}
+                dinner={id ? data.dinners[id] : undefined}
                 onBackClick={() => {
-                  dispatch({
-                    type: "POP_VIEW",
-                  });
+                  dispatch(POP_VIEW());
                 }}
               />
             ),
             EDIT_TODO: ({ id }) => (
               <EditTodo
-                todo={id ? todos[id] : undefined}
-                checkListItemsByTodoId={checkListItemsByTodoId}
+                todo={id ? data.todos[id] : undefined}
+                checkListItemsByTodoId={data.checkListItemsByTodoId}
                 onBackClick={() => {
-                  dispatch({
-                    type: "POP_VIEW",
-                  });
+                  dispatch(POP_VIEW());
                 }}
               />
             ),

@@ -1,219 +1,245 @@
-import { StatesReducer, useCommandEffect } from "react-states";
+import { useReducer } from "react";
 import {
-  createReducer,
-  useEnvironment,
-  useReducer,
-  createReducerHandlers,
-} from "../../environment-interface";
+  $COMMAND,
+  IAction,
+  ICommand,
+  IState,
+  match,
+  PickCommand,
+  ReturnTypes,
+  transition,
+  TTransitions,
+  useCommandEffect,
+  useDevtools,
+} from "react-states";
+import { useEnvironment } from "../../environment-interface";
 import {
   CheckListItemsByTodoId,
   TodoDTO,
 } from "../../environment-interface/storage";
 import * as selectors from "../../selectors";
 
-type DateState =
-  | {
-      state: "INACTIVE";
-    }
-  | {
-      state: "ACTIVE";
-      date: number;
-    };
+const actions = {
+  DESCRIPTION_CHANGED: (description: string) => ({
+    type: "DESCRIPTION_CHANGED" as const,
+    description,
+  }),
+  DATE_TOGGLED: () => ({
+    type: "DATE_TOGGLED" as const,
+  }),
+  DATE_CHANGED: (date: number) => ({
+    type: "DATE_CHANGED" as const,
+    date,
+  }),
+  TIME_TOGGLED: () => ({
+    type: "TIME_TOGGLED" as const,
+  }),
+  TIME_CHANGED: (time: string) => ({
+    type: "TIME_CHANGED" as const,
+    time,
+  }),
+  CHECKLIST_TOGGLED: () => ({
+    type: "CHECKLIST_TOGGLED" as const,
+  }),
+  CHECKLIST_ITEM_ADDED: (title: string) => ({
+    type: "CHECKLIST_ITEM_ADDED" as const,
+    title,
+  }),
+  CHECKLIST_ITEM_REMOVED: (index: number) => ({
+    type: "CHECKLIST_ITEM_REMOVED" as const,
+    index,
+  }),
+  ADD_TODO: () => ({
+    type: "ADD_TODO" as const,
+  }),
+};
+type Action = ReturnTypes<typeof actions, IAction>;
 
-type TimeState =
-  | {
-      state: "INACTIVE";
-    }
-  | {
-      state: "ACTIVE";
-      time: string;
-    };
-
-type ChecklistState =
-  | {
-      state: "INACTIVE";
-    }
-  | {
-      state: "ACTIVE";
-      items: Array<{ title: string; id?: string }>;
-    };
-
-type BaseState = {
-  description: string;
-  date: DateState;
-  time: TimeState;
-  checkList: ChecklistState;
+const commands = {
+  ADD_TODO: (params: {
+    description: string;
+    date?: number;
+    time?: string;
+    checkList?: Array<{ title: string; id?: string }>;
+  }) => ({
+    cmd: "ADD_TODO" as const,
+    ...params,
+  }),
 };
 
-type State = BaseState &
-  (
-    | {
-        state: "VALID";
-      }
-    | {
-        state: "INVALID";
-      }
-  );
+type Command = ReturnTypes<typeof commands, ICommand>;
 
-type Action =
-  | {
-      type: "DESCRIPTION_CHANGED";
+const dateStates = {
+  INACTIVE: () => ({
+    state: "INACTIVE" as const,
+  }),
+  ACTIVE: (date: number) => ({
+    state: "ACTIVE" as const,
+    date,
+  }),
+};
+
+type DateState = ReturnTypes<typeof dateStates, IState>;
+
+const timeStates = {
+  INACTIVE: () => ({
+    state: "INACTIVE" as const,
+  }),
+  ACTIVE: (time: string) => ({
+    state: "ACTIVE" as const,
+    time,
+  }),
+};
+
+type TimeState = ReturnTypes<typeof timeStates, IState>;
+
+const checklistStates = {
+  INACTIVE: () => ({
+    state: "INACTIVE" as const,
+  }),
+  ACTIVE: (items: Array<{ title: string; id?: string }>) => ({
+    state: "ACTIVE" as const,
+    items,
+  }),
+};
+
+type ChecklistState = ReturnTypes<typeof checklistStates, IState>;
+
+const validationStates = {
+  VALID: () => ({
+    state: "VALID" as const,
+  }),
+  INVALID: () => ({
+    state: "INVALID" as const,
+  }),
+};
+
+type ValidationState = ReturnTypes<typeof validationStates, IState>;
+
+const states = {
+  EDITING: (
+    params: {
       description: string;
-    }
-  | {
-      type: "DATE_TOGGLED";
-    }
-  | {
-      type: "DATE_CHANGED";
-      date: number;
-    }
-  | {
-      type: "TIME_TOGGLED";
-    }
-  | {
-      type: "TIME_CHANGED";
-      time: string;
-    }
-  | {
-      type: "CHECKLIST_TOGGLED";
-    }
-  | {
-      type: "CHECKLIST_ITEM_ADDED";
-      title: string;
-    }
-  | {
-      type: "CHECKLIST_ITEM_REMOVED";
-      index: number;
-    }
-  | {
-      type: "ADD_TODO";
-    };
+      date: DateState;
+      time: TimeState;
+      checkList: ChecklistState;
+    },
+    command?: PickCommand<Command, "ADD_TODO">
+  ) => {
+    const validation = params.description
+      ? validationStates.VALID()
+      : validationStates.INVALID();
 
-type Command = {
-  cmd: "ADD_TODO";
-  description: string;
-  date?: number;
-  time?: string;
-  checkList?: Array<{ title: string; id?: string }>;
+    return {
+      state: "EDITING" as const,
+      ...params,
+      validation,
+      [$COMMAND]: command && validation.state === "VALID" ? command : undefined,
+      ...actions,
+    };
+  },
 };
 
-type EditTodoReducer = StatesReducer<State, Action, Command>;
+type State = ReturnTypes<typeof states, IState>;
 
-const handlers = createReducerHandlers<EditTodoReducer>({
-  DESCRIPTION_CHANGED: ({ state, action: { description }, transition }) =>
-    transition({
-      ...state,
-      description,
-      state: description ? "VALID" : "INVALID",
-    }),
+export const { EDITING } = states;
 
-  DATE_TOGGLED: ({ state, transition }) =>
-    transition({
-      ...state,
-      date:
-        state.date.state === "ACTIVE"
-          ? {
-              state: "INACTIVE",
-            }
-          : {
-              state: "ACTIVE",
-              date: Date.now(),
-            },
-    }),
-  DATE_CHANGED: ({ state, action: { date }, transition }) =>
-    transition({
-      ...state,
-      date:
-        state.date.state === "ACTIVE"
-          ? {
-              ...state.date,
-              date,
-            }
-          : state.date,
-    }),
-
-  TIME_TOGGLED: ({ state, transition }) =>
-    transition({
-      ...state,
-      time:
-        state.time.state === "ACTIVE"
-          ? {
-              state: "INACTIVE",
-            }
-          : {
-              state: "ACTIVE",
-              time: "10:00",
-            },
-    }),
-
-  TIME_CHANGED: ({ state, action: { time }, transition }) =>
-    transition({
-      ...state,
-      time:
-        state.time.state === "ACTIVE"
-          ? {
-              ...state.time,
-              time,
-            }
-          : state.time,
-    }),
-  CHECKLIST_TOGGLED: ({ state, transition }) =>
-    transition({
-      ...state,
-      checkList:
-        state.checkList.state === "ACTIVE"
-          ? {
-              state: "INACTIVE",
-            }
-          : {
-              state: "ACTIVE",
-              items: [],
-            },
-    }),
-  CHECKLIST_ITEM_ADDED: ({ state, action: { title }, transition }) =>
-    transition({
-      ...state,
-      checkList:
-        state.checkList.state === "ACTIVE"
-          ? {
-              state: "ACTIVE",
-              items: [...state.checkList.items, { title }],
-            }
-          : state.checkList,
-    }),
-  CHECKLIST_ITEM_REMOVED: ({ state, action: { index }, transition }) =>
-    transition({
-      ...state,
-      checkList:
-        state.checkList.state === "ACTIVE"
-          ? {
-              state: "ACTIVE",
-              items: [
-                ...state.checkList.items.slice(0, index),
-                ...state.checkList.items.slice(index + 1),
-              ],
-            }
-          : state.checkList,
-    }),
-});
-
-export const reducer = createReducer<EditTodoReducer>({
-  INVALID: handlers,
-  VALID: {
-    ...handlers,
-    ADD_TODO: ({ state, transition }) =>
-      transition(state, {
-        cmd: "ADD_TODO",
-        description: state.description,
-        checkList:
-          state.checkList.state === "ACTIVE"
-            ? state.checkList.items
-            : undefined,
-        date: state.date.state === "ACTIVE" ? state.date.date : undefined,
-        time: state.time.state === "ACTIVE" ? state.time.time : undefined,
+const transitions: TTransitions<State, Action> = {
+  EDITING: {
+    DESCRIPTION_CHANGED: (state, { description }) =>
+      EDITING({
+        ...state,
+        description,
       }),
+    DATE_TOGGLED: (state) =>
+      EDITING({
+        ...state,
+        date: match(state.date, {
+          ACTIVE: () => dateStates.INACTIVE(),
+          INACTIVE: () => dateStates.ACTIVE(Date.now()),
+        }),
+      }),
+    DATE_CHANGED: (state, { date }) =>
+      EDITING({
+        ...state,
+        date: match(state.date, {
+          ACTIVE: () => dateStates.ACTIVE(date),
+          INACTIVE: (inactiveState) => inactiveState,
+        }),
+      }),
+    TIME_TOGGLED: (state) =>
+      EDITING({
+        ...state,
+        time: match(state.time, {
+          ACTIVE: () => timeStates.INACTIVE(),
+          INACTIVE: () => timeStates.ACTIVE("10:00"),
+        }),
+      }),
+    TIME_CHANGED: (state, { time }) =>
+      EDITING({
+        ...state,
+        time: match(state.time, {
+          ACTIVE: () => timeStates.ACTIVE(time),
+          INACTIVE: (inactiveState) => inactiveState,
+        }),
+      }),
+    CHECKLIST_TOGGLED: (state) =>
+      EDITING({
+        ...state,
+        checkList: match(state.checkList, {
+          ACTIVE: () => checklistStates.INACTIVE(),
+          INACTIVE: () => checklistStates.ACTIVE([]),
+        }),
+      }),
+    CHECKLIST_ITEM_ADDED: (state, { title }) =>
+      EDITING({
+        ...state,
+        checkList: match(state.checkList, {
+          ACTIVE: ({ items }) => checklistStates.ACTIVE([...items, { title }]),
+          INACTIVE: (inactiveState) => inactiveState,
+        }),
+      }),
+    CHECKLIST_ITEM_REMOVED: (state, { index }) =>
+      EDITING({
+        ...state,
+        checkList: match(state.checkList, {
+          ACTIVE: ({ items }) =>
+            checklistStates.ACTIVE([
+              ...items.slice(0, index),
+              ...items.slice(index + 1),
+            ]),
+          INACTIVE: (inactiveState) => inactiveState,
+        }),
+      }),
+    ADD_TODO: ({ description, date, time, checkList }) =>
+      EDITING(
+        {
+          checkList,
+          date,
+          description,
+          time,
+        },
+        commands.ADD_TODO({
+          description,
+          checkList: match(checkList, {
+            ACTIVE: ({ items }) => items,
+            INACTIVE: () => undefined,
+          }),
+          date: match(date, {
+            ACTIVE: ({ date }) => date,
+            INACTIVE: () => undefined,
+          }),
+          time: match(time, {
+            ACTIVE: ({ time }) => time,
+            INACTIVE: () => undefined,
+          }),
+        })
+      ),
   },
-});
+};
+
+export const reducer = (state: State, action: Action) =>
+  transition(state, action, transitions);
 
 export const useEditTodo = ({
   todo,
@@ -228,65 +254,44 @@ export const useEditTodo = ({
 }) => {
   const { storage } = useEnvironment();
   const todoReducer = useReducer(
-    "EditTodo",
     reducer,
     initialState ||
       (todo
-        ? {
-            state: "VALID",
+        ? EDITING({
             description: todo.description,
             checkList: todo.checkList
-              ? {
-                  state: "ACTIVE",
-                  items: selectors
+              ? checklistStates.ACTIVE(
+                  selectors
                     .sortedCheckListItems(checkListItemsByTodoId[todo.id] || {})
-                    .map((item) => ({ title: item.title, id: item.id })),
-                }
-              : {
-                  state: "INACTIVE",
-                },
+                    .map((item) => ({ title: item.title, id: item.id }))
+                )
+              : checklistStates.INACTIVE(),
             date: todo.date
-              ? {
-                  state: "ACTIVE",
-                  date: todo.date,
-                }
-              : {
-                  state: "INACTIVE",
-                },
+              ? dateStates.ACTIVE(todo.date)
+              : dateStates.INACTIVE(),
             time: todo.time
-              ? {
-                  state: "ACTIVE",
-                  time: todo.time,
-                }
-              : {
-                  state: "INACTIVE",
-                },
-          }
-        : {
-            state: "INVALID",
-            description: "",
-            checkList: {
-              state: "INACTIVE",
-            },
-            date: {
-              state: "INACTIVE",
-            },
-            time: {
-              state: "INACTIVE",
-            },
+              ? timeStates.ACTIVE(todo.time)
+              : timeStates.INACTIVE(),
           })
+        : EDITING({
+            description: "",
+            checkList: checklistStates.INACTIVE(),
+            date: dateStates.INACTIVE(),
+            time: timeStates.INACTIVE(),
+          }))
   );
+
+  useDevtools("EditTodo", todoReducer);
 
   const [state] = todoReducer;
 
   useCommandEffect(
     state,
     "ADD_TODO",
-    ({ description, date, time, checkList }) => {
-      const id = storage.createTodoId();
+    ({ description, checkList, date, time }) => {
       storage.storeTodo(
         {
-          id: todo ? todo.id : id,
+          id: todo ? todo.id : storage.createTodoId(),
           description,
           date,
           time,

@@ -1,93 +1,114 @@
-import { StatesReducer, useCommandEffect, useStateEffect } from "react-states";
-
+import { useReducer, useState } from "react";
 import {
-  useEnvironment,
-  createReducer,
-  useReducer,
-} from "../../environment-interface";
+  $COMMAND,
+  IAction,
+  ICommand,
+  PickCommand,
+  ReturnTypes,
+  transition,
+  TTransitions,
+  useCommandEffect,
+  useDevtools,
+  useStateEffect,
+} from "react-states";
+
+import { useEnvironment } from "../../environment-interface";
 import { DinnerDTO } from "../../environment-interface/storage";
 import { useImage } from "../../useImage";
 
-export type Dinner = DinnerDTO;
-
-type ValidationState =
-  | {
-      state: "VALID";
-    }
-  | {
-      state: "INVALID";
-    };
-
-type BaseState = {
-  newIngredientName: string;
-  newPreparationDescription: string;
-  validation: ValidationState;
+const actions = {
+  ADD_IMAGE_SOURCE: (src: string) => ({
+    type: "ADD_IMAGE_SOURCE" as const,
+    src,
+  }),
+  NAME_CHANGED: (name: string) => ({
+    type: "NAME_CHANGED" as const,
+    name,
+  }),
+  DESCRIPTION_CHANGED: (description: string) => ({
+    type: "DESCRIPTION_CHANGED" as const,
+    description,
+  }),
+  NEW_INGREDIENT_NAME_CHANGED: (name: string) => ({
+    type: "NEW_INGREDIENT_NAME_CHANGED" as const,
+    name,
+  }),
+  ADD_INGREDIENT: () => ({
+    type: "ADD_INGREDIENT" as const,
+  }),
+  REMOVE_INGREDIENT: (index: number) => ({
+    type: "REMOVE_INGREDIENT" as const,
+    index,
+  }),
+  NEW_PREPARATION_ITEM_DESCRIPTION_CHANGED: (description: string) => ({
+    type: "NEW_PREPARATION_ITEM_DESCRIPTION_CHANGED" as const,
+    description,
+  }),
+  ADD_PREPARATION_ITEM: () => ({
+    type: "ADD_PREPARATION_ITEM" as const,
+  }),
+  REMOVE_PREPARATION_ITEM: (index: number) => ({
+    type: "REMOVE_PREPARATION_ITEM" as const,
+    index,
+  }),
+  ADD_INSTRUCTION: () => ({
+    type: "ADD_INSTRUCTION" as const,
+  }),
+  INSTRUCTION_CHANGED: (params: { instruction: string; index: number }) => ({
+    type: "INSTRUCTION_CHANGED" as const,
+    ...params,
+  }),
+  REMOVE_INSTRUCTION: (index: number) => ({
+    type: "REMOVE_INSTRUCTION" as const,
+    index,
+  }),
+  SAVE: () => ({
+    type: "SAVE" as const,
+  }),
 };
 
-type State = BaseState & {
-  state: "EDITING";
-  dinner: Dinner;
-  imageSrc?: string;
+type Action = ReturnTypes<typeof actions, IAction>;
+
+const commands = {
+  EXIT: () => ({
+    cmd: "EXIT" as const,
+  }),
 };
 
-type Action =
-  | {
-      type: "ADD_IMAGE_SOURCE";
-      src: string;
-    }
-  | {
-      type: "NAME_CHANGED";
-      name: string;
-    }
-  | {
-      type: "DESCRIPTION_CHANGED";
-      description: string;
-    }
-  | {
-      type: "NEW_INGREDIENT_NAME_CHANGED";
-      name: string;
-    }
-  | {
-      type: "ADD_INGREDIENT";
-    }
-  | {
-      type: "REMOVE_INGREDIENT";
-      index: number;
-    }
-  | {
-      type: "NEW_PREPARATION_ITEM_DESCRIPTION_CHANGED";
-      description: string;
-    }
-  | {
-      type: "ADD_PREPARATION_ITEM";
-    }
-  | {
-      type: "REMOVE_PREPARATION_ITEM";
-      index: number;
-    }
-  | {
-      type: "ADD_INSTRUCTION";
-    }
-  | {
-      type: "INSTRUCTION_CHANGED";
-      instruction: string;
-      index: number;
-    }
-  | {
-      type: "REMOVE_INSTRUCTION";
-      index: number;
-    }
-  | {
-      type: "SAVE";
-    };
+type Command = ReturnTypes<typeof commands, ICommand>;
 
-type Command = {
-  cmd: "EXIT";
+const validationStates = {
+  VALID: () => ({
+    state: "VALID" as const,
+  }),
+  INVALID: () => ({
+    state: "INVALID" as const,
+  }),
 };
 
-export type DinnerReducer = StatesReducer<State, Action, Command>;
+type ValidationState = ReturnType<
+  typeof validationStates.VALID | typeof validationStates.INVALID
+>;
 
-function validateDinner({
+const EDITING = (
+  params: {
+    newIngredientName: string;
+    newPreparationDescription: string;
+    dinner: DinnerDTO;
+    imageSrc?: string;
+  },
+  command?: PickCommand<Command, "EXIT">
+) => ({
+  state: "EDITING" as const,
+  ...params,
+  validation: validateDinner(params.dinner),
+  [$COMMAND]: command,
+  ...actions,
+});
+
+type State = ReturnType<typeof EDITING>;
+
+const validateDinner = ({
   name,
   description,
   instructions,
@@ -95,51 +116,36 @@ function validateDinner({
   name: string;
   description: string;
   instructions: string[];
-}): ValidationState {
-  if (name.length && description.length && instructions.length) {
-    return {
-      state: "VALID",
-    };
-  }
+}) =>
+  name.length && description.length && instructions.length
+    ? validationStates.VALID()
+    : validationStates.INVALID();
 
-  return {
-    state: "INVALID",
-  };
-}
-
-const reducer = createReducer<DinnerReducer>({
+const transitions: TTransitions<State, Action> = {
   EDITING: {
-    NAME_CHANGED: ({ state, action: { name }, transition }) => {
-      const dinner = {
-        ...state.dinner,
-        name,
-      };
-
-      return transition({
+    NAME_CHANGED: (state, { name }) =>
+      EDITING({
         ...state,
-        dinner,
-        validation: validateDinner(dinner),
-      });
-    },
-    DESCRIPTION_CHANGED: ({ state, action: { description }, transition }) => {
-      const dinner = {
-        ...state.dinner,
-        description,
-      };
-
-      return transition({
+        dinner: {
+          ...state.dinner,
+          name,
+        },
+      }),
+    DESCRIPTION_CHANGED: (state, { description }) =>
+      EDITING({
         ...state,
-        dinner,
-        validation: validateDinner(dinner),
-      });
-    },
-    NEW_INGREDIENT_NAME_CHANGED: ({ state, action: { name }, transition }) =>
-      transition({
+        dinner: {
+          ...state.dinner,
+          description,
+        },
+      }),
+    NEW_INGREDIENT_NAME_CHANGED: (state, { name }) =>
+      EDITING({
         ...state,
         newIngredientName: name,
       }),
-    ADD_INGREDIENT: ({ state, transition }) =>
-      transition({
+    ADD_INGREDIENT: (state) =>
+      EDITING({
         ...state,
         dinner: {
           ...state.dinner,
@@ -147,8 +153,8 @@ const reducer = createReducer<DinnerReducer>({
         },
         newIngredientName: "",
       }),
-    REMOVE_INGREDIENT: ({ state, action: { index }, transition }) =>
-      transition({
+    REMOVE_INGREDIENT: (state, { index }) =>
+      EDITING({
         ...state,
         dinner: {
           ...state.dinner,
@@ -157,17 +163,13 @@ const reducer = createReducer<DinnerReducer>({
           ),
         },
       }),
-    NEW_PREPARATION_ITEM_DESCRIPTION_CHANGED: ({
-      state,
-      action: { description },
-      transition,
-    }) =>
-      transition({
+    NEW_PREPARATION_ITEM_DESCRIPTION_CHANGED: (state, { description }) =>
+      EDITING({
         ...state,
         newPreparationDescription: description,
       }),
-    ADD_PREPARATION_ITEM: ({ state, transition }) =>
-      transition({
+    ADD_PREPARATION_ITEM: (state) =>
+      EDITING({
         ...state,
         dinner: {
           ...state.dinner,
@@ -178,8 +180,8 @@ const reducer = createReducer<DinnerReducer>({
         },
         newPreparationDescription: "",
       }),
-    REMOVE_PREPARATION_ITEM: ({ state, action: { index }, transition }) =>
-      transition({
+    REMOVE_PREPARATION_ITEM: (state, { index }) =>
+      EDITING({
         ...state,
         dinner: {
           ...state.dinner,
@@ -188,12 +190,8 @@ const reducer = createReducer<DinnerReducer>({
           ),
         },
       }),
-    INSTRUCTION_CHANGED: ({
-      state,
-      action: { instruction, index },
-      transition,
-    }) =>
-      transition({
+    INSTRUCTION_CHANGED: (state, { instruction, index }) =>
+      EDITING({
         ...state,
         dinner: {
           ...state.dinner,
@@ -203,53 +201,38 @@ const reducer = createReducer<DinnerReducer>({
           ),
         },
       }),
-    ADD_INSTRUCTION: ({ state, transition }) => {
-      const dinner = {
-        ...state.dinner,
-        instructions: [...state.dinner.instructions, ""],
-      };
-
-      return transition({
+    ADD_INSTRUCTION: (state) =>
+      EDITING({
         ...state,
-        dinner,
-        validation: validateDinner(dinner),
-      });
-    },
-    REMOVE_INSTRUCTION: ({ state, action: { index }, transition }) => {
-      const dinner = {
-        ...state.dinner,
-        instructions: state.dinner.instructions.filter(
-          (_, itemIndex) => itemIndex !== index
-        ),
-      };
-
-      return transition({
+        dinner: {
+          ...state.dinner,
+          instructions: [...state.dinner.instructions, ""],
+        },
+      }),
+    REMOVE_INSTRUCTION: (state, { index }) =>
+      EDITING({
         ...state,
-        dinner,
-        validation: validateDinner(dinner),
-      });
-    },
-    ADD_IMAGE_SOURCE: ({ state, action: { src }, transition }) =>
-      transition({
+        dinner: {
+          ...state.dinner,
+          instructions: state.dinner.instructions.filter(
+            (_, itemIndex) => itemIndex !== index
+          ),
+        },
+      }),
+    ADD_IMAGE_SOURCE: (state, { src }) =>
+      EDITING({
         ...state,
         imageSrc: src,
       }),
-    SAVE: ({ state, transition, noop }) =>
+    SAVE: (state) =>
       state.validation.state === "VALID"
-        ? transition(
-            state,
-            {
-              cmd: "$CALL_ENVIRONMENT",
-              target: "storage.storeDinner",
-              params: [state.dinner, state.imageSrc],
-            },
-            {
-              cmd: "EXIT",
-            }
-          )
-        : noop(),
+        ? EDITING(state, commands.EXIT())
+        : state,
   },
-});
+};
+
+const reducer = (state: State, action: Action) =>
+  transition(state, action, transitions);
 
 export const useEditDinner = ({
   dinner,
@@ -262,31 +245,25 @@ export const useEditDinner = ({
 }) => {
   const { storage } = useEnvironment();
   const dinnerReducer = useReducer(
-    "Dinner",
     reducer,
-    initialState || {
-      state: "EDITING",
-      dinner: dinner || {
-        id: storage.createDinnerId(),
-        name: "",
-        description: "",
-        instructions: [""],
-        groceries: [],
-        preparationCheckList: [],
-        modified: Date.now(),
-        created: Date.now(),
-      },
-      newIngredientName: "",
-      newPreparationDescription: "",
-      validation: dinner
-        ? {
-            state: "VALID",
-          }
-        : {
-            state: "INVALID",
-          },
-    }
+    initialState ||
+      EDITING({
+        dinner: dinner || {
+          id: storage.createDinnerId(),
+          name: "",
+          description: "",
+          instructions: [""],
+          groceries: [],
+          preparationCheckList: [],
+          modified: Date.now(),
+          created: Date.now(),
+        },
+        newIngredientName: "",
+        newPreparationDescription: "",
+      })
   );
+
+  useDevtools("Dinner", dinnerReducer);
 
   const [state, dispatch] = dinnerReducer;
 
@@ -296,9 +273,7 @@ export const useEditDinner = ({
 
   const [imageState] = imageReducer;
 
-  useCommandEffect(state, "EXIT", () => {
-    onExit();
-  });
+  useCommandEffect(state, "EXIT", onExit);
 
   useStateEffect(imageState, "CAPTURED", ({ src }) => {
     dispatch({

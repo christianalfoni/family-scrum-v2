@@ -5,7 +5,7 @@ import { Storage, StorageEvent } from "./storage";
 import { Version, VersionEvent } from "./version";
 import { Visibility, VisibilityEvent } from "./visibility";
 
-type EnvironmentEvent =
+export type EnvironmentEvent =
   | AuthenticationEvent
   | StorageEvent
   | VersionEvent
@@ -23,17 +23,8 @@ export type Environment = {
 const {
   EnvironmentProvider,
   createEnvironment,
-  createReducer,
+
   useEnvironment,
-  useReducer,
-  createReducerHandlers,
 } = defineEnvironment<Environment, EnvironmentEvent>();
 
-export {
-  EnvironmentProvider,
-  createEnvironment,
-  createReducer,
-  useEnvironment,
-  useReducer,
-  createReducerHandlers,
-};
+export { EnvironmentProvider, createEnvironment, useEnvironment };
