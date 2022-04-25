@@ -4,23 +4,11 @@ import { ChevronLeftIcon } from "@heroicons/react/outline";
 
 import { TodoItem } from "../TodoItem";
 import * as selectors from "../../selectors";
-import {
-  DashboardAction,
-  DashboardState,
-  viewStates,
-} from "../Dashboard/useDashboard";
-import { PickState } from "react-states";
+import { useLoadedDashboard, viewStates } from "../Dashboard/useDashboard";
 
-export const CheckLists = ({
-  dashboard,
-}: {
-  dashboard: [
-    PickState<DashboardState, "LOADED">,
-    React.Dispatch<DashboardAction>
-  ];
-}) => {
+export const CheckLists = () => {
   const t = useTranslations("CheckListsView");
-  const [{ user, data, POP_VIEW, PUSH_VIEW }, dispatch] = dashboard;
+  const [{ user, data, POP_VIEW, PUSH_VIEW }, dispatch] = useLoadedDashboard();
   const checkLists = selectors.checkLists(data.todos);
 
   return (

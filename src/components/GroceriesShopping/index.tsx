@@ -12,16 +12,12 @@ import { match, PickState } from "react-states";
 import { mp4 } from "../../video";
 import { useGroceriesShopping } from "./useGroceriesShopping";
 import * as selectors from "../../selectors";
-import { DashboardAction, DashboardState } from "../Dashboard/useDashboard";
+import { useLoadedDashboard } from "../Dashboard";
 
-export const GroceriesShopping = ({
-  dashboard,
-}: {
-  dashboard: [PickState<DashboardState, "LOADED">, Dispatch<DashboardAction>];
-}) => {
+export const GroceriesShopping = () => {
   const t = useTranslations("GroceriesShoppingView");
   const [now] = React.useState(Date.now());
-  const [{ data, POP_VIEW }, dispatchDashboard] = dashboard;
+  const [{ data, POP_VIEW }, dispatchDashboard] = useLoadedDashboard();
   const [groceriesShopping, dispatch] = useGroceriesShopping({});
   const { sleep, GROCERY_INPUT_CHANGED, SHOP_GROCERY, TOGGLE_NO_SLEEP } =
     groceriesShopping;

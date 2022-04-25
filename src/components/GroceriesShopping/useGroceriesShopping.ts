@@ -57,17 +57,20 @@ const sleepStates = {
 
 type SleepState = ReturnTypes<typeof sleepStates, IState>;
 
+type BaseState = {
+  sleep: SleepState;
+  input: string;
+};
+
 const states = {
   FILTERED: (
-    params: {
-      input: string;
-      sleep: SleepState;
-    },
+    { sleep, input }: Pick<BaseState, "sleep" | "input">,
     command?: PickCommand<Command, "ADD_GROCERY" | "SHOP_GROCERY">
   ) => ({
     state: "FILTERED" as const,
+    input,
+    sleep,
     [$COMMAND]: command,
-    ...params,
     ...pick(
       actions,
       "SHOP_GROCERY",
@@ -77,14 +80,12 @@ const states = {
     ),
   }),
   UNFILTERED: (
-    params: {
-      sleep: SleepState;
-    },
+    { sleep }: Pick<BaseState, "sleep">,
     command?: PickCommand<Command, "SHOP_GROCERY">
   ) => ({
     state: "UNFILTERED" as const,
+    sleep,
     [$COMMAND]: command,
-    ...params,
     ...pick(
       actions,
       "GROCERY_INPUT_CHANGED",

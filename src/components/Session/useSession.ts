@@ -4,6 +4,7 @@ import {
   IAction,
   ICommand,
   IState,
+  pick,
   PickCommand,
   ReturnTypes,
   transition,
@@ -46,9 +47,17 @@ const versionStates = {
     state: "RECENT" as const,
     version,
   }),
-  EXPIRED: (params: { version: string; newVersion: string }) => ({
+  EXPIRED: ({
+    newVersion,
+    version,
+  }: {
+    version: string;
+    newVersion: string;
+  }) => ({
     state: "EXPIRED" as const,
-    ...params,
+    version,
+    newVersion,
+    ...pick(actions, "UPDATE"),
   }),
 };
 
@@ -71,15 +80,17 @@ const states = {
     state: "JOINING_FAMILY" as const,
   }),
   SIGNED_IN: (
-    params: { user: User; version: VersionState },
+    { user, version }: { user: User; version: VersionState },
     command?: PickCommand<Command, "CHECK_VERSION">
   ) => ({
     state: "SIGNED_IN" as const,
-    ...params,
+    user,
+    version,
     [$COMMAND]: command,
   }),
   SIGNED_OUT: () => ({
     state: "SIGNED_OUT" as const,
+    ...pick(actions, "SIGN_IN"),
   }),
   ERROR: (error: string) => ({
     state: "ERROR" as const,
@@ -91,6 +102,10 @@ const states = {
 };
 
 export type State = ReturnTypes<typeof states, IState>;
+
+export type SessionState = State;
+
+export type SessionAction = Action;
 
 export const {
   CREATING_FAMILY,

@@ -4,30 +4,22 @@ import {
   HeartIcon,
 } from "@heroicons/react/outline";
 import { useTranslations } from "next-intl";
-import { PickState } from "react-states";
-import {
-  DashboardAction,
-  DashboardState,
-  viewStates,
-} from "../Dashboard/useDashboard";
+
+import { viewStates } from "../Dashboard/useDashboard";
 import { usePlanNextWeek } from "./usePlanNextWeek";
 import { PlanNextWeekDinners } from "./PlanNextWeekDinners";
 import { PlanNextWeekTodos } from "./PlanNextWeekTodos";
-import { Dispatch } from "react";
+import { useLoadedDashboard } from "../Dashboard";
 
-export const PlanNextWeek = ({
-  view,
-  dashboard,
-}: {
-  view: "DINNERS" | "TODOS";
-  dashboard: [PickState<DashboardState, "LOADED">, Dispatch<DashboardAction>];
-}) => {
-  const [{ user, data, POP_VIEW, REPLACE_VIEW, PUSH_VIEW }, dispatchDashboard] =
-    dashboard;
-  const [, dispatch] = usePlanNextWeek({
-    user,
-    weekId: data.nextWeek.id,
-  });
+export const PlanNextWeek = ({ view }: { view: "DINNERS" | "TODOS" }) => {
+  const [{ user, data, POP_VIEW, REPLACE_VIEW }, dispatchDashboard] =
+    useLoadedDashboard();
+  const [{ CHANGE_WEEKDAY_DINNER, TOGGLE_WEEKDAY }, dispatch] = usePlanNextWeek(
+    {
+      user,
+      weekId: data.nextWeek.id,
+    }
+  );
   const t = useTranslations("PlanWeekView");
 
   return (
@@ -86,22 +78,15 @@ export const PlanNextWeek = ({
         <PlanNextWeekDinners
           dinners={data.dinners}
           weekDinners={data.nextWeek.dinners}
-          onChangeDinner={(weekdayIndex, dinnerId) => {
-            dispatch({
-              type: "CHANGE_WEEKDAY_DINNER",
-              dinnerId,
-              weekdayIndex,
-            });
-          }}
+          onChangeDinner={(weekdayIndex, dinnerId) =>
+            dispatch(CHANGE_WEEKDAY_DINNER({ dinnerId, weekdayIndex }))
+          }
         />
       ) : (
         <PlanNextWeekTodos
-          onTodoClick={(id) =>
-            dispatchDashboard(PUSH_VIEW(viewStates.EDIT_TODO(id)))
-          }
-          dashboard={dashboard}
-          planNextWeekDispatcher={dispatch}
-          user={user}
+          toggleWeekday={(params) => {
+            dispatch(TOGGLE_WEEKDAY(params));
+          }}
         />
       )}
     </div>

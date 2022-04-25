@@ -8,20 +8,16 @@ import {
   ExclamationCircleIcon,
   LockClosedIcon,
 } from "@heroicons/react/outline";
-import { SessionReducer } from "./useSession";
+import { useSession } from ".";
 
-export const SignInModal = ({
-  session: [session, dispatch],
-}: {
-  session: SessionReducer;
-}) => {
+export const SignInModal = () => {
   const t = useTranslations("SignInModal");
+  const [session, dispatch] = useSession();
 
   const open = match(session, {
     ERROR: () => true,
     SIGNED_OUT: () => true,
     NO_FAMILY: () => true,
-
     SIGNED_IN: () => false,
     VERIFYING_AUTHENTICATION: () => false,
     SIGNING_IN: () => false,
@@ -99,7 +95,7 @@ export const SignInModal = ({
                     </div>
                   </div>
                 ),
-                SIGNED_OUT: () => (
+                SIGNED_OUT: ({ SIGN_IN }) => (
                   <>
                     <div>
                       <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
@@ -126,7 +122,7 @@ export const SignInModal = ({
                       <button
                         type="button"
                         className="inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:text-sm"
-                        onClick={() => dispatch({ type: "SIGN_IN" })}
+                        onClick={() => dispatch(SIGN_IN())}
                       >
                         {t("loginWithGoogle")}
                       </button>

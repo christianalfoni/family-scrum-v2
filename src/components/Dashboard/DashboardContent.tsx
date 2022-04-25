@@ -18,7 +18,8 @@ import * as selectors from "../../selectors";
 import { DinnerDTO } from "../../environment-interface/storage";
 import { useEnvironment } from "../../environment-interface";
 import { useImage } from "../../useImage";
-import { DashboardAction, DashboardState, viewStates } from "./useDashboard";
+import { viewStates } from "./useDashboard";
+import { useLoadedDashboard } from ".";
 
 SwiperCore.use([Controller]);
 
@@ -184,11 +185,7 @@ export const DashboardSkeleton = () => {
   );
 };
 
-export const DashboardContent = ({
-  dashboard,
-}: {
-  dashboard: [PickState<DashboardState, "LOADED">, Dispatch<DashboardAction>];
-}) => {
+export const DashboardContent = () => {
   const t = useTranslations("DashboardView");
   const tCommon = useTranslations("common");
   const intl = useIntl();
@@ -198,7 +195,7 @@ export const DashboardContent = ({
       PUSH_VIEW,
     },
     dispatch,
-  ] = dashboard;
+  ] = useLoadedDashboard();
   const currentDayIndex = getDayIndex();
   const currentWeekDate = getFirstDateOfCurrentWeek();
   const [slideIndex, setSlideIndex] = useState(currentDayIndex);

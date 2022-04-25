@@ -65,6 +65,12 @@ export const viewStates = {
 
 export type ViewState = ReturnTypes<typeof viewStates, IState>;
 
+type BaseState = {
+  user: FamilyUserDTO;
+  data: Data;
+  viewStack: ViewState[];
+};
+
 const states = {
   AWAITING_AUTHENTICATION: () => ({
     state: "AWAITING_AUTHENTICATION" as const,
@@ -72,22 +78,24 @@ const states = {
   REQUIRING_AUTHENTICATION: () => ({
     state: "REQUIRING_AUTHENTICATION" as const,
   }),
-  LOADING: (params: { user: FamilyUserDTO; data: Partial<Data> }) => ({
+  LOADING: ({
+    user,
+    data,
+  }: Pick<BaseState, "user"> & { data: Partial<Data> }) => ({
     state: "LOADING" as const,
-    ...params,
+    user,
+    data,
   }),
-  LOADED: (params: {
-    user: FamilyUserDTO;
-    data: Data;
-    viewStack: ViewState[];
-  }) => ({
+  LOADED: ({ user, data, viewStack }: BaseState) => ({
     state: "LOADED" as const,
-    ...params,
+    user,
+    data,
+    viewStack,
     ...actions,
   }),
-  ERROR: (params: { error: string }) => ({
+  ERROR: ({ error }: { error: string }) => ({
     state: "ERROR" as const,
-    ...params,
+    error,
   }),
 };
 

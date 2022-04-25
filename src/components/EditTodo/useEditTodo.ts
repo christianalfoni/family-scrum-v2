@@ -5,6 +5,7 @@ import {
   ICommand,
   IState,
   match,
+  pick,
   PickCommand,
   ReturnTypes,
   transition,
@@ -76,6 +77,7 @@ const dateStates = {
   ACTIVE: (date: number) => ({
     state: "ACTIVE" as const,
     date,
+    ...pick(actions, "DATE_CHANGED"),
   }),
 };
 
@@ -88,6 +90,7 @@ const timeStates = {
   ACTIVE: (time: string) => ({
     state: "ACTIVE" as const,
     time,
+    ...pick(actions, "TIME_CHANGED"),
   }),
 };
 
@@ -100,6 +103,7 @@ const checklistStates = {
   ACTIVE: (items: Array<{ title: string; id?: string }>) => ({
     state: "ACTIVE" as const,
     items,
+    ...pick(actions, "CHECKLIST_ITEM_ADDED", "CHECKLIST_ITEM_REMOVED"),
   }),
 };
 
@@ -108,6 +112,7 @@ type ChecklistState = ReturnTypes<typeof checklistStates, IState>;
 const validationStates = {
   VALID: () => ({
     state: "VALID" as const,
+    ...pick(actions, "ADD_TODO"),
   }),
   INVALID: () => ({
     state: "INVALID" as const,
@@ -116,26 +121,37 @@ const validationStates = {
 
 type ValidationState = ReturnTypes<typeof validationStates, IState>;
 
+type BaseState = {
+  description: string;
+  date: DateState;
+  time: TimeState;
+  checkList: ChecklistState;
+};
+
 const states = {
   EDITING: (
-    params: {
-      description: string;
-      date: DateState;
-      time: TimeState;
-      checkList: ChecklistState;
-    },
+    { checkList, date, description, time }: BaseState,
     command?: PickCommand<Command, "ADD_TODO">
   ) => {
-    const validation = params.description
+    const validation = description
       ? validationStates.VALID()
       : validationStates.INVALID();
 
     return {
       state: "EDITING" as const,
-      ...params,
+      description,
+      time,
+      date,
+      checkList,
       validation,
       [$COMMAND]: command && validation.state === "VALID" ? command : undefined,
-      ...actions,
+      ...pick(
+        actions,
+        "DESCRIPTION_CHANGED",
+        "TIME_TOGGLED",
+        "DATE_TOGGLED",
+        "CHECKLIST_TOGGLED"
+      ),
     };
   },
 };

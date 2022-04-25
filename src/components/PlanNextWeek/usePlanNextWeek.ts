@@ -58,11 +58,11 @@ type Command = ReturnTypes<typeof commands, ICommand>;
 
 const states = {
   PLANNING: (
-    params: { userId: string },
+    { userId }: { userId: string },
     command?: PickCommand<Command, "TOGGLE_WEEKDAY" | "CHANGE_WEEKDAY_DINNER">
   ) => ({
     state: "PLANNING" as const,
-    ...params,
+    userId,
     [$COMMAND]: command,
     ...actions,
   }),

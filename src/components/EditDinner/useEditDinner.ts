@@ -16,6 +16,19 @@ import { useEnvironment } from "../../environment-interface";
 import { DinnerDTO } from "../../environment-interface/storage";
 import { useImage } from "../../useImage";
 
+const validateDinner = ({
+  name,
+  description,
+  instructions,
+}: {
+  name: string;
+  description: string;
+  instructions: string[];
+}) =>
+  name.length && description.length && instructions.length
+    ? validationStates.VALID()
+    : validationStates.INVALID();
+
 const actions = {
   ADD_IMAGE_SOURCE: (src: string) => ({
     type: "ADD_IMAGE_SOURCE" as const,
@@ -90,36 +103,28 @@ type ValidationState = ReturnType<
   typeof validationStates.VALID | typeof validationStates.INVALID
 >;
 
+type BaseState = {
+  newIngredientName: string;
+  newPreparationDescription: string;
+  dinner: DinnerDTO;
+  imageSrc?: string;
+};
+
 const EDITING = (
-  params: {
-    newIngredientName: string;
-    newPreparationDescription: string;
-    dinner: DinnerDTO;
-    imageSrc?: string;
-  },
+  { dinner, newIngredientName, newPreparationDescription, imageSrc }: BaseState,
   command?: PickCommand<Command, "EXIT">
 ) => ({
   state: "EDITING" as const,
-  ...params,
-  validation: validateDinner(params.dinner),
+  dinner,
+  newIngredientName,
+  newPreparationDescription,
+  imageSrc,
+  validation: validateDinner(dinner),
   [$COMMAND]: command,
   ...actions,
 });
 
 type State = ReturnType<typeof EDITING>;
-
-const validateDinner = ({
-  name,
-  description,
-  instructions,
-}: {
-  name: string;
-  description: string;
-  instructions: string[];
-}) =>
-  name.length && description.length && instructions.length
-    ? validationStates.VALID()
-    : validationStates.INVALID();
 
 const transitions: TTransitions<State, Action> = {
   EDITING: {
@@ -235,11 +240,11 @@ const reducer = (state: State, action: Action) =>
   transition(state, action, transitions);
 
 export const useEditDinner = ({
-  dinner,
+  initialDinner,
   onExit,
   initialState,
 }: {
-  dinner?: DinnerDTO;
+  initialDinner?: DinnerDTO;
   initialState?: State;
   onExit: () => void;
 }) => {
@@ -248,7 +253,7 @@ export const useEditDinner = ({
     reducer,
     initialState ||
       EDITING({
-        dinner: dinner || {
+        dinner: initialDinner || {
           id: storage.createDinnerId(),
           name: "",
           description: "",
@@ -276,10 +281,7 @@ export const useEditDinner = ({
   useCommandEffect(state, "EXIT", onExit);
 
   useStateEffect(imageState, "CAPTURED", ({ src }) => {
-    dispatch({
-      type: "ADD_IMAGE_SOURCE",
-      src,
-    });
+    dispatch(state.ADD_IMAGE_SOURCE(src));
   });
 
   return {

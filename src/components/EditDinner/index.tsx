@@ -7,29 +7,52 @@ import {
   PlusIcon,
   TrashIcon,
 } from "@heroicons/react/outline";
-import { match } from "react-states";
+import { match, PickState } from "react-states";
 import { DinnerDTO } from "../../environment-interface/storage";
 import { useEditDinner } from "./useEditDinner";
+import { ImageState } from "../../useImage";
 
 export const EditDinner = ({
   onBackClick,
-  dinner,
+  initialDinner,
 }: {
-  dinner?: DinnerDTO;
+  initialDinner?: DinnerDTO;
   onBackClick: () => void;
 }) => {
   const {
     dinner: [state, dispatch],
     image: [imageState, imageDispatch],
   } = useEditDinner({
-    dinner,
+    initialDinner,
     onExit: onBackClick,
   });
+
+  const {
+    dinner,
+    NAME_CHANGED,
+    DESCRIPTION_CHANGED,
+    NEW_INGREDIENT_NAME_CHANGED,
+    ADD_INGREDIENT,
+    ADD_INSTRUCTION,
+    ADD_PREPARATION_ITEM,
+    INSTRUCTION_CHANGED,
+    NEW_PREPARATION_ITEM_DESCRIPTION_CHANGED,
+    REMOVE_INGREDIENT,
+    REMOVE_INSTRUCTION,
+    REMOVE_PREPARATION_ITEM,
+    SAVE,
+    newIngredientName,
+    newPreparationDescription,
+    validation,
+  } = state;
 
   const imageWrapperClassName =
     "flex h-40 bg-gray-500 items-center justify-center w-full text-gray-300";
 
-  const renderImageFromSource = ({ src }: { src: string }) => (
+  const renderImageFromSource = ({
+    src,
+    START_CAPTURE,
+  }: PickState<ImageState, "LOADED" | "CAPTURED">) => (
     <div
       className={imageWrapperClassName}
       style={{
@@ -37,12 +60,7 @@ export const EditDinner = ({
         backgroundSize: "cover",
         backgroundPosition: "center center",
       }}
-      onClick={() => {
-        imageDispatch({
-          type: "START_CAPTURE",
-          videoId: state.dinner.id,
-        });
-      }}
+      onClick={() => imageDispatch(START_CAPTURE(dinner.id))}
     >
       <CameraIcon className="w-6 h-6 text-white" />
     </div>
@@ -71,27 +89,17 @@ export const EditDinner = ({
           ),
           LOADED: renderImageFromSource,
           CAPTURED: renderImageFromSource,
-          CAPTURING: () => (
+          CAPTURING: ({ CAPTURE }) => (
             <video
-              id={state.dinner.id}
+              id={dinner.id}
               className={imageWrapperClassName}
-              onClick={() => {
-                imageDispatch({
-                  type: "CAPTURE",
-                  videoId: state.dinner.id,
-                });
-              }}
+              onClick={() => imageDispatch(CAPTURE(dinner.id))}
             ></video>
           ),
-          NOT_FOUND: () => (
+          NOT_FOUND: ({ START_CAPTURE }) => (
             <div
               className={imageWrapperClassName}
-              onClick={() => {
-                imageDispatch({
-                  type: "START_CAPTURE",
-                  videoId: state.dinner.id,
-                });
-              }}
+              onClick={() => imageDispatch(START_CAPTURE(dinner.id))}
             >
               <CameraIcon className="w-6 h-6 text-white" />
             </div>
@@ -109,13 +117,8 @@ export const EditDinner = ({
             <input
               type="text"
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-sky-500 focus:border-sky-500 text-sm"
-              value={state.dinner.name}
-              onChange={(event) => {
-                dispatch({
-                  type: "NAME_CHANGED",
-                  name: event.target.value,
-                });
-              }}
+              value={dinner.name}
+              onChange={(event) => dispatch(NAME_CHANGED(event.target.value))}
             />
           </div>
           <div className="mt-4">
@@ -126,13 +129,10 @@ export const EditDinner = ({
               <textarea
                 rows={3}
                 className="shadow-sm focus:ring-sky-500 focus:border-sky-500 mt-1 block w-full sm:text-sm border border-gray-300 rounded-md"
-                value={state.dinner.description}
-                onChange={(event) => {
-                  dispatch({
-                    type: "DESCRIPTION_CHANGED",
-                    description: event.target.value,
-                  });
-                }}
+                value={dinner.description}
+                onChange={(event) =>
+                  dispatch(DESCRIPTION_CHANGED(event.target.value))
+                }
               />
             </div>
           </div>
@@ -147,13 +147,10 @@ export const EditDinner = ({
                 <div className="flex-grow">
                   <input
                     type="text"
-                    value={state.newIngredientName}
-                    onChange={(event) => {
-                      dispatch({
-                        type: "NEW_INGREDIENT_NAME_CHANGED",
-                        name: event.target.value,
-                      });
-                    }}
+                    value={newIngredientName}
+                    onChange={(event) =>
+                      dispatch(NEW_INGREDIENT_NAME_CHANGED(event.target.value))
+                    }
                     className="block w-full shadow-sm focus:ring-light-blue-500 focus:border-light-blue-500 sm:text-sm border-gray-300 rounded-md"
                     placeholder={`${"name"}...`}
                     aria-describedby="add_team_members_helper"
@@ -163,11 +160,7 @@ export const EditDinner = ({
                   <button
                     type="button"
                     className="bg-white inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-light-blue-500"
-                    onClick={() => {
-                      dispatch({
-                        type: "ADD_INGREDIENT",
-                      });
-                    }}
+                    onClick={() => dispatch(ADD_INGREDIENT())}
                   >
                     <PlusIcon
                       className="-ml-2 mr-1 h-5 w-5 text-gray-400"
@@ -177,32 +170,27 @@ export const EditDinner = ({
                   </button>
                 </span>
               </div>
-              {state.dinner.groceries.length ? (
+              {dinner.groceries.length ? (
                 <ul className="my-2">
-                  {match(state, {
-                    EDITING: ({ dinner }) =>
-                      dinner.groceries.map((grocery, index) => (
-                        <li
-                          key={index}
-                          className="flex items-center text-lg py-1 px-1"
-                        >
-                          <input
-                            type="checkbox"
-                            disabled
-                            className="rounded text-green-500 mr-2 opacity-50"
-                          />
-                          <label className="w-full">{grocery}</label>
-                          <span
-                            className="p-2 text-gray-300"
-                            onClick={() => {
-                              dispatch({ type: "REMOVE_INGREDIENT", index });
-                            }}
-                          >
-                            <TrashIcon className="w-6 h-6" />
-                          </span>
-                        </li>
-                      )),
-                  })}
+                  {dinner.groceries.map((grocery, index) => (
+                    <li
+                      key={index}
+                      className="flex items-center text-lg py-1 px-1"
+                    >
+                      <input
+                        type="checkbox"
+                        disabled
+                        className="rounded text-green-500 mr-2 opacity-50"
+                      />
+                      <label className="w-full">{grocery}</label>
+                      <span
+                        className="p-2 text-gray-300"
+                        onClick={() => dispatch(REMOVE_INGREDIENT(index))}
+                      >
+                        <TrashIcon className="w-6 h-6" />
+                      </span>
+                    </li>
+                  ))}
                 </ul>
               ) : null}
             </div>
@@ -217,13 +205,14 @@ export const EditDinner = ({
                 <div className="flex-grow">
                   <input
                     type="text"
-                    value={state.newPreparationDescription}
-                    onChange={(event) => {
-                      dispatch({
-                        type: "NEW_PREPARATION_ITEM_DESCRIPTION_CHANGED",
-                        description: event.target.value,
-                      });
-                    }}
+                    value={newPreparationDescription}
+                    onChange={(event) =>
+                      dispatch(
+                        NEW_PREPARATION_ITEM_DESCRIPTION_CHANGED(
+                          event.target.value
+                        )
+                      )
+                    }
                     className="block w-full shadow-sm focus:ring-light-blue-500 focus:border-light-blue-500 sm:text-sm border-gray-300 rounded-md"
                     placeholder={`${"title"}...`}
                     aria-describedby="add_team_members_helper"
@@ -234,9 +223,7 @@ export const EditDinner = ({
                     type="button"
                     className="bg-white inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-light-blue-500"
                     onClick={() => {
-                      dispatch({
-                        type: "ADD_PREPARATION_ITEM",
-                      });
+                      dispatch(ADD_PREPARATION_ITEM());
                     }}
                   >
                     <PlusIcon
@@ -247,9 +234,9 @@ export const EditDinner = ({
                   </button>
                 </span>
               </div>
-              {state.dinner.preparationCheckList.length ? (
+              {dinner.preparationCheckList.length ? (
                 <ul className="my-2">
-                  {state.dinner.preparationCheckList.map((title, index) => (
+                  {dinner.preparationCheckList.map((title, index) => (
                     <li
                       key={index}
                       className="flex items-center text-lg py-1 px-1"
@@ -262,12 +249,7 @@ export const EditDinner = ({
                       <label className="w-full">{title}</label>
                       <span
                         className="p-2 text-gray-300"
-                        onClick={() => {
-                          dispatch({
-                            type: "REMOVE_PREPARATION_ITEM",
-                            index,
-                          });
-                        }}
+                        onClick={() => dispatch(REMOVE_PREPARATION_ITEM(index))}
                       >
                         <TrashIcon className="w-6 h-6" />
                       </span>
@@ -282,7 +264,7 @@ export const EditDinner = ({
               Instructions
             </label>
             <div className="flex flex-col mt-1">
-              {state.dinner.instructions.map((instruction, index) => (
+              {dinner.instructions.map((instruction, index) => (
                 <div className="flex items-center" key={index}>
                   <span className="font-bold mr-2">{index + 1}.</span>
                   <div className="relative flex-grow">
@@ -290,24 +272,20 @@ export const EditDinner = ({
                       rows={3}
                       className="shadow-sm focus:ring-sky-500 focus:border-sky-500 mt-1 block w-full sm:text-sm border border-gray-300 rounded-md"
                       value={instruction}
-                      onChange={(event) => {
-                        dispatch({
-                          type: "INSTRUCTION_CHANGED",
-                          instruction: event.target.value,
-                          index,
-                        });
-                      }}
+                      onChange={(event) =>
+                        dispatch(
+                          INSTRUCTION_CHANGED({
+                            instruction: event.target.value,
+                            index,
+                          })
+                        )
+                      }
                     />
                     {index > 0 ? (
                       <button
                         type="button"
                         className="absolute bottom-2 right-2 bg-white inline-flex items-center p-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-light-blue-500"
-                        onClick={() => {
-                          dispatch({
-                            type: "REMOVE_INSTRUCTION",
-                            index,
-                          });
-                        }}
+                        onClick={() => dispatch(REMOVE_INSTRUCTION(index))}
                       >
                         <TrashIcon
                           className="h-5 w-5 text-gray-400"
@@ -320,11 +298,7 @@ export const EditDinner = ({
               ))}
               <div
                 className="flex items-center justify-center p-4 text-gray-500"
-                onClick={() => {
-                  dispatch({
-                    type: "ADD_INSTRUCTION",
-                  });
-                }}
+                onClick={() => dispatch(ADD_INSTRUCTION())}
               >
                 <PlusIcon className="w-4 h-4" /> Add instruction step
               </div>
@@ -333,16 +307,16 @@ export const EditDinner = ({
           <div className="mt-4 flex justify-center">
             <button
               type="submit"
-              disabled={match(state.validation, {
-                INVALID: () => true,
-                VALID: () => false,
-              })}
-              onClick={() => {
-                dispatch({
-                  type: "SAVE",
-                });
-              }}
               className="disabled:opacity-50 mx-autoinline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+              {...match(validation, {
+                INVALID: () => ({
+                  disabled: true,
+                }),
+                VALID: () => ({
+                  disabled: false,
+                  onClick: () => dispatch(SAVE()),
+                }),
+              })}
             >
               {"save"}
             </button>

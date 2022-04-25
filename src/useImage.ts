@@ -1,126 +1,130 @@
-import { StatesReducer, useCommandEffect, useStateEffect } from "react-states";
+import { useEffect, useReducer } from "react";
 import {
-  createReducer,
-  createReducerHandlers,
-  useEnvironment,
-  useReducer,
-} from "./environment-interface";
+  $COMMAND,
+  IAction,
+  ICommand,
+  IState,
+  pick,
+  PickCommand,
+  PickState,
+  ReturnTypes,
+  transition,
+  TTransitions,
+  useCommandEffect,
+  useDevtools,
+  useStateEffect,
+} from "react-states";
+import { EnvironmentEvent, useEnvironment } from "./environment-interface";
+
+const actions = {
+  START_CAPTURE: (videoId: string) => ({
+    type: "START_CAPTURE" as const,
+    videoId,
+  }),
+  CAPTURE: (videoId: string) => ({
+    type: "CAPTURE" as const,
+    videoId,
+  }),
+};
+
+type Action = ReturnTypes<typeof actions, IAction>;
+
+const commands = {
+  CAPTURE: (videoId: string) => ({
+    cmd: "CAPTURE" as const,
+    videoId,
+  }),
+};
+
+type Command = ReturnTypes<typeof commands, ICommand>;
 
 type BaseState = {
   ref: string;
+  src: string;
+  videoId: string;
 };
 
-type State = BaseState &
-  (
-    | {
-        state: "LOADING";
-      }
-    | {
-        state: "LOADED";
-        src: string;
-      }
-    | {
-        state: "CAPTURED";
-        src: string;
-      }
-    | {
-        state: "NOT_FOUND";
-      }
-    | {
-        state: "CAPTURING";
-        videoId: string;
-      }
-  );
+const states = {
+  LOADING: ({ ref }: Pick<BaseState, "ref">) => ({
+    state: "LOADING" as const,
+    ref,
+  }),
+  LOADED: ({ ref, src }: Pick<BaseState, "ref" | "src">) => ({
+    state: "LOADED" as const,
+    ref,
+    src,
+    ...pick(actions, "START_CAPTURE"),
+  }),
+  CAPTURED: ({ ref, src }: Pick<BaseState, "ref" | "src">) => ({
+    state: "CAPTURED" as const,
+    ref,
+    src,
+    ...pick(actions, "START_CAPTURE"),
+  }),
+  NOT_FOUND: ({ ref }: Pick<BaseState, "ref">) => ({
+    state: "NOT_FOUND" as const,
+    ref,
+    ...pick(actions, "START_CAPTURE"),
+  }),
+  CAPTURING: (
+    { ref, videoId }: Pick<BaseState, "ref" | "videoId">,
+    command?: PickCommand<Command, "CAPTURE">
+  ) => ({
+    state: "CAPTURING" as const,
+    ref,
+    videoId,
+    [$COMMAND]: command,
+    ...pick(actions, "CAPTURE"),
+  }),
+};
 
-type Action =
-  | {
-      type: "START_CAPTURE";
-      videoId: string;
-    }
-  | {
-      type: "CAPTURE";
-      videoId: string;
-    };
+type State = ReturnTypes<typeof states, IState>;
 
-type ImageReducer = StatesReducer<State, Action>;
+export const { CAPTURED, CAPTURING, LOADED, LOADING, NOT_FOUND } = states;
 
-const captureHandler = createReducerHandlers<
-  ImageReducer,
-  "LOADED" | "NOT_FOUND" | "CAPTURED"
->({
-  START_CAPTURE: ({ state, action: { videoId }, transition }) =>
-    transition(
-      {
-        ...state,
-        state: "CAPTURING",
-        videoId,
-      },
-      {
-        cmd: "$CALL_ENVIRONMENT",
-        target: "capture.startCamera",
-        params: [videoId],
-      }
-    ),
-});
+const START_CAPTURE = (
+  state: PickState<State, "LOADED" | "NOT_FOUND" | "CAPTURED">,
+  { videoId }: { videoId: string }
+) =>
+  CAPTURING({
+    ref: state.ref,
+    videoId,
+  });
 
-const reducer = createReducer<ImageReducer>({
+const transitions: TTransitions<State, Action | EnvironmentEvent> = {
   LOADING: {
-    "STORAGE:FETCH_IMAGE_SUCCESS": ({
-      state,
-      action: { ref, src },
-      transition,
-      noop,
-    }) =>
+    "STORAGE:FETCH_IMAGE_SUCCESS": (state, { ref, src }) =>
       state.ref === ref
-        ? transition({
-            ...state,
-            state: "LOADED",
+        ? LOADED({
+            ref,
             src,
           })
-        : noop(),
-    "STORAGE:FETCH_IMAGE_ERROR": ({
-      state,
-      action: { ref },
-      transition,
-      noop,
-    }) =>
-      state.ref === ref
-        ? transition({
-            ...state,
-            state: "NOT_FOUND",
-          })
-        : noop(),
+        : state,
+    "STORAGE:FETCH_IMAGE_ERROR": (state, { ref }) =>
+      state.ref === ref ? NOT_FOUND({ ref }) : state,
   },
   LOADED: {
-    ...captureHandler,
+    START_CAPTURE,
   },
   NOT_FOUND: {
-    ...captureHandler,
+    START_CAPTURE,
   },
   CAPTURED: {
-    ...captureHandler,
+    START_CAPTURE,
   },
   CAPTURING: {
-    CAPTURE: ({ state, action: { videoId }, transition }) =>
-      transition(
-        {
-          ...state,
-          videoId,
-        },
-        {
-          cmd: "$CALL_ENVIRONMENT",
-          target: "capture.capture",
-          params: [videoId, 100, 100],
-        }
-      ),
-    "CAPTURE:CAPTURED": ({ state, action: { src }, transition }) =>
-      transition({
-        ...state,
-        state: "CAPTURED",
-        src,
-      }),
+    CAPTURE: ({ ref }, { videoId }) =>
+      CAPTURING({ ref, videoId }, commands.CAPTURE(videoId)),
+    "CAPTURE:CAPTURED": ({ ref }, { src }) => CAPTURED({ ref, src }),
   },
-});
+};
+
+export type ImageState = State;
+
+export type ImageAction = Action;
+
+const reducer = (state: State, action: Action) =>
+  transition(state, action, transitions);
 
 export const useImage = ({
   ref,
@@ -129,19 +133,31 @@ export const useImage = ({
   ref: string;
   initialState?: State;
 }) => {
-  const { storage } = useEnvironment();
+  const { storage, capture, emitter } = useEnvironment();
   const captureReducer = useReducer(
-    "Image",
     reducer,
     initialState || {
       state: "LOADING",
       ref,
     }
   );
-  const [state] = captureReducer;
+
+  useDevtools("Image", captureReducer);
+
+  const [state, dispatch] = captureReducer;
+
+  useEffect(() => emitter.subscribe(dispatch), []);
 
   useStateEffect(state, "LOADING", () => {
     storage.fetchImage(ref);
+  });
+
+  useStateEffect(state, "CAPTURING", ({ videoId }) => {
+    capture.startCamera(videoId);
+  });
+
+  useCommandEffect(state, "CAPTURE", ({ videoId }) => {
+    capture.capture(videoId, 100, 100);
   });
 
   return captureReducer;
