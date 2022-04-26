@@ -1,7 +1,7 @@
-import { Emit } from "react-states";
+import { TEmit } from "react-states";
 import { Capture, CaptureEvent } from "../../environment-interface/capture";
 
-export const createCapture = (emit: Emit<CaptureEvent>): Capture => {
+export const createCapture = (emit: TEmit<CaptureEvent>): Capture => {
   let currentStream: MediaStream;
 
   return {

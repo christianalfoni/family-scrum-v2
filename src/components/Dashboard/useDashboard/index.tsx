@@ -12,7 +12,13 @@ import {
   useEnvironment,
 } from "../../../environment-interface";
 import { useSession } from "../../Session";
-import { createContext, Dispatch, useContext, useReducer } from "react";
+import {
+  createContext,
+  Dispatch,
+  useContext,
+  useEffect,
+  useReducer,
+} from "react";
 import {
   Action,
   ERROR,
@@ -104,7 +110,7 @@ export type Props = {
 };
 
 export const useDashboard = ({ initialState }: Props) => {
-  const { storage } = useEnvironment();
+  const { storage, emitter } = useEnvironment();
   const [session] = useSession();
 
   initialState =
@@ -125,7 +131,9 @@ export const useDashboard = ({ initialState }: Props) => {
 
   useDevtools("Dashboard", dashboardReducer);
 
-  const [state] = dashboardReducer;
+  const [state, dispatch] = dashboardReducer;
+
+  useEffect(() => emitter.subscribe(dispatch));
 
   useStateEffect(state, "LOADING", ({ user }) => {
     storage.configureFamilyCollection(user.familyId);

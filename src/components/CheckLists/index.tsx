@@ -4,7 +4,8 @@ import { ChevronLeftIcon } from "@heroicons/react/outline";
 
 import { TodoItem } from "../TodoItem";
 import * as selectors from "../../selectors";
-import { useLoadedDashboard, viewStates } from "../Dashboard/useDashboard";
+import { viewStates } from "../Dashboard/useDashboard";
+import { useLoadedDashboard } from "../Dashboard";
 
 export const CheckLists = () => {
   const t = useTranslations("CheckListsView");

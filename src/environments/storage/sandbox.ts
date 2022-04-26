@@ -1,4 +1,4 @@
-import { Emit } from "react-states";
+import { TEmit } from "react-states";
 import {
   GroceryDTO,
   Storage,
@@ -19,7 +19,7 @@ import {
 import { randomWait } from "../utils";
 import { createCheckListItemsByTodoId } from "./utils";
 
-export const createStorage = (emit: Emit<StorageEvent>): Storage => {
+export const createStorage = (emit: TEmit<StorageEvent>): Storage => {
   const family: FamilyDTO = {
     id: "456",
     users: {

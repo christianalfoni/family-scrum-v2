@@ -67,10 +67,12 @@ const commands = {
 const addCheckListItemStates = {
   INACTIVE: () => ({
     state: "INACTIVE" as const,
+    ...pick(actions, "SHOW_ADD_CHECKLIST_ITEM"),
   }),
   ACTIVE: (newItemTitle: string) => ({
     state: "ACTIVE" as const,
     newItemTitle,
+    ...pick(actions, "CHANGE_NEW_CHECKLIST_ITEM_TITLE", "ADD_CHECKLIST_ITEM"),
   }),
 };
 
@@ -83,6 +85,7 @@ const checkListStates = {
   EXPANDED: (addCheckListItem: AddCheckListItemState) => ({
     state: "EXPANDED" as const,
     addCheckListItem,
+    ...pick(actions, "TOGGLE_CHECKLIST_ITEM", "DELETE_CHECKLIST_ITEM"),
   }),
 };
 
@@ -107,7 +110,7 @@ const states = {
     state: "TODO_WITH_CHECKLIST" as const,
     checkList,
     [$COMMAND]: command,
-    ...actions,
+    ...pick(actions, "TOGGLE_SHOW_CHECKLIST", "ARCHIVE_TODO"),
   }),
 };
 

@@ -1,4 +1,4 @@
-import { useReducer } from "react";
+import { useEffect, useReducer } from "react";
 import {
   $COMMAND,
   IAction,
@@ -164,7 +164,7 @@ const reducer = (state: State, action: Action) =>
   transition(state, action, transitions);
 
 export const useSession = ({ initialState }: { initialState?: State }) => {
-  const { authentication, version } = useEnvironment();
+  const { authentication, version, emitter } = useEnvironment();
   const sessionReducer = useReducer(
     reducer,
     initialState || VERIFYING_AUTHENTICATION()
@@ -172,7 +172,9 @@ export const useSession = ({ initialState }: { initialState?: State }) => {
 
   useDevtools("Session", sessionReducer);
 
-  const [state] = sessionReducer;
+  const [state, dispatch] = sessionReducer;
+
+  useEffect(() => emitter.subscribe(dispatch));
 
   useStateEffect(state, "SIGNING_IN", () => authentication.signIn());
 

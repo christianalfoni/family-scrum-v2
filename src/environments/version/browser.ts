@@ -1,10 +1,10 @@
 import { Version, VersionEvent } from "../../environment-interface/version";
 import gt from "semver/functions/gt";
-import { Emit } from "react-states";
+import { TEmit } from "react-states";
 
 const STORAGE_KEY = "family-scrum.version";
 
-export const createVersion = (emit: Emit<VersionEvent>): Version => ({
+export const createVersion = (emit: TEmit<VersionEvent>): Version => ({
   async checkVersion() {
     const response = await fetch("/api/version");
     const { version }: { version: string } = await response.json();
