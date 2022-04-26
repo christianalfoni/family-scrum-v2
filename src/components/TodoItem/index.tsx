@@ -116,15 +116,11 @@ export const TodoItem = React.memo(
         </div>
         {match(state, {
           TODO: () => null,
-          TODO_WITH_CHECKLIST: ({ checkList }) => (
+          TODO_WITH_CHECKLIST: ({ checkList, TOGGLE_SHOW_CHECKLIST }) => (
             <div className=" my-2 text-sm text-gray-500 border border-gray-200 p-2 rounded-md bg-gray-50">
               <div
                 className="flex items-center"
-                onClick={() => {
-                  dispatch({
-                    type: "TOGGLE_SHOW_CHECKLIST",
-                  });
-                }}
+                onClick={() => dispatch(TOGGLE_SHOW_CHECKLIST())}
               >
                 <ClipboardCheckIcon className="w-4 h-4 mr-1" />
                 {
@@ -138,7 +134,11 @@ export const TodoItem = React.memo(
               </div>
               {match(checkList, {
                 COLLAPSED: () => null,
-                EXPANDED: ({ addCheckListItem }) => (
+                EXPANDED: ({
+                  addCheckListItem,
+                  TOGGLE_CHECKLIST_ITEM,
+                  DELETE_CHECKLIST_ITEM,
+                }) => (
                   <ul className="mt-2">
                     {sortedCheckListItems.map((item) => (
                       <li
@@ -150,24 +150,18 @@ export const TodoItem = React.memo(
                           type="checkbox"
                           className="rounded text-green-500 mr-2"
                           checked={item.completed}
-                          onChange={() => {
-                            dispatch({
-                              type: "TOGGLE_CHECKLIST_ITEM",
-                              itemId: item.id,
-                            });
-                          }}
+                          onChange={() =>
+                            dispatch(TOGGLE_CHECKLIST_ITEM(item.id))
+                          }
                         />
                         <label htmlFor={item.id} className="w-full">
                           {item.title}
                         </label>
                         <span
                           className="p-2 text-gray-300"
-                          onClick={() => {
-                            dispatch({
-                              type: "DELETE_CHECKLIST_ITEM",
-                              itemId: item.id,
-                            });
-                          }}
+                          onClick={() =>
+                            dispatch(DELETE_CHECKLIST_ITEM(item.id))
+                          }
                         >
                           <TrashIcon className="w-6 h-6" />
                         </span>
@@ -175,31 +169,32 @@ export const TodoItem = React.memo(
                     ))}
                     <li>
                       {match(addCheckListItem, {
-                        INACTIVE: () => (
+                        INACTIVE: ({ SHOW_ADD_CHECKLIST_ITEM }) => (
                           <div
                             className="p-2 text-gray-400 text-center text-lg"
-                            onClick={() => {
-                              dispatch({
-                                type: "SHOW_ADD_CHECKLIST_ITEM",
-                              });
-                            }}
+                            onClick={() => dispatch(SHOW_ADD_CHECKLIST_ITEM())}
                           >
                             {t("addNewItem")}
                           </div>
                         ),
-                        ACTIVE: ({ newItemTitle }) => (
+                        ACTIVE: ({
+                          newItemTitle,
+                          ADD_CHECKLIST_ITEM,
+                          CHANGE_NEW_CHECKLIST_ITEM_TITLE,
+                        }) => (
                           <div className="flex mt-2">
                             <div className="flex-grow">
                               <input
                                 autoFocus
                                 type="text"
                                 value={newItemTitle}
-                                onChange={(event) => {
-                                  dispatch({
-                                    type: "CHANGE_NEW_CHECKLIST_ITEM_TITLE",
-                                    title: event.target.value,
-                                  });
-                                }}
+                                onChange={(event) =>
+                                  dispatch(
+                                    CHANGE_NEW_CHECKLIST_ITEM_TITLE(
+                                      event.target.value
+                                    )
+                                  )
+                                }
                                 className="block w-full shadow-sm focus:ring-light-blue-500 focus:border-light-blue-500 sm:text-sm border-gray-300 rounded-md"
                                 placeholder={`${t("title")}...`}
                                 aria-describedby="add_team_members_helper"
@@ -209,11 +204,7 @@ export const TodoItem = React.memo(
                               <button
                                 type="button"
                                 className="bg-white inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-light-blue-500"
-                                onClick={() => {
-                                  dispatch({
-                                    type: "ADD_CHECKLIST_ITEM",
-                                  });
-                                }}
+                                onClick={() => dispatch(ADD_CHECKLIST_ITEM())}
                               >
                                 <PlusIcon
                                   className="-ml-2 mr-1 h-5 w-5 text-gray-400"

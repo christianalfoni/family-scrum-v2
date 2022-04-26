@@ -4,27 +4,13 @@ import { ChevronLeftIcon } from "@heroicons/react/outline";
 
 import { TodoItem } from "../TodoItem";
 import * as selectors from "../../selectors";
-import {
-  CheckListItemsByTodoId,
-  TodoDTO,
-} from "../../environment-interface/storage";
-import { FamilyUserDTO } from "../../environment-interface/authentication";
+import { viewStates } from "../Dashboard/useDashboard";
+import { useLoadedDashboard } from "../Dashboard";
 
-export const CheckLists = ({
-  todos,
-  user,
-  checkListItemsByTodoId,
-  onBackClick,
-  onTodoClick,
-}: {
-  todos: Record<string, TodoDTO>;
-  user: FamilyUserDTO;
-  checkListItemsByTodoId: CheckListItemsByTodoId;
-  onBackClick: () => void;
-  onTodoClick: (id: string) => void;
-}) => {
+export const CheckLists = () => {
   const t = useTranslations("CheckListsView");
-  const checkLists = selectors.checkLists(todos);
+  const [{ user, data, POP_VIEW, PUSH_VIEW }, dispatch] = useLoadedDashboard();
+  const checkLists = selectors.checkLists(data.todos);
 
   return (
     <div className="bg-white flex flex-col h-screen">
@@ -32,7 +18,7 @@ export const CheckLists = ({
         <div className="flex items-center">
           <div className="flex-1">
             <button
-              onClick={onBackClick}
+              onClick={() => dispatch(POP_VIEW())}
               className="bg-white p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500"
             >
               <ChevronLeftIcon className="h-6 w-6" aria-hidden="true" />
@@ -47,9 +33,9 @@ export const CheckLists = ({
           <TodoItem
             key={todo.id}
             todo={todo}
-            onClick={() => onTodoClick(todo.id)}
+            onClick={() => dispatch(PUSH_VIEW(viewStates.EDIT_TODO(todo.id)))}
             user={user}
-            checkListItems={checkListItemsByTodoId[todo.id]}
+            checkListItems={data.checkListItemsByTodoId[todo.id]}
           />
         ))}
       </ul>

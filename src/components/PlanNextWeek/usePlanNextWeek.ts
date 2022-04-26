@@ -1,74 +1,103 @@
-import { StatesReducer, useCommandEffect } from "react-states";
-
+import { useReducer } from "react";
 import {
-  createReducer,
-  useEnvironment,
-  useReducer,
-} from "../../environment-interface";
+  $COMMAND,
+  IAction,
+  ICommand,
+  IState,
+  PickCommand,
+  ReturnTypes,
+  transition,
+  TTransitions,
+  useCommandEffect,
+  useDevtools,
+} from "react-states";
+
+import { useEnvironment } from "../../environment-interface";
 import { FamilyUserDTO } from "../../environment-interface/authentication";
 
-type State = {
-  state: "PLANNING";
-  userId: string;
+const actions = {
+  TOGGLE_WEEKDAY: (params: {
+    todoId: string;
+    userId: string;
+    weekdayIndex: number;
+    active: boolean;
+  }) => ({
+    type: "TOGGLE_WEEKDAY" as const,
+    ...params,
+  }),
+  CHANGE_WEEKDAY_DINNER: (params: {
+    weekdayIndex: number;
+    dinnerId: string | null;
+  }) => ({
+    type: "CHANGE_WEEKDAY_DINNER" as const,
+    ...params,
+  }),
 };
 
-type Action =
-  | {
-      type: "TOGGLE_WEEKDAY";
-      todoId: string;
-      userId: string;
-      weekdayIndex: number;
-      active: boolean;
-    }
-  | {
-      type: "CHANGE_WEEKDAY_DINNER";
-      weekdayIndex: number;
-      dinnerId: string | null;
-    };
+type Action = ReturnTypes<typeof actions, IAction>;
 
-type Command =
-  | {
-      cmd: "TOGGLE_WEEKDAY";
-      todoId: string;
-      weekdayIndex: number;
-      active: boolean;
-    }
-  | {
-      cmd: "CHANGE_WEEKDAY_DINNER";
-      weekdayIndex: number;
-      dinnerId: string | null;
-    };
+const commands = {
+  TOGGLE_WEEKDAY: (params: {
+    todoId: string;
+    weekdayIndex: number;
+    active: boolean;
+  }) => ({
+    cmd: "TOGGLE_WEEKDAY" as const,
+    ...params,
+  }),
+  CHANGE_WEEKDAY_DINNER: (params: {
+    weekdayIndex: number;
+    dinnerId: string | null;
+  }) => ({
+    cmd: "CHANGE_WEEKDAY_DINNER" as const,
+    ...params,
+  }),
+};
 
-export type PlanNextWeekReducer = StatesReducer<State, Action, Command>;
+type Command = ReturnTypes<typeof commands, ICommand>;
 
-const reducer = createReducer<PlanNextWeekReducer>({
+const states = {
+  PLANNING: (
+    { userId }: { userId: string },
+    command?: PickCommand<Command, "TOGGLE_WEEKDAY" | "CHANGE_WEEKDAY_DINNER">
+  ) => ({
+    state: "PLANNING" as const,
+    userId,
+    [$COMMAND]: command,
+    ...actions,
+  }),
+};
+
+type State = ReturnTypes<typeof states, IState>;
+
+export const { PLANNING } = states;
+
+const transitions: TTransitions<State, Action> = {
   PLANNING: {
-    CHANGE_WEEKDAY_DINNER: ({
-      state,
-      action: { dinnerId, weekdayIndex },
-      transition,
-    }) =>
-      transition(state, {
-        cmd: "CHANGE_WEEKDAY_DINNER",
-        dinnerId,
-        weekdayIndex,
-      }),
-    TOGGLE_WEEKDAY: ({
-      state,
-      action: { userId, todoId, weekdayIndex, active },
-      transition,
-      noop,
-    }) =>
+    CHANGE_WEEKDAY_DINNER: (state, { dinnerId, weekdayIndex }) =>
+      PLANNING(
+        state,
+        commands.CHANGE_WEEKDAY_DINNER({
+          dinnerId,
+          weekdayIndex,
+        })
+      ),
+    TOGGLE_WEEKDAY: (state, { userId, todoId, weekdayIndex, active }) =>
       userId === state.userId
-        ? transition(state, {
-            cmd: "TOGGLE_WEEKDAY",
-            todoId,
-            weekdayIndex,
-            active,
-          })
-        : noop(),
+        ? PLANNING(
+            { userId: state.userId },
+            commands.TOGGLE_WEEKDAY({
+              todoId,
+              weekdayIndex,
+              active,
+            })
+          )
+        : state,
   },
-});
+};
+
+const reducer = (state: State, action: Action) =>
+  transition(state, action, transitions);
 
 export const usePlanNextWeek = ({
   user,
@@ -81,13 +110,11 @@ export const usePlanNextWeek = ({
 }) => {
   const { storage } = useEnvironment();
   const planNextWeekReducer = useReducer(
-    "PlanWeek",
     reducer,
-    initialState || {
-      state: "PLANNING",
-      userId: user.id,
-    }
+    initialState || PLANNING({ userId: user.id })
   );
+
+  useDevtools("PlanWeek", planNextWeekReducer);
 
   const [state] = planNextWeekReducer;
 

@@ -1,5 +1,5 @@
 import firebase from "firebase/app";
-import { Emit } from "react-states";
+import { TEmit } from "react-states";
 import {
   Authentication,
   AuthenticationEvent,
@@ -8,7 +8,7 @@ import {
 const USER_DATA_COLLECTION = "userData";
 
 export const createAuthentication = (
-  emit: Emit<AuthenticationEvent>,
+  emit: TEmit<AuthenticationEvent>,
   app: firebase.app.App
 ): Authentication => {
   app.auth().useDeviceLanguage();

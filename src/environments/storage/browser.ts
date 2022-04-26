@@ -17,7 +17,7 @@ import {
   getPreviousWeekId,
 } from "../../utils";
 import { createCheckListItemsByTodoId } from "./utils";
-import { Emit } from "react-states";
+import { TEmit } from "react-states";
 
 const FAMILY_DATA_COLLECTION = "familyData";
 const GROCERIES_COLLECTION = "groceries";
@@ -29,9 +29,13 @@ const WEEKS_COLLECTION = "weeks";
 const WEEKS_TODOS_COLLECTION = "todos";
 
 export const createStorage = (
-  emit: Emit<StorageEvent>,
+  emit: TEmit<StorageEvent>,
   app: firebase.app.App
 ): Storage => {
+  firebase.firestore().settings({
+    ignoreUndefinedProperties: true,
+  });
+
   let groceries: {
     [groceryId: string]: GroceryDTO;
   } = {};

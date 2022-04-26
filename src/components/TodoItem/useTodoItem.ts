@@ -1,177 +1,188 @@
-import { StatesReducer, useCommandEffect } from "react-states";
+import { useReducer } from "react";
 import {
-  createReducer,
-  useEnvironment,
-  useReducer,
-} from "../../environment-interface";
+  $COMMAND,
+  IAction,
+  ICommand,
+  IState,
+  match,
+  pick,
+  PickCommand,
+  ReturnTypes,
+  transition,
+  TTransitions,
+  useCommandEffect,
+  useDevtools,
+} from "react-states";
+import { useEnvironment } from "../../environment-interface";
 import { FamilyUserDTO } from "../../environment-interface/authentication";
 import { TodoDTO } from "../../environment-interface/storage";
 
-type AddCheckListItemState =
-  | {
-      state: "INACTIVE";
-    }
-  | {
-      state: "ACTIVE";
-      newItemTitle: string;
-    };
+const actions = {
+  ARCHIVE_TODO: () => ({
+    type: "ARCHIVE_TODO" as const,
+  }),
+  TOGGLE_CHECKLIST_ITEM: (itemId: string) => ({
+    type: "TOGGLE_CHECKLIST_ITEM" as const,
+    itemId,
+  }),
+  DELETE_CHECKLIST_ITEM: (itemId: string) => ({
+    type: "DELETE_CHECKLIST_ITEM" as const,
+    itemId,
+  }),
+  ADD_CHECKLIST_ITEM: () => ({
+    type: "ADD_CHECKLIST_ITEM" as const,
+  }),
+  TOGGLE_SHOW_CHECKLIST: () => ({
+    type: "TOGGLE_SHOW_CHECKLIST" as const,
+  }),
+  CHANGE_NEW_CHECKLIST_ITEM_TITLE: (title: string) => ({
+    type: "CHANGE_NEW_CHECKLIST_ITEM_TITLE" as const,
+    title,
+  }),
+  SHOW_ADD_CHECKLIST_ITEM: () => ({
+    type: "SHOW_ADD_CHECKLIST_ITEM" as const,
+  }),
+};
 
-type CheckListState =
-  | {
-      state: "COLLAPSED";
-    }
-  | {
-      state: "EXPANDED";
-      addCheckListItem: AddCheckListItemState;
-    };
+type Action = ReturnTypes<typeof actions, IAction>;
 
-type State =
-  | {
-      state: "TODO";
-    }
-  | {
-      state: "TODO_WITH_CHECKLIST";
-      checkList: CheckListState;
-    };
+const commands = {
+  TOGGLE_CHECKLIST_ITEM: (itemId: string) => ({
+    cmd: "TOGGLE_CHECKLIST_ITEM" as const,
+    itemId,
+  }),
+  DELETE_CHECKLIST_ITEM: (itemId: string) => ({
+    cmd: "DELETE_CHECKLIST_ITEM" as const,
+    itemId,
+  }),
+  ADD_CHECKLIST_ITEM: (title: string) => ({
+    cmd: "ADD_CHECKLIST_ITEM" as const,
+    title,
+  }),
+  ARCHIVE_TODO: () => ({
+    cmd: "ARCHIVE_TODO" as const,
+  }),
+};
 
-type Action =
-  | {
-      type: "ARCHIVE_TODO";
-    }
-  | {
-      type: "TOGGLE_CHECKLIST_ITEM";
-      itemId: string;
-    }
-  | {
-      type: "DELETE_CHECKLIST_ITEM";
-      itemId: string;
-    }
-  | {
-      type: "ADD_CHECKLIST_ITEM";
-    }
-  | {
-      type: "TOGGLE_SHOW_CHECKLIST";
-    }
-  | {
-      type: "CHANGE_NEW_CHECKLIST_ITEM_TITLE";
-      title: string;
-    }
-  | {
-      type: "SHOW_ADD_CHECKLIST_ITEM";
-    };
+const addCheckListItemStates = {
+  INACTIVE: () => ({
+    state: "INACTIVE" as const,
+    ...pick(actions, "SHOW_ADD_CHECKLIST_ITEM"),
+  }),
+  ACTIVE: (newItemTitle: string) => ({
+    state: "ACTIVE" as const,
+    newItemTitle,
+    ...pick(actions, "CHANGE_NEW_CHECKLIST_ITEM_TITLE", "ADD_CHECKLIST_ITEM"),
+  }),
+};
 
-type Command =
-  | {
-      cmd: "TOGGLE_CHECKLIST_ITEM";
-      itemId: string;
-    }
-  | {
-      cmd: "DELETE_CHECKLIST_ITEM";
-      itemId: string;
-    }
-  | {
-      cmd: "ADD_CHECKLIST_ITEM";
-      title: string;
-    }
-  | {
-      cmd: "ARCHIVE_TODO";
-    };
+type AddCheckListItemState = ReturnTypes<typeof addCheckListItemStates, IState>;
 
-type TodoItemReducer = StatesReducer<State, Action, Command>;
+const checkListStates = {
+  COLLAPSED: () => ({
+    state: "COLLAPSED" as const,
+  }),
+  EXPANDED: (addCheckListItem: AddCheckListItemState) => ({
+    state: "EXPANDED" as const,
+    addCheckListItem,
+    ...pick(actions, "TOGGLE_CHECKLIST_ITEM", "DELETE_CHECKLIST_ITEM"),
+  }),
+};
 
-const reducer = createReducer<TodoItemReducer>({
+type CheckListState = ReturnTypes<typeof checkListStates, IState>;
+
+const states = {
+  TODO: (command?: PickCommand<Command, "ARCHIVE_TODO">) => ({
+    state: "TODO" as const,
+    [$COMMAND]: command,
+    ...pick(actions, "ARCHIVE_TODO"),
+  }),
+  TODO_WITH_CHECKLIST: (
+    checkList: CheckListState,
+    command?: PickCommand<
+      Command,
+      | "ARCHIVE_TODO"
+      | "ADD_CHECKLIST_ITEM"
+      | "DELETE_CHECKLIST_ITEM"
+      | "TOGGLE_CHECKLIST_ITEM"
+    >
+  ) => ({
+    state: "TODO_WITH_CHECKLIST" as const,
+    checkList,
+    [$COMMAND]: command,
+    ...pick(actions, "TOGGLE_SHOW_CHECKLIST", "ARCHIVE_TODO"),
+  }),
+};
+
+type State = ReturnTypes<typeof states, IState>;
+
+type Command = ReturnTypes<typeof commands, ICommand>;
+
+export const { TODO, TODO_WITH_CHECKLIST } = states;
+
+const transitions: TTransitions<State, Action> = {
   TODO: {
-    ARCHIVE_TODO: ({ state, transition }) =>
-      transition(state, {
-        cmd: "ARCHIVE_TODO",
-      }),
+    ARCHIVE_TODO: (state) => TODO(commands.ARCHIVE_TODO()),
   },
   TODO_WITH_CHECKLIST: {
-    ARCHIVE_TODO: ({ state, transition }) =>
-      transition(state, {
-        cmd: "ARCHIVE_TODO",
-      }),
-    TOGGLE_CHECKLIST_ITEM: ({ state, action: { itemId }, transition }) =>
-      transition(state, {
-        cmd: "TOGGLE_CHECKLIST_ITEM",
-        itemId,
-      }),
-    DELETE_CHECKLIST_ITEM: ({ state, action: { itemId }, transition }) =>
-      transition(state, {
-        cmd: "DELETE_CHECKLIST_ITEM",
-        itemId,
-      }),
-    ADD_CHECKLIST_ITEM: ({ state, transition, noop }) =>
-      state.checkList.state === "EXPANDED" &&
-      state.checkList.addCheckListItem.state === "ACTIVE" &&
-      state.checkList.addCheckListItem.newItemTitle
-        ? transition(
-            {
-              ...state,
-              checkList: {
-                state: "EXPANDED",
-                addCheckListItem: {
-                  state: "INACTIVE",
-                },
-              },
-            },
-            {
-              cmd: "ADD_CHECKLIST_ITEM",
-              title: state.checkList.addCheckListItem.newItemTitle,
-            }
-          )
-        : noop(),
-    CHANGE_NEW_CHECKLIST_ITEM_TITLE: ({
-      state,
-      action: { title },
-      transition,
-      noop,
-    }) =>
-      state.checkList.state === "EXPANDED" &&
-      state.checkList.addCheckListItem.state === "ACTIVE"
-        ? transition({
-            ...state,
-            checkList: {
-              ...state.checkList,
-              addCheckListItem: {
-                ...state.checkList.addCheckListItem,
-                newItemTitle: title,
-              },
-            },
-          })
-        : noop(),
-    TOGGLE_SHOW_CHECKLIST: ({ state, transition }) =>
-      state.checkList.state === "COLLAPSED"
-        ? transition({
-            ...state,
-            checkList: {
-              state: "EXPANDED",
-              addCheckListItem: {
-                state: "INACTIVE",
-              },
-            },
-          })
-        : transition({
-            ...state,
-            checkList: {
-              state: "COLLAPSED",
-            },
+    ARCHIVE_TODO: (state) =>
+      TODO_WITH_CHECKLIST(state.checkList, commands.ARCHIVE_TODO()),
+    TOGGLE_CHECKLIST_ITEM: (state, { itemId }) =>
+      TODO_WITH_CHECKLIST(
+        state.checkList,
+        commands.TOGGLE_CHECKLIST_ITEM(itemId)
+      ),
+    DELETE_CHECKLIST_ITEM: (state, { itemId }) =>
+      TODO_WITH_CHECKLIST(
+        state.checkList,
+        commands.DELETE_CHECKLIST_ITEM(itemId)
+      ),
+    ADD_CHECKLIST_ITEM: (state) =>
+      match(state.checkList, {
+        COLLAPSED: () => state,
+        EXPANDED: ({ addCheckListItem }) =>
+          match(addCheckListItem, {
+            INACTIVE: () => state,
+            ACTIVE: ({ newItemTitle }) =>
+              TODO_WITH_CHECKLIST(
+                checkListStates.EXPANDED(addCheckListItemStates.INACTIVE()),
+                commands.ADD_CHECKLIST_ITEM(newItemTitle)
+              ),
           }),
-    SHOW_ADD_CHECKLIST_ITEM: ({ state, transition, noop }) =>
-      state.checkList.state === "EXPANDED"
-        ? transition({
-            ...state,
-            checkList: {
-              ...state.checkList,
-              addCheckListItem: {
-                state: "ACTIVE",
-                newItemTitle: "",
-              },
-            },
-          })
-        : noop(),
+      }),
+    CHANGE_NEW_CHECKLIST_ITEM_TITLE: (state, { title }) =>
+      match(state.checkList, {
+        COLLAPSED: () => state,
+        EXPANDED: ({ addCheckListItem }) =>
+          match(addCheckListItem, {
+            INACTIVE: () => state,
+            ACTIVE: ({ newItemTitle }) =>
+              TODO_WITH_CHECKLIST(
+                checkListStates.EXPANDED(addCheckListItemStates.ACTIVE(title))
+              ),
+          }),
+      }),
+    TOGGLE_SHOW_CHECKLIST: (state) =>
+      match(state.checkList, {
+        COLLAPSED: () =>
+          TODO_WITH_CHECKLIST(
+            checkListStates.EXPANDED(addCheckListItemStates.INACTIVE())
+          ),
+        EXPANDED: () => TODO_WITH_CHECKLIST(checkListStates.COLLAPSED()),
+      }),
+    SHOW_ADD_CHECKLIST_ITEM: (state) =>
+      match(state.checkList, {
+        COLLAPSED: () => state,
+        EXPANDED: () =>
+          TODO_WITH_CHECKLIST(
+            checkListStates.EXPANDED(addCheckListItemStates.ACTIVE(""))
+          ),
+      }),
   },
-});
+};
+
+const reducer = (state: State, action: Action) =>
+  transition(state, action, transitions);
 
 export const useTodoItem = ({
   user,
@@ -184,19 +195,13 @@ export const useTodoItem = ({
 }) => {
   const { storage } = useEnvironment();
   const todoItemReducer = useReducer(
-    "TodoItem-" + todo.id,
     reducer,
     initialState || todo.checkList
-      ? {
-          state: "TODO_WITH_CHECKLIST",
-          checkList: {
-            state: "COLLAPSED",
-          },
-        }
-      : {
-          state: "TODO",
-        }
+      ? TODO_WITH_CHECKLIST(checkListStates.COLLAPSED())
+      : TODO()
   );
+
+  useDevtools("TodoItem-" + todo.id, todoItemReducer);
 
   const [state] = todoItemReducer;
 

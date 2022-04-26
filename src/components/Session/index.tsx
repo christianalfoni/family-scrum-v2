@@ -1,22 +1,25 @@
-import { createContext, useContext } from "react";
-import { useEnvironment } from "../../environment-interface";
-import { SessionReducer, useSession as useSessionReducer } from "./useSession";
+import { createContext, Dispatch, useContext } from "react";
+
+import {
+  SessionAction,
+  SessionState,
+  useSession as useSessionReducer,
+} from "./useSession";
 import { SignInModal } from "./SignInModal";
 import { UpdateModal } from "./UpdateModal";
 
-const context = createContext({} as SessionReducer);
+const context = createContext({} as [SessionState, Dispatch<SessionAction>]);
 
 export const useSession = () => useContext(context);
 
 export const Session: React.FC = ({ children }) => {
-  const { authentication, version } = useEnvironment();
   const sessionReducer = useSessionReducer({});
 
   return (
     <context.Provider value={sessionReducer}>
       {children}
-      <SignInModal session={sessionReducer} />
-      <UpdateModal session={sessionReducer} />
+      <SignInModal />
+      <UpdateModal />
     </context.Provider>
   );
 };

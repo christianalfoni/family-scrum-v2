@@ -1,11 +1,11 @@
-import { Emit } from "react-states";
+import { TEmit } from "react-states";
 import gt from "semver/functions/gt";
 import { Version, VersionEvent } from "../../environment-interface/version";
 
 const STORAGE_KEY = "family-scrum.sandbox.version";
 
 export const createVersion = (
-  emit: Emit<VersionEvent>,
+  emit: TEmit<VersionEvent>,
   localVersion: string,
   version: string
 ): Version => ({

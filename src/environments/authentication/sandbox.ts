@@ -1,4 +1,4 @@
-import { Emit } from "react-states";
+import { TEmit } from "react-states";
 import {
   Authentication,
   AuthenticationEvent,
@@ -8,7 +8,7 @@ import {
 import { randomWait } from "../utils";
 
 export const createAuthentication = (
-  emit: Emit<AuthenticationEvent>
+  emit: TEmit<AuthenticationEvent>
 ): Authentication => {
   const user: FamilyUserDTO = {
     id: "user_1",

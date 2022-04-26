@@ -1,118 +1,126 @@
 import * as React from "react";
-import { PlanNextWeekReducer } from "./usePlanNextWeek";
 import * as selectors from "../../selectors";
 import { useTranslations } from "next-intl";
 import { CalendarIcon, CheckCircleIcon } from "@heroicons/react/outline";
 
 import { weekdays } from "../../utils";
-import { TodoDTO, WeekTodoActivity } from "../../environment-interface/storage";
+import {
+  CheckListItemDTO,
+  FamilyDTO,
+  TodoDTO,
+  WeekTodoActivity,
+} from "../../environment-interface/storage";
 
 import { TodoItem } from "../TodoItem";
+
+import { viewStates } from "../Dashboard/useDashboard";
 import { FamilyUserDTO } from "../../environment-interface/authentication";
-import { PickState, StatesDispatcher } from "react-states";
-import { DashboardReducer } from "../Dashboard/useDashboard";
+import { useLoadedDashboard } from "../Dashboard";
 
 const PlanTodoItem = React.memo(
   ({
     todo,
     userIds,
-    dashboard,
     user,
+    checkListItems,
+    family,
     toggleWeekday,
+    previousWeekActivity,
+    weekActivity,
     onClick,
   }: {
     todo: TodoDTO;
-    dashboard: PickState<DashboardReducer, "LOADED">;
-    userIds: string[];
     user: FamilyUserDTO;
+    checkListItems: Record<string, CheckListItemDTO>;
+    family: FamilyDTO;
+    userIds: string[];
+    previousWeekActivity: WeekTodoActivity;
+    weekActivity: WeekTodoActivity;
     toggleWeekday: (data: {
       active: boolean;
       todoId: string;
       userId: string;
       weekdayIndex: number;
     }) => void;
-    onClick: () => void;
-  }) => {
-    const { checkListItemsByTodoId, family, previousWeek, nextWeek } =
-      dashboard;
-    const checkListItems = checkListItemsByTodoId[todo.id];
-
-    return (
-      <TodoItem
-        todo={todo}
-        checkListItems={checkListItems}
-        user={user}
-        onClick={onClick}
-      >
-        {userIds.map((userId) => {
-          const weekActivity: WeekTodoActivity = nextWeek.todos[todo.id]?.[
-            userId
-          ] ?? [false, false, false, false, false, false, false];
-          return (
-            <div
+    onClick: (id: string) => void;
+  }) => (
+    <TodoItem
+      todo={todo}
+      checkListItems={checkListItems}
+      user={user}
+      onClick={() => onClick(todo.id)}
+    >
+      {userIds.map((userId) => {
+        return (
+          <div key={userId} className="flex pt-2 items-center justify-between">
+            <img
               key={userId}
-              className="flex pt-2 items-center justify-between"
-            >
-              <img
-                key={userId}
-                className="max-w-none h-6 w-6 rounded-full ring-2 ring-white"
-                src={family.users[userId].avatar!}
-                alt={family.users[userId].name}
-              />
-              {weekActivity.map((isActive, index) => {
-                const activePreviousWeek = Boolean(
-                  previousWeek.todos[todo.id] &&
-                    previousWeek.todos[todo.id][userId] &&
-                    previousWeek.todos[todo.id][userId][index]
-                );
+              className="max-w-none h-6 w-6 rounded-full ring-2 ring-white"
+              src={family.users[userId].avatar!}
+              alt={family.users[userId].name}
+            />
+            {weekActivity.map((isActive, index) => {
+              const activePreviousWeek = Boolean(previousWeekActivity?.[index]);
 
-                return (
-                  <button
-                    key={index}
-                    type="button"
-                    disabled={user.id !== userId}
-                    onClick={() => {
-                      toggleWeekday({
-                        active: !isActive,
-                        todoId: todo.id,
-                        userId,
-                        weekdayIndex: index,
-                      });
-                    }}
-                    className={`${
-                      isActive
-                        ? "text-white bg-red-500"
-                        : activePreviousWeek
-                        ? "text-gray-700 bg-gray-200"
-                        : "text-gray-700 bg-white"
-                    } ${
-                      user.id === userId ? "" : "opacity-50"
-                    } order-1 w-10 h-8 justify-center inline-flex items-center px-2 py-1 border border-gray-300 shadow-sm text-xs font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500`}
-                  >
-                    {weekdays[index].substr(0, 2)}
-                  </button>
-                );
-              })}
-            </div>
-          );
-        })}
-      </TodoItem>
-    );
-  }
+              return (
+                <button
+                  key={index}
+                  type="button"
+                  disabled={user.id !== userId}
+                  onClick={() => {
+                    toggleWeekday({
+                      active: !isActive,
+                      todoId: todo.id,
+                      userId,
+                      weekdayIndex: index,
+                    });
+                  }}
+                  className={`${
+                    isActive
+                      ? "text-white bg-red-500"
+                      : activePreviousWeek
+                      ? "text-gray-700 bg-gray-200"
+                      : "text-gray-700 bg-white"
+                  } ${
+                    user.id === userId ? "" : "opacity-50"
+                  } order-1 w-10 h-8 justify-center inline-flex items-center px-2 py-1 border border-gray-300 shadow-sm text-xs font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500`}
+                >
+                  {weekdays[index].substr(0, 2)}
+                </button>
+              );
+            })}
+          </div>
+        );
+      })}
+    </TodoItem>
+  )
 );
 
 export const PlanNextWeekTodos = ({
-  user,
-  dashboard,
-  planNextWeekDispatcher,
-  onTodoClick,
+  toggleWeekday,
 }: {
-  dashboard: PickState<DashboardReducer, "LOADED">;
-  user: FamilyUserDTO;
-  planNextWeekDispatcher: StatesDispatcher<PlanNextWeekReducer>;
-  onTodoClick: (id: string) => void;
+  toggleWeekday: (params: {
+    active: boolean;
+    todoId: string;
+    userId: string;
+    weekdayIndex: number;
+  }) => void;
 }) => {
-  const { family, todos, currentWeek, previousWeek } = dashboard;
+  const [
+    {
+      user,
+      data: {
+        family,
+        todos,
+        currentWeek,
+        previousWeek,
+        nextWeek,
+        checkListItemsByTodoId,
+      },
+      PUSH_VIEW,
+    },
+    dispatchDashboard,
+  ] = useLoadedDashboard();
   const t = useTranslations("PlanWeekView");
   const sortedTodos = selectors.todosByType(
     todos,
@@ -130,28 +138,34 @@ export const PlanNextWeekTodos = ({
       }),
     [family]
   );
-
-  const toggleWeekday = React.useCallback(
-    ({
-      active,
-      todoId,
-      userId,
-      weekdayIndex,
-    }: {
-      active: boolean;
-      todoId: string;
-      userId: string;
-      weekdayIndex: number;
-    }) => {
-      planNextWeekDispatcher({
-        type: "TOGGLE_WEEKDAY",
-        active,
-        todoId,
-        userId,
-        weekdayIndex,
-      });
-    },
+  const onTodoClick = React.useCallback(
+    (id: string) => dispatchDashboard(PUSH_VIEW(viewStates.EDIT_TODO(id))),
     []
+  );
+
+  const renderTodo = (todo: TodoDTO) => (
+    <PlanTodoItem
+      key={todo.id}
+      family={family}
+      weekActivity={
+        nextWeek.todos[todo.id]?.[user.id] ?? [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+        ]
+      }
+      checkListItems={checkListItemsByTodoId[todo.id]}
+      previousWeekActivity={previousWeek.todos[todo.id]?.[user.id]}
+      todo={todo}
+      toggleWeekday={toggleWeekday}
+      user={user}
+      userIds={sortedUserIds}
+      onClick={onTodoClick}
+    />
   );
 
   return (
@@ -161,17 +175,7 @@ export const PlanNextWeekTodos = ({
           <li className="p-2 bg-green-500 text-white font-bold text-sm flex items-center">
             <CheckCircleIcon className="w-4 h-4 mr-2" /> {t("typePreviousWeek")}
           </li>
-          {sortedTodos.previousWeek.map((todo) => (
-            <PlanTodoItem
-              key={todo.id}
-              dashboard={dashboard}
-              todo={todo}
-              toggleWeekday={toggleWeekday}
-              user={user}
-              userIds={sortedUserIds}
-              onClick={() => onTodoClick(todo.id)}
-            />
-          ))}
+          {sortedTodos.previousWeek.map(renderTodo)}
         </>
       ) : null}
       {sortedTodos.eventsThisWeek.length ? (
@@ -179,17 +183,7 @@ export const PlanNextWeekTodos = ({
           <li className="p-2 bg-red-500 text-white font-bold text-sm flex items-center">
             <CalendarIcon className="w-4 h-4 mr-2" /> {t("typeEventsThisWeek")}
           </li>
-          {sortedTodos.eventsThisWeek.map((todo) => (
-            <PlanTodoItem
-              key={todo.id}
-              dashboard={dashboard}
-              todo={todo}
-              toggleWeekday={toggleWeekday}
-              user={user}
-              userIds={sortedUserIds}
-              onClick={() => onTodoClick(todo.id)}
-            />
-          ))}
+          {sortedTodos.eventsThisWeek.map(renderTodo)}
         </>
       ) : null}
       {sortedTodos.thisWeek.length ? (
@@ -197,17 +191,7 @@ export const PlanNextWeekTodos = ({
           <li className="p-2 bg-yellow-500 text-white font-bold text-sm flex items-center">
             <CheckCircleIcon className="w-4 h-4 mr-2" /> {t("typeThisWeek")}
           </li>
-          {sortedTodos.thisWeek.map((todo) => (
-            <PlanTodoItem
-              key={todo.id}
-              dashboard={dashboard}
-              todo={todo}
-              toggleWeekday={toggleWeekday}
-              user={user}
-              userIds={sortedUserIds}
-              onClick={() => onTodoClick(todo.id)}
-            />
-          ))}
+          {sortedTodos.thisWeek.map(renderTodo)}
         </>
       ) : null}
       {sortedTodos.laterEvents.length ? (
@@ -215,17 +199,7 @@ export const PlanNextWeekTodos = ({
           <li className="p-2 bg-blue-500 text-white font-bold text-sm flex items-center">
             <CalendarIcon className="w-4 h-4 mr-2" /> {t("typeLaterEvents")}
           </li>
-          {sortedTodos.laterEvents.map((todo) => (
-            <PlanTodoItem
-              key={todo.id}
-              dashboard={dashboard}
-              todo={todo}
-              toggleWeekday={toggleWeekday}
-              user={user}
-              userIds={sortedUserIds}
-              onClick={() => onTodoClick(todo.id)}
-            />
-          ))}
+          {sortedTodos.laterEvents.map(renderTodo)}
         </>
       ) : null}
     </ul>

@@ -1,10 +1,10 @@
-import { Emit } from "react-states";
+import { TEmit } from "react-states";
 import {
   Visibility,
   VisibilityEvent,
 } from "../../environment-interface/visibility";
 
-export const createVisibility = (emit: Emit<VisibilityEvent>): Visibility => {
+export const createVisibility = (emit: TEmit<VisibilityEvent>): Visibility => {
   document.addEventListener("visibilitychange", () => {
     emit({
       type:

@@ -1,9 +1,15 @@
-import React from "react";
+import React, { Dispatch } from "react";
 import { ChevronLeftIcon, PlusIcon } from "@heroicons/react/outline";
 import * as selectors from "../../selectors";
 import { DinnerDTO } from "../../environment-interface/storage";
 import { useImage } from "../../useImage";
 import { useEnvironment } from "../../environment-interface";
+import {
+  DashboardAction,
+  DashboardState,
+  viewStates,
+} from "../Dashboard/useDashboard";
+import { PickState } from "react-states";
 
 const Dinner = ({
   dinner,
@@ -40,17 +46,12 @@ const Dinner = ({
 };
 
 export const Dinners = ({
-  onBackClick,
-  onAddDinnerClick,
-  onDinnerClick,
-  dinners,
+  dashboard,
 }: {
-  dinners: Record<string, DinnerDTO>;
-  onBackClick: () => void;
-  onAddDinnerClick: () => void;
-  onDinnerClick: (id: string) => void;
+  dashboard: [PickState<DashboardState, "LOADED">, Dispatch<DashboardAction>];
 }) => {
-  const sortedDinners = selectors.sortedDinners(dinners);
+  const [{ data, POP_VIEW, PUSH_VIEW }, dispatch] = dashboard;
+  const sortedDinners = selectors.sortedDinners(data.dinners);
 
   return (
     <div className="bg-white flex flex-col h-screen">
@@ -58,7 +59,7 @@ export const Dinners = ({
         <div className="flex items-center">
           <div className="flex-1">
             <button
-              onClick={onBackClick}
+              onClick={() => dispatch(POP_VIEW())}
               className=" bg-white p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500"
             >
               <ChevronLeftIcon className="h-6 w-6" aria-hidden="true" />
@@ -66,7 +67,10 @@ export const Dinners = ({
           </div>
           <h1 className="flex-2 text-lg font-medium">Dinners</h1>
           <div className="flex-1 flex">
-            <button className="ml-auto" onClick={onAddDinnerClick}>
+            <button
+              className="ml-auto"
+              onClick={() => dispatch(PUSH_VIEW(viewStates.EDIT_DINNER()))}
+            >
               <PlusIcon className="w-6 h-6" />
             </button>
           </div>
@@ -75,13 +79,17 @@ export const Dinners = ({
       {sortedDinners.length ? (
         <ul className="relative z-0 divide-y divide-gray-200 border-b border-gray-200 overflow-y-scroll">
           {sortedDinners.map((dinner) => (
-            <Dinner key={dinner.id} dinner={dinner} onClick={onDinnerClick} />
+            <Dinner
+              key={dinner.id}
+              dinner={dinner}
+              onClick={(id) => dispatch(PUSH_VIEW(viewStates.EDIT_DINNER(id)))}
+            />
           ))}
         </ul>
       ) : (
         <div className="flex items-center justify-center h-full">
           <a
-            onClick={onAddDinnerClick}
+            onClick={() => dispatch(PUSH_VIEW(viewStates.EDIT_DINNER()))}
             className="ml-6 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
           >
             New Dinner

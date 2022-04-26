@@ -8,17 +8,18 @@ import {
   ShoppingCartIcon,
 } from "@heroicons/react/outline";
 import { useTranslations, useIntl } from "next-intl";
-import React, { useState } from "react";
+import React, { Dispatch, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import SwiperCore, { Controller } from "swiper";
 import { getDayIndex, getFirstDateOfCurrentWeek, weekdays } from "../../utils";
 import { addDays } from "date-fns";
 import { PickState } from "react-states";
-import { DashboardReducer, ViewState } from "./useDashboard";
 import * as selectors from "../../selectors";
 import { DinnerDTO } from "../../environment-interface/storage";
 import { useEnvironment } from "../../environment-interface";
 import { useImage } from "../../useImage";
+import { viewStates } from "./useDashboard";
+import { useLoadedDashboard } from ".";
 
 SwiperCore.use([Controller]);
 
@@ -184,17 +185,17 @@ export const DashboardSkeleton = () => {
   );
 };
 
-export const DashboardContent = ({
-  dashboard,
-  selectView,
-}: {
-  dashboard: PickState<DashboardReducer, "LOADED">;
-  selectView: (view: ViewState) => void;
-}) => {
+export const DashboardContent = () => {
   const t = useTranslations("DashboardView");
   const tCommon = useTranslations("common");
   const intl = useIntl();
-  const { groceries, family, currentWeek, todos, dinners } = dashboard;
+  const [
+    {
+      data: { groceries, family, currentWeek, todos, dinners },
+      PUSH_VIEW,
+    },
+    dispatch,
+  ] = useLoadedDashboard();
   const currentDayIndex = getDayIndex();
   const currentWeekDate = getFirstDateOfCurrentWeek();
   const [slideIndex, setSlideIndex] = useState(currentDayIndex);
@@ -212,9 +213,7 @@ export const DashboardContent = ({
         <MenuCard
           Icon={ShoppingCartIcon}
           onClick={() => {
-            selectView({
-              state: "GROCERIES_SHOPPING",
-            });
+            dispatch(PUSH_VIEW(viewStates.GROCERIES_SHOPPING()));
           }}
           color="bg-red-500"
         >
@@ -224,9 +223,7 @@ export const DashboardContent = ({
           disabled={!checkLists.length}
           Icon={ClipboardCheckIcon}
           onClick={() => {
-            selectView({
-              state: "CHECKLISTS",
-            });
+            dispatch(PUSH_VIEW(viewStates.CHECKLISTS()));
           }}
           color="bg-blue-500"
         >
@@ -235,10 +232,7 @@ export const DashboardContent = ({
         <MenuCard
           Icon={ChatAlt2Icon}
           onClick={() => {
-            selectView({
-              state: "PLAN_NEXT_WEEK",
-              subView: "DINNERS",
-            });
+            dispatch(PUSH_VIEW(viewStates.PLAN_NEXT_WEEK("DINNERS")));
           }}
           color="bg-green-500"
         >
@@ -247,9 +241,7 @@ export const DashboardContent = ({
         <MenuCard
           Icon={HeartIcon}
           onClick={() => {
-            selectView({
-              state: "DINNERS",
-            });
+            dispatch(PUSH_VIEW(viewStates.DINNERS()));
           }}
           color="bg-purple-500"
         >
@@ -356,9 +348,7 @@ export const DashboardContent = ({
         <button
           type="button"
           onClick={() => {
-            selectView({
-              state: "EDIT_TODO",
-            });
+            dispatch(PUSH_VIEW(viewStates.EDIT_TODO()));
           }}
           className="z-50 fixed right-6 bottom-14 h-14 w-14 rounded-full inline-flex items-center justify-center px-3 py-2 border border-gray-300 shadow-lg text-sm font-medium  text-gray-500 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
         >
