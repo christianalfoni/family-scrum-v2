@@ -1,11 +1,7 @@
 import { useReducer } from "react";
 import {
   $COMMAND,
-  IAction,
-  ICommand,
-  IState,
   PickCommand,
-  ReturnTypes,
   transition,
   TTransitions,
   useCommandEffect,
@@ -34,7 +30,7 @@ const actions = {
   }),
 };
 
-type Action = ReturnTypes<typeof actions, IAction>;
+type Action = ReturnType<typeof actions[keyof typeof actions]>;
 
 const commands = {
   TOGGLE_WEEKDAY: (params: {
@@ -54,7 +50,7 @@ const commands = {
   }),
 };
 
-type Command = ReturnTypes<typeof commands, ICommand>;
+type Command = ReturnType<typeof commands[keyof typeof commands]>;
 
 const states = {
   PLANNING: (
@@ -68,7 +64,7 @@ const states = {
   }),
 };
 
-type State = ReturnTypes<typeof states, IState>;
+type State = ReturnType<typeof states[keyof typeof states]>;
 
 export const { PLANNING } = states;
 

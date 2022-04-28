@@ -1,5 +1,5 @@
 import { PickState } from "react-states";
-import { Data, LOADED, LOADING, State, viewStates } from "./creators";
+import { Data, LOADED, LOADING, State, viewStates } from "./state";
 
 export const isSameView = (viewA: any, viewB: any) => {
   const viewAKeys = Object.keys(viewA);

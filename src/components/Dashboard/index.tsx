@@ -40,8 +40,7 @@ export const Dashboard = () => {
         LOADING: () => <DashboardSkeleton />,
         REQUIRING_AUTHENTICATION: () => <DashboardSkeleton />,
         LOADED: (loadedDashboard) => {
-          const { viewStack, user, data, POP_VIEW, PUSH_VIEW, REPLACE_VIEW } =
-            loadedDashboard;
+          const { viewStack, data, POP_VIEW } = loadedDashboard;
           const view = viewStack[viewStack.length - 1];
 
           return (

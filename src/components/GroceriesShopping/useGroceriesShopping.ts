@@ -1,13 +1,8 @@
 import { useReducer } from "react";
 import {
   $COMMAND,
-  IAction,
-  ICommand,
-  IState,
   match,
-  pick,
   PickCommand,
-  ReturnTypes,
   transition,
   TTransitions,
   useCommandEffect,
@@ -31,7 +26,7 @@ const actions = {
     type: "TOGGLE_NO_SLEEP" as const,
   }),
 };
-type Action = ReturnTypes<typeof actions, IAction>;
+type Action = ReturnType<typeof actions[keyof typeof actions]>;
 
 const commands = {
   ADD_GROCERY: (name: string) => ({
@@ -44,7 +39,7 @@ const commands = {
   }),
 };
 
-type Command = ReturnTypes<typeof commands, ICommand>;
+type Command = ReturnType<typeof commands[keyof typeof commands]>;
 
 const sleepStates = {
   ALLOW_SLEEP: () => ({
@@ -55,7 +50,7 @@ const sleepStates = {
   }),
 };
 
-type SleepState = ReturnTypes<typeof sleepStates, IState>;
+type SleepState = ReturnType<typeof sleepStates[keyof typeof sleepStates]>;
 
 type BaseState = {
   sleep: SleepState;
@@ -71,13 +66,10 @@ const states = {
     input,
     sleep,
     [$COMMAND]: command,
-    ...pick(
-      actions,
-      "SHOP_GROCERY",
-      "TOGGLE_NO_SLEEP",
-      "GROCERY_INPUT_CHANGED",
-      "ADD_GROCERY"
-    ),
+    SHOP_GROCERY: actions.SHOP_GROCERY,
+    TOGGLE_NO_SLEEP: actions.TOGGLE_NO_SLEEP,
+    GROCERY_INPUT_CHANGED: actions.GROCERY_INPUT_CHANGED,
+    ADD_GROCERY: actions.ADD_GROCERY,
   }),
   UNFILTERED: (
     { sleep }: Pick<BaseState, "sleep">,
@@ -86,16 +78,13 @@ const states = {
     state: "UNFILTERED" as const,
     sleep,
     [$COMMAND]: command,
-    ...pick(
-      actions,
-      "GROCERY_INPUT_CHANGED",
-      "SHOP_GROCERY",
-      "TOGGLE_NO_SLEEP"
-    ),
+    GROCERY_INPUT_CHANGED: actions.GROCERY_INPUT_CHANGED,
+    SHOP_GROCERY: actions.SHOP_GROCERY,
+    TOGGLE_NO_SLEEP: actions.TOGGLE_NO_SLEEP,
   }),
 };
 
-type State = ReturnTypes<typeof states, IState>;
+type State = ReturnType<typeof states[keyof typeof states]>;
 
 export const { FILTERED, UNFILTERED } = states;
 

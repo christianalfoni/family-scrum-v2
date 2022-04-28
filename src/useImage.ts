@@ -1,13 +1,8 @@
-import { useEffect, useReducer } from "react";
+import { Dispatch, useEffect, useReducer } from "react";
 import {
   $COMMAND,
-  IAction,
-  ICommand,
-  IState,
-  pick,
   PickCommand,
   PickState,
-  ReturnTypes,
   transition,
   TTransitions,
   useCommandEffect,
@@ -27,7 +22,7 @@ const actions = {
   }),
 };
 
-type Action = ReturnTypes<typeof actions, IAction>;
+type Action = ReturnType<typeof actions[keyof typeof actions]>;
 
 const commands = {
   CAPTURE: (videoId: string) => ({
@@ -36,7 +31,7 @@ const commands = {
   }),
 };
 
-type Command = ReturnTypes<typeof commands, ICommand>;
+type Command = ReturnType<typeof commands[keyof typeof commands]>;
 
 type BaseState = {
   ref: string;
@@ -53,18 +48,18 @@ const states = {
     state: "LOADED" as const,
     ref,
     src,
-    ...pick(actions, "START_CAPTURE"),
+    START_CAPTURE: actions.START_CAPTURE,
   }),
   CAPTURED: ({ ref, src }: Pick<BaseState, "ref" | "src">) => ({
     state: "CAPTURED" as const,
     ref,
     src,
-    ...pick(actions, "START_CAPTURE"),
+    START_CAPTURE: actions.START_CAPTURE,
   }),
   NOT_FOUND: ({ ref }: Pick<BaseState, "ref">) => ({
     state: "NOT_FOUND" as const,
     ref,
-    ...pick(actions, "START_CAPTURE"),
+    START_CAPTURE: actions.START_CAPTURE,
   }),
   CAPTURING: (
     { ref, videoId }: Pick<BaseState, "ref" | "videoId">,
@@ -74,11 +69,11 @@ const states = {
     ref,
     videoId,
     [$COMMAND]: command,
-    ...pick(actions, "CAPTURE"),
+    CAPTURE: actions.CAPTURE,
   }),
 };
 
-type State = ReturnTypes<typeof states, IState>;
+type State = ReturnType<typeof states[keyof typeof states]>;
 
 export const { CAPTURED, CAPTURING, LOADED, LOADING, NOT_FOUND } = states;
 
@@ -123,7 +118,7 @@ export type ImageState = State;
 
 export type ImageAction = Action;
 
-const reducer = (state: State, action: Action) =>
+const reducer = (state: State, action: Action | EnvironmentEvent) =>
   transition(state, action, transitions);
 
 export const useImage = ({
@@ -132,8 +127,8 @@ export const useImage = ({
 }: {
   ref: string;
   initialState?: State;
-}) => {
-  const { storage, capture, emitter } = useEnvironment();
+}): [State, Dispatch<Action>] => {
+  const { storage, capture, subscribe } = useEnvironment();
   const captureReducer = useReducer(
     reducer,
     initialState || {
@@ -146,7 +141,7 @@ export const useImage = ({
 
   const [state, dispatch] = captureReducer;
 
-  useEffect(() => emitter.subscribe(dispatch), []);
+  useEffect(() => subscribe(dispatch), []);
 
   useStateEffect(state, "LOADING", () => {
     storage.fetchImage(ref);
