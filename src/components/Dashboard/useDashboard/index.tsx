@@ -1,6 +1,5 @@
 import {
   match,
-  PickState,
   transition,
   TTransitions,
   useDevtools,
@@ -12,30 +11,21 @@ import {
   useEnvironment,
 } from "../../../environment-interface";
 import { useSession } from "../../Session";
+import { Dispatch, useEffect, useReducer } from "react";
 import {
-  createContext,
-  Dispatch,
-  useContext,
-  useEffect,
-  useReducer,
-} from "react";
-import {
-  Action,
   ERROR,
   LOADING,
   REQUIRING_AUTHENTICATION,
   LOADED,
   State,
   AWAITING_AUTHENTICATION,
-} from "./creators";
+} from "./state";
 import { evaluateLoadedState, isSameView, updatedLoadedData } from "./utils";
+import { Action } from "./actions";
 
-export { viewStates } from "./creators";
-export type {
-  ViewState,
-  State as DashboardState,
-  Action as DashboardAction,
-} from "./creators";
+export { viewStates } from "./state";
+export type { Action as DashboardAction } from "./actions";
+export type { ViewState, State as DashboardState } from "./state";
 
 const transitions: TTransitions<State, Action | EnvironmentEvent> = {
   AWAITING_AUTHENTICATION: {
@@ -102,15 +92,17 @@ const transitions: TTransitions<State, Action | EnvironmentEvent> = {
   ERROR: {},
 };
 
-const reducer = (state: State, action: Action) =>
+const reducer = (state: State, action: Action | EnvironmentEvent) =>
   transition(state, action, transitions);
 
 export type Props = {
   initialState?: State;
 };
 
-export const useDashboard = ({ initialState }: Props) => {
-  const { storage, emitter } = useEnvironment();
+export const useDashboard = ({
+  initialState,
+}: Props): [State, Dispatch<Action>] => {
+  const { storage, subscribe } = useEnvironment();
   const [session] = useSession();
 
   initialState =
@@ -133,7 +125,7 @@ export const useDashboard = ({ initialState }: Props) => {
 
   const [state, dispatch] = dashboardReducer;
 
-  useEffect(() => emitter.subscribe(dispatch));
+  useEffect(() => subscribe(dispatch));
 
   useStateEffect(state, "LOADING", ({ user }) => {
     storage.configureFamilyCollection(user.familyId);

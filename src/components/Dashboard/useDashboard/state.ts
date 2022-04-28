@@ -1,4 +1,3 @@
-import { IAction, IState, ReturnTypes } from "react-states";
 import { FamilyUserDTO } from "../../../environment-interface/authentication";
 import {
   CheckListItemsByTodoId,
@@ -8,6 +7,7 @@ import {
   TodoDTO,
   WeekDTO,
 } from "../../../environment-interface/storage";
+import { actions } from "./actions";
 
 export type Data = {
   groceries: Record<string, GroceryDTO>;
@@ -19,22 +19,6 @@ export type Data = {
   family: FamilyDTO;
   checkListItemsByTodoId: CheckListItemsByTodoId;
 };
-
-const actions = {
-  PUSH_VIEW: (view: ViewState) => ({
-    type: "PUSH_VIEW" as const,
-    view,
-  }),
-  POP_VIEW: () => ({
-    type: "POP_VIEW" as const,
-  }),
-  REPLACE_VIEW: (view: ViewState) => ({
-    type: "REPLACE_VIEW" as const,
-    view,
-  }),
-};
-
-export type Action = ReturnTypes<typeof actions, IAction>;
 
 export const viewStates = {
   DASHBOARD: () => ({
@@ -63,7 +47,7 @@ export const viewStates = {
   }),
 };
 
-export type ViewState = ReturnTypes<typeof viewStates, IState>;
+export type ViewState = ReturnType<typeof viewStates[keyof typeof viewStates]>;
 
 type BaseState = {
   user: FamilyUserDTO;
@@ -99,7 +83,7 @@ const states = {
   }),
 };
 
-export type State = ReturnTypes<typeof states, IState>;
+export type State = ReturnType<typeof states[keyof typeof states]>;
 
 export const {
   AWAITING_AUTHENTICATION,

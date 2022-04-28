@@ -1,13 +1,8 @@
 import { useReducer } from "react";
 import {
   $COMMAND,
-  IAction,
-  ICommand,
-  IState,
   match,
-  pick,
   PickCommand,
-  ReturnTypes,
   transition,
   TTransitions,
   useCommandEffect,
@@ -44,7 +39,7 @@ const actions = {
   }),
 };
 
-type Action = ReturnTypes<typeof actions, IAction>;
+type Action = ReturnType<typeof actions[keyof typeof actions]>;
 
 const commands = {
   TOGGLE_CHECKLIST_ITEM: (itemId: string) => ({
@@ -64,19 +59,24 @@ const commands = {
   }),
 };
 
+type Command = ReturnType<typeof commands[keyof typeof commands]>;
+
 const addCheckListItemStates = {
   INACTIVE: () => ({
     state: "INACTIVE" as const,
-    ...pick(actions, "SHOW_ADD_CHECKLIST_ITEM"),
+    SHOW_ADD_CHECKLIST_ITEM: actions.SHOW_ADD_CHECKLIST_ITEM,
   }),
   ACTIVE: (newItemTitle: string) => ({
     state: "ACTIVE" as const,
     newItemTitle,
-    ...pick(actions, "CHANGE_NEW_CHECKLIST_ITEM_TITLE", "ADD_CHECKLIST_ITEM"),
+    CHANGE_NEW_CHECKLIST_ITEM_TITLE: actions.CHANGE_NEW_CHECKLIST_ITEM_TITLE,
+    ADD_CHECKLIST_ITEM: actions.ADD_CHECKLIST_ITEM,
   }),
 };
 
-type AddCheckListItemState = ReturnTypes<typeof addCheckListItemStates, IState>;
+type AddCheckListItemState = ReturnType<
+  typeof addCheckListItemStates[keyof typeof addCheckListItemStates]
+>;
 
 const checkListStates = {
   COLLAPSED: () => ({
@@ -85,17 +85,20 @@ const checkListStates = {
   EXPANDED: (addCheckListItem: AddCheckListItemState) => ({
     state: "EXPANDED" as const,
     addCheckListItem,
-    ...pick(actions, "TOGGLE_CHECKLIST_ITEM", "DELETE_CHECKLIST_ITEM"),
+    TOGGLE_CHECKLIST_ITEM: actions.TOGGLE_CHECKLIST_ITEM,
+    DELETE_CHECKLIST_ITEM: actions.DELETE_CHECKLIST_ITEM,
   }),
 };
 
-type CheckListState = ReturnTypes<typeof checkListStates, IState>;
+type CheckListState = ReturnType<
+  typeof checkListStates[keyof typeof checkListStates]
+>;
 
 const states = {
   TODO: (command?: PickCommand<Command, "ARCHIVE_TODO">) => ({
     state: "TODO" as const,
     [$COMMAND]: command,
-    ...pick(actions, "ARCHIVE_TODO"),
+    ARCHIVE_TODO: actions.ARCHIVE_TODO,
   }),
   TODO_WITH_CHECKLIST: (
     checkList: CheckListState,
@@ -110,13 +113,12 @@ const states = {
     state: "TODO_WITH_CHECKLIST" as const,
     checkList,
     [$COMMAND]: command,
-    ...pick(actions, "TOGGLE_SHOW_CHECKLIST", "ARCHIVE_TODO"),
+    TOGGLE_SHOW_CHECKLIST: actions.TOGGLE_SHOW_CHECKLIST,
+    ARCHIVE_TODO: actions.ARCHIVE_TODO,
   }),
 };
 
-type State = ReturnTypes<typeof states, IState>;
-
-type Command = ReturnTypes<typeof commands, ICommand>;
+type State = ReturnType<typeof states[keyof typeof states]>;
 
 export const { TODO, TODO_WITH_CHECKLIST } = states;
 

@@ -1,12 +1,7 @@
-import { useEffect, useReducer } from "react";
+import { Dispatch, useEffect, useReducer } from "react";
 import {
   $COMMAND,
-  IAction,
-  ICommand,
-  IState,
-  pick,
   PickCommand,
-  ReturnTypes,
   transition,
   TTransitions,
   useCommandEffect,
@@ -29,7 +24,7 @@ const actions = {
   }),
 };
 
-export type Action = ReturnTypes<typeof actions, IAction>;
+export type Action = ReturnType<typeof actions[keyof typeof actions]>;
 
 const commands = {
   CHECK_VERSION: () => ({
@@ -37,7 +32,7 @@ const commands = {
   }),
 };
 
-type Command = ReturnTypes<typeof commands, ICommand>;
+type Command = ReturnType<typeof commands[keyof typeof commands]>;
 
 const versionStates = {
   PENDING: () => ({
@@ -57,11 +52,13 @@ const versionStates = {
     state: "EXPIRED" as const,
     version,
     newVersion,
-    ...pick(actions, "UPDATE"),
+    UPDATE: actions.UPDATE,
   }),
 };
 
-export type VersionState = ReturnTypes<typeof versionStates, IState>;
+export type VersionState = ReturnType<
+  typeof versionStates[keyof typeof versionStates]
+>;
 
 const states = {
   VERIFYING_AUTHENTICATION: () => ({
@@ -90,7 +87,7 @@ const states = {
   }),
   SIGNED_OUT: () => ({
     state: "SIGNED_OUT" as const,
-    ...pick(actions, "SIGN_IN"),
+    SIGN_IN: actions.SIGN_IN,
   }),
   ERROR: (error: string) => ({
     state: "ERROR" as const,
@@ -101,7 +98,7 @@ const states = {
   }),
 };
 
-export type State = ReturnTypes<typeof states, IState>;
+export type State = ReturnType<typeof states[keyof typeof states]>;
 
 export type SessionState = State;
 
@@ -160,11 +157,15 @@ const transitions: TTransitions<State, Action | EnvironmentEvent> = {
   UPDATING_VERSION: {},
 };
 
-const reducer = (state: State, action: Action) =>
+const reducer = (state: State, action: Action | EnvironmentEvent) =>
   transition(state, action, transitions);
 
-export const useSession = ({ initialState }: { initialState?: State }) => {
-  const { authentication, version, emitter } = useEnvironment();
+export const useSession = ({
+  initialState,
+}: {
+  initialState?: State;
+}): [State, Dispatch<Action>] => {
+  const { authentication, version, subscribe } = useEnvironment();
   const sessionReducer = useReducer(
     reducer,
     initialState || VERIFYING_AUTHENTICATION()
@@ -174,7 +175,7 @@ export const useSession = ({ initialState }: { initialState?: State }) => {
 
   const [state, dispatch] = sessionReducer;
 
-  useEffect(() => emitter.subscribe(dispatch));
+  useEffect(() => subscribe(dispatch));
 
   useStateEffect(state, "SIGNING_IN", () => authentication.signIn());
 
