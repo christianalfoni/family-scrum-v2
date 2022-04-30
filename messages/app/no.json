@@ -26,6 +26,18 @@
     "planNextWeek": "Planlegg neste uke",
     "dinners": "Middager"
   },
+  "DinnersView": {
+    "dinners": "Middager"
+  },
+  "DinnerView": {
+    "addDinner": "Legger til middag",
+    "name": "Navn",
+    "description": "Beskrivelse",
+    "ingredients": "Ingredienser",
+    "preparationList": "Preppe liste",
+    "instructions": "Instruksjoner",
+    "addInstructionStep": "Legg til instruksjon"
+  },
   "GroceriesView": {
     "groceries": "Matvarer",
     "filterNewGrocery": "Filtrer/Ny Matvare",

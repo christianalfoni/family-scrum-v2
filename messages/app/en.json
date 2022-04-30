@@ -26,6 +26,18 @@
     "events": "Events",
     "dinners": "Dinners"
   },
+  "DinnersView": {
+    "dinners": "Dinners"
+  },
+  "DinnerView": {
+    "addDinner": "Add Dinner",
+    "name": "Name",
+    "description": "Description",
+    "ingredients": "Ingredients",
+    "preparationList": "Preparation list",
+    "instructions": "Instructions",
+    "addInstructionStep": "Add instruction step"
+  },
   "GroceriesView": {
     "groceries": "Groceries",
     "filterNewGrocery": "Filter/New Grocery",

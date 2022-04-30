@@ -11,6 +11,7 @@ import { match, PickState } from "react-states";
 import { DinnerDTO } from "../../environment-interface/storage";
 import { useEditDinner } from "./useEditDinner";
 import { ImageState } from "../../useImage";
+import { useTranslations } from "next-intl";
 
 export const EditDinner = ({
   onBackClick,
@@ -26,6 +27,7 @@ export const EditDinner = ({
     initialDinner,
     onExit: onBackClick,
   });
+  const t = useTranslations("DinnerView");
 
   const {
     dinner,
@@ -78,15 +80,13 @@ export const EditDinner = ({
               <ChevronLeftIcon className="h-6 w-6" aria-hidden="true" />
             </button>
           </div>
-          <h1 className="flex-2 text-lg font-medium">Add Dinner</h1>
+          <h1 className="flex-2 text-lg font-medium">{t("addDinner")}</h1>
           <span className="flex-1" />
         </div>
       </div>
       <div className="h-full overflow-y-scroll">
         {match(imageState, {
-          LOADING: () => (
-            <div className={imageWrapperClassName}>Loading...</div>
-          ),
+          LOADING: () => <div className={imageWrapperClassName}>...</div>,
           LOADED: renderImageFromSource,
           CAPTURED: renderImageFromSource,
           CAPTURING: ({ CAPTURE }) => (
@@ -112,7 +112,7 @@ export const EditDinner = ({
               htmlFor="first_name"
               className="block text-sm font-medium text-gray-700"
             >
-              Name
+              {t("name")}
             </label>
             <input
               type="text"
@@ -123,7 +123,7 @@ export const EditDinner = ({
           </div>
           <div className="mt-4">
             <label className="block text-sm font-medium text-gray-700">
-              Description
+              {t("description")}
             </label>
             <div className="mt-1">
               <textarea
@@ -139,7 +139,7 @@ export const EditDinner = ({
 
           <div className="mt-4">
             <label className="block text-sm font-medium text-gray-700">
-              Ingredients
+              {t("ingredients")}
             </label>
             <div className="flex flex-col mt-1">
               <div className="flex items-center">
@@ -197,7 +197,7 @@ export const EditDinner = ({
           </div>
           <div className="mt-4">
             <label className="block text-sm font-medium text-gray-700">
-              Preparation list
+              {t("preparationList")}
             </label>
             <div className="flex flex-col mt-1">
               <div className="flex items-center">
@@ -261,7 +261,7 @@ export const EditDinner = ({
           </div>
           <div className="mt-4">
             <label className="block text-sm font-medium text-gray-700">
-              Instructions
+              {t("instructions")}
             </label>
             <div className="flex flex-col mt-1">
               {dinner.instructions.map((instruction, index) => (
@@ -300,7 +300,7 @@ export const EditDinner = ({
                 className="flex items-center justify-center p-4 text-gray-500"
                 onClick={() => dispatch(ADD_INSTRUCTION())}
               >
-                <PlusIcon className="w-4 h-4" /> Add instruction step
+                <PlusIcon className="w-4 h-4" /> {t("addInstructionStep")}
               </div>
             </div>
           </div>

@@ -16,8 +16,9 @@ const validateDinner = ({
     : validationStates.INVALID();
 
 export const commands = {
-  EXIT: () => ({
+  EXIT: (dinner: DinnerDTO) => ({
     cmd: "EXIT" as const,
+    dinner
   }),
 };
 

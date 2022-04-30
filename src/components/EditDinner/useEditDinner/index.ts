@@ -120,7 +120,7 @@ const transitions: TTransitions<State, Action> = {
       }),
     SAVE: (state) =>
       state.validation.state === "VALID"
-        ? EDITING(state, commands.EXIT())
+        ? EDITING(state, commands.EXIT(state.dinner))
         : state,
   },
 };
@@ -167,7 +167,10 @@ export const useEditDinner = ({
 
   const [imageState] = imageReducer;
 
-  useCommandEffect(state, "EXIT", onExit);
+  useCommandEffect(state, "EXIT", ({ dinner}) => {
+    storage.storeDinner(dinner)
+    onExit()
+  });
 
   useStateEffect(imageState, "CAPTURED", ({ src }) => {
     dispatch(state.ADD_IMAGE_SOURCE(src));
