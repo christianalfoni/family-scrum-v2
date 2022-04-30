@@ -10,6 +10,7 @@ import {
   viewStates,
 } from "../Dashboard/useDashboard";
 import { PickState } from "react-states";
+import { useTranslations } from "next-intl";
 
 const Dinner = ({
   dinner,
@@ -52,6 +53,7 @@ export const Dinners = ({
 }) => {
   const [{ data, POP_VIEW, PUSH_VIEW }, dispatch] = dashboard;
   const sortedDinners = selectors.sortedDinners(data.dinners);
+  const t = useTranslations("DinnersView");
 
   return (
     <div className="bg-white flex flex-col h-screen">
@@ -65,7 +67,7 @@ export const Dinners = ({
               <ChevronLeftIcon className="h-6 w-6" aria-hidden="true" />
             </button>
           </div>
-          <h1 className="flex-2 text-lg font-medium">Dinners</h1>
+          <h1 className="flex-2 text-lg font-medium">{t('dinners')}</h1>
           <div className="flex-1 flex">
             <button
               className="ml-auto"
