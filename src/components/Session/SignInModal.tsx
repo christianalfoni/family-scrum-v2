@@ -14,17 +14,15 @@ export const SignInModal = () => {
   const t = useTranslations("SignInModal");
   const [session, dispatch] = useSession();
 
-  const open = match(session, {
-    ERROR: () => true,
-    SIGNED_OUT: () => true,
-    NO_FAMILY: () => true,
-    SIGNED_IN: () => false,
-    VERIFYING_AUTHENTICATION: () => false,
-    SIGNING_IN: () => false,
-    CREATING_FAMILY: () => false,
-    JOINING_FAMILY: () => false,
-    UPDATING_VERSION: () => false,
-  });
+  const open = match(
+    session,
+    {
+      ERROR: () => true,
+      SIGNED_OUT: () => true,
+      NO_FAMILY: () => true,
+    },
+    () => false
+  );
 
   return (
     <Transition.Root show={open} as={Fragment}>

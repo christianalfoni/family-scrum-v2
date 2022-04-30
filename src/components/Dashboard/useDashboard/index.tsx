@@ -107,17 +107,14 @@ export const useDashboard = ({
 
   initialState =
     initialState ||
-    match(session, {
-      VERIFYING_AUTHENTICATION: () => AWAITING_AUTHENTICATION(),
-      SIGNING_IN: () => AWAITING_AUTHENTICATION(),
-      ERROR: () => AWAITING_AUTHENTICATION(),
-      NO_FAMILY: () => AWAITING_AUTHENTICATION(),
-      JOINING_FAMILY: () => AWAITING_AUTHENTICATION(),
-      CREATING_FAMILY: () => AWAITING_AUTHENTICATION(),
-      UPDATING_VERSION: () => AWAITING_AUTHENTICATION(),
-      SIGNED_OUT: () => REQUIRING_AUTHENTICATION(),
-      SIGNED_IN: ({ user }) => LOADING({ user, data: {} }),
-    });
+    match(
+      session,
+      {
+        SIGNED_OUT: () => REQUIRING_AUTHENTICATION(),
+        SIGNED_IN: ({ user }) => LOADING({ user, data: {} }),
+      },
+      () => AWAITING_AUTHENTICATION()
+    );
 
   const dashboardReducer = useReducer(reducer, initialState);
 
