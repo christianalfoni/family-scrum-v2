@@ -34,51 +34,53 @@ export const Dashboard = () => {
 
   return (
     <div className="h-screen overflow-hidden bg-gray-100 flex flex-col">
-      {match(dashboard, {
-        AWAITING_AUTHENTICATION: () => <DashboardSkeleton />,
-        ERROR: () => <DashboardSkeleton />,
-        LOADING: () => <DashboardSkeleton />,
-        REQUIRING_AUTHENTICATION: () => <DashboardSkeleton />,
-        LOADED: (loadedDashboard) => {
-          const { viewStack, data, POP_VIEW } = loadedDashboard;
-          const view = viewStack[viewStack.length - 1];
+      {match(
+        dashboard,
+        {
+          LOADED: (loadedDashboard) => {
+            const { viewStack, data, POP_VIEW } = loadedDashboard;
+            const view = viewStack[viewStack.length - 1];
 
-          return (
-            <LoadedDashboardProvider
-              loadedDashboard={[loadedDashboard, dispatch]}
-            >
-              {match(view, {
-                DASHBOARD: () => <DashboardContent />,
-                GROCERIES_SHOPPING: () => <GroceriesShopping />,
-                CHECKLISTS: () => <CheckLists />,
-                PLAN_NEXT_WEEK: ({ subView }) => (
-                  <PlanNextWeek view={subView} />
-                ),
-                DINNERS: () => (
-                  <Dinners dashboard={[loadedDashboard, dispatch]} />
-                ),
-                EDIT_DINNER: ({ id }) => (
-                  <EditDinner
-                    initialDinner={id ? data.dinners[id] : undefined}
-                    onBackClick={() => {
-                      dispatch(POP_VIEW());
-                    }}
-                  />
-                ),
-                EDIT_TODO: ({ id }) => (
-                  <EditTodo
-                    todo={id ? data.todos[id] : undefined}
-                    checkListItemsByTodoId={data.checkListItemsByTodoId}
-                    onBackClick={() => {
-                      dispatch(POP_VIEW());
-                    }}
-                  />
-                ),
-              })}
-            </LoadedDashboardProvider>
-          );
+            return (
+              <LoadedDashboardProvider
+                loadedDashboard={[loadedDashboard, dispatch]}
+              >
+                {match(view, {
+                  DASHBOARD: () => <DashboardContent />,
+                  GROCERIES_SHOPPING: () => <GroceriesShopping />,
+                  CHECKLISTS: () => <CheckLists />,
+                  PLAN_NEXT_WEEK: ({ subView }) => (
+                    <PlanNextWeek view={subView} />
+                  ),
+                  DINNERS: () => (
+                    <Dinners dashboard={[loadedDashboard, dispatch]} />
+                  ),
+                  EDIT_DINNER: ({ id }) => (
+                    <EditDinner
+                      initialDinner={id ? data.dinners[id] : undefined}
+                      onBackClick={() => {
+                        dispatch(POP_VIEW());
+                      }}
+                    />
+                  ),
+                  EDIT_TODO: ({ id }) => (
+                    <EditTodo
+                      todo={id ? data.todos[id] : undefined}
+                      checkListItemsByTodoId={data.checkListItemsByTodoId}
+                      onBackClick={() => {
+                        dispatch(POP_VIEW());
+                      }}
+                    />
+                  ),
+                })}
+              </LoadedDashboardProvider>
+            );
+          },
         },
-      })}
+        (state) => (
+          <DashboardSkeleton />
+        )
+      )}
     </div>
   );
 };

@@ -51,23 +51,6 @@ export const EditDinner = ({
   const imageWrapperClassName =
     "flex h-40 bg-gray-500 items-center justify-center w-full text-gray-300";
 
-  const renderImageFromSource = ({
-    src,
-    START_CAPTURE,
-  }: PickState<ImageState, "LOADED" | "CAPTURED">) => (
-    <div
-      className={imageWrapperClassName}
-      style={{
-        backgroundImage: `url(${src})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center center",
-      }}
-      onClick={() => imageDispatch(START_CAPTURE(dinner.id))}
-    >
-      <CameraIcon className="w-6 h-6 text-white" />
-    </div>
-  );
-
   return (
     <div className="bg-white flex flex-col h-screen">
       <div className="pl-4 pr-6 pt-4 pb-4 border-b border-t border-gray-200 sm:pl-6 lg:pl-8 xl:pl-6 xl:pt-6 xl:border-t-0">
@@ -85,26 +68,40 @@ export const EditDinner = ({
         </div>
       </div>
       <div className="h-full overflow-y-scroll">
-        {match(imageState, {
-          LOADING: () => <div className={imageWrapperClassName}>...</div>,
-          LOADED: renderImageFromSource,
-          CAPTURED: renderImageFromSource,
-          CAPTURING: ({ CAPTURE }) => (
-            <video
-              id={dinner.id}
-              className={imageWrapperClassName}
-              onClick={() => imageDispatch(CAPTURE(dinner.id))}
-            ></video>
-          ),
-          NOT_FOUND: ({ START_CAPTURE }) => (
+        {match(
+          imageState,
+          {
+            LOADING: () => <div className={imageWrapperClassName}>...</div>,
+            CAPTURING: ({ CAPTURE }) => (
+              <video
+                id={dinner.id}
+                className={imageWrapperClassName}
+                onClick={() => imageDispatch(CAPTURE(dinner.id))}
+              ></video>
+            ),
+            NOT_FOUND: ({ START_CAPTURE }) => (
+              <div
+                className={imageWrapperClassName}
+                onClick={() => imageDispatch(START_CAPTURE(dinner.id))}
+              >
+                <CameraIcon className="w-6 h-6 text-white" />
+              </div>
+            ),
+          },
+          ({ START_CAPTURE, src }) => (
             <div
               className={imageWrapperClassName}
+              style={{
+                backgroundImage: `url(${src})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center center",
+              }}
               onClick={() => imageDispatch(START_CAPTURE(dinner.id))}
             >
               <CameraIcon className="w-6 h-6 text-white" />
             </div>
-          ),
-        })}
+          )
+        )}
 
         <div className="p-4 flex flex-col">
           <div className="col-span-12 sm:col-span-6">
