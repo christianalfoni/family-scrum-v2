@@ -1,19 +1,4 @@
-import { $COMMAND, PickCommand } from "react-states";
 import { actions } from "./actions";
-
-export const commands = {
-  ADD_TODO: (params: {
-    description: string;
-    date?: number;
-    time?: string;
-    checkList?: Array<{ title: string; id?: string }>;
-  }) => ({
-    cmd: "ADD_TODO" as const,
-    ...params,
-  }),
-};
-
-type Command = ReturnType<typeof commands[keyof typeof commands]>;
 
 export const dateStates = {
   INACTIVE: () => ({
@@ -79,10 +64,7 @@ type BaseState = {
 };
 
 const states = {
-  EDITING: (
-    { checkList, date, description, time }: BaseState,
-    command?: PickCommand<Command, "ADD_TODO">
-  ) => {
+  EDITING: ({ checkList, date, description, time }: BaseState) => {
     const validation = description
       ? validationStates.VALID()
       : validationStates.INVALID();
@@ -94,7 +76,6 @@ const states = {
       date,
       checkList,
       validation,
-      [$COMMAND]: command && validation.state === "VALID" ? command : undefined,
       DESCRIPTION_CHANGED: actions.DESCRIPTION_CHANGED,
       TIME_TOGGLED: actions.TIME_TOGGLED,
       DATE_TOGGLED: actions.DATE_TOGGLED,

@@ -1,19 +1,16 @@
 import { useReducer } from "react";
 import {
-  $COMMAND,
-  PickCommand,
   transition,
   TTransitions,
-  useCommandEffect,
   useDevtools,
-  useStateEffect,
+  useTransitionEffect,
 } from "react-states";
 
 import { useEnvironment } from "../../../environment-interface";
 import { DinnerDTO } from "../../../environment-interface/storage";
 import { useImage } from "../../../useImage";
 import { Action } from "./actions";
-import { commands, State, EDITING } from "./state";
+import { State, EDITING } from "./state";
 
 const transitions: TTransitions<State, Action> = {
   EDITING: {
@@ -119,9 +116,7 @@ const transitions: TTransitions<State, Action> = {
         imageSrc: src,
       }),
     SAVE: (state) =>
-      state.validation.state === "VALID"
-        ? EDITING(state, commands.EXIT(state.dinner))
-        : state,
+      state.validation.state === "VALID" ? EDITING(state) : state,
   },
 };
 
@@ -167,12 +162,12 @@ export const useEditDinner = ({
 
   const [imageState] = imageReducer;
 
-  useCommandEffect(state, "EXIT", ({ dinner}) => {
-    storage.storeDinner(dinner)
-    onExit()
+  useTransitionEffect(state, "EDITING", "SAVE", ({ dinner }) => {
+    storage.storeDinner(dinner);
+    onExit();
   });
 
-  useStateEffect(imageState, "CAPTURED", ({ src }) => {
+  useTransitionEffect(imageState, "CAPTURED", ({ src }) => {
     dispatch(state.ADD_IMAGE_SOURCE(src));
   });
 

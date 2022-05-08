@@ -1,13 +1,10 @@
 import { Dispatch, useEffect, useReducer } from "react";
 import {
-  $COMMAND,
-  PickCommand,
   PickState,
   transition,
   TTransitions,
-  useCommandEffect,
   useDevtools,
-  useStateEffect,
+  useTransitionEffect,
 } from "react-states";
 import { EnvironmentEvent, useEnvironment } from "./environment-interface";
 
@@ -23,15 +20,6 @@ const actions = {
 };
 
 type Action = ReturnType<typeof actions[keyof typeof actions]>;
-
-const commands = {
-  CAPTURE: (videoId: string) => ({
-    cmd: "CAPTURE" as const,
-    videoId,
-  }),
-};
-
-type Command = ReturnType<typeof commands[keyof typeof commands]>;
 
 type BaseState = {
   ref: string;
@@ -61,14 +49,10 @@ const states = {
     ref,
     START_CAPTURE: actions.START_CAPTURE,
   }),
-  CAPTURING: (
-    { ref, videoId }: Pick<BaseState, "ref" | "videoId">,
-    command?: PickCommand<Command, "CAPTURE">
-  ) => ({
+  CAPTURING: ({ ref, videoId }: Pick<BaseState, "ref" | "videoId">) => ({
     state: "CAPTURING" as const,
     ref,
     videoId,
-    [$COMMAND]: command,
     CAPTURE: actions.CAPTURE,
   }),
 };
@@ -108,8 +92,7 @@ const transitions: TTransitions<State, Action | EnvironmentEvent> = {
     START_CAPTURE,
   },
   CAPTURING: {
-    CAPTURE: ({ ref }, { videoId }) =>
-      CAPTURING({ ref, videoId }, commands.CAPTURE(videoId)),
+    CAPTURE: ({ ref }, { videoId }) => CAPTURING({ ref, videoId }),
     "CAPTURE:CAPTURED": ({ ref }, { src }) => CAPTURED({ ref, src }),
   },
 };
@@ -143,15 +126,15 @@ export const useImage = ({
 
   useEffect(() => subscribe(dispatch), []);
 
-  useStateEffect(state, "LOADING", () => {
+  useTransitionEffect(state, "LOADING", () => {
     storage.fetchImage(ref);
   });
 
-  useStateEffect(state, "CAPTURING", ({ videoId }) => {
+  useTransitionEffect(state, "CAPTURING", ({ videoId }) => {
     capture.startCamera(videoId);
   });
 
-  useCommandEffect(state, "CAPTURE", ({ videoId }) => {
+  useTransitionEffect(state, "CAPTURING", "CAPTURE", ({ videoId }) => {
     capture.capture(videoId, 100, 100);
   });
 
