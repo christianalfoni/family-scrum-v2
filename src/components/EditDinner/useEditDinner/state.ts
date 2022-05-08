@@ -1,4 +1,3 @@
-import { $COMMAND, PickCommand } from "react-states";
 import { DinnerDTO } from "../../../environment-interface/storage";
 import { actions } from "./actions";
 
@@ -14,15 +13,6 @@ const validateDinner = ({
   name.length && description.length && instructions.length
     ? validationStates.VALID()
     : validationStates.INVALID();
-
-export const commands = {
-  EXIT: (dinner: DinnerDTO) => ({
-    cmd: "EXIT" as const,
-    dinner
-  }),
-};
-
-type Command = ReturnType<typeof commands[keyof typeof commands]>;
 
 const validationStates = {
   VALID: () => ({
@@ -45,22 +35,19 @@ type BaseState = {
 };
 
 const states = {
-  EDITING: (
-    {
-      dinner,
-      newIngredientName,
-      newPreparationDescription,
-      imageSrc,
-    }: BaseState,
-    command?: PickCommand<Command, "EXIT">
-  ) => ({
+  EDITING: ({
+    dinner,
+    newIngredientName,
+    newPreparationDescription,
+    imageSrc,
+  }: BaseState) => ({
     state: "EDITING" as const,
     dinner,
     newIngredientName,
     newPreparationDescription,
     imageSrc,
     validation: validateDinner(dinner),
-    [$COMMAND]: command,
+
     ...actions,
   }),
 };

@@ -1,12 +1,9 @@
 import { Dispatch, useEffect, useReducer } from "react";
 import {
-  $COMMAND,
-  PickCommand,
   transition,
   TTransitions,
-  useCommandEffect,
   useDevtools,
-  useStateEffect,
+  useTransitionEffect,
 } from "react-states";
 import { EnvironmentEvent, useEnvironment } from "../../environment-interface";
 
@@ -25,14 +22,6 @@ const actions = {
 };
 
 export type Action = ReturnType<typeof actions[keyof typeof actions]>;
-
-const commands = {
-  CHECK_VERSION: () => ({
-    cmd: "CHECK_VERSION" as const,
-  }),
-};
-
-type Command = ReturnType<typeof commands[keyof typeof commands]>;
 
 const versionStates = {
   PENDING: () => ({
@@ -76,14 +65,10 @@ const states = {
   JOINING_FAMILY: () => ({
     state: "JOINING_FAMILY" as const,
   }),
-  SIGNED_IN: (
-    { user, version }: { user: User; version: VersionState },
-    command?: PickCommand<Command, "CHECK_VERSION">
-  ) => ({
+  SIGNED_IN: ({ user, version }: { user: User; version: VersionState }) => ({
     state: "SIGNED_IN" as const,
     user,
     version,
-    [$COMMAND]: command,
   }),
   SIGNED_OUT: () => ({
     state: "SIGNED_OUT" as const,
@@ -137,14 +122,8 @@ const transitions: TTransitions<State, Action | EnvironmentEvent> = {
         user,
         version: versionStates.EXPIRED({ version, newVersion }),
       }),
-    "VISIBILITY:VISIBLE": ({ user, version }) =>
-      SIGNED_IN(
-        {
-          user,
-          version,
-        },
-        commands.CHECK_VERSION()
-      ),
+    "VISIBILITY:VISIBLE": (state) =>
+      SIGNED_IN({ ...state, version: versionStates.PENDING() }),
     UPDATE: () => UPDATING_VERSION(),
   },
   SIGNED_OUT: {
@@ -177,13 +156,15 @@ export const useSession = ({
 
   useEffect(() => subscribe(dispatch));
 
-  useStateEffect(state, "SIGNING_IN", () => authentication.signIn());
+  useTransitionEffect(state, "SIGNING_IN", () => authentication.signIn());
 
-  useStateEffect(state, "SIGNED_IN", () => version.checkVersion());
+  useTransitionEffect(state, "SIGNED_IN", () => version.checkVersion());
 
-  useStateEffect(state, "UPDATING_VERSION", () => version.update());
+  useTransitionEffect(state, "UPDATING_VERSION", () => version.update());
 
-  useCommandEffect(state, "CHECK_VERSION", () => version.checkVersion());
+  useTransitionEffect(state, "SIGNED_IN", "VISIBILITY:VISIBLE", () =>
+    version.checkVersion()
+  );
 
   return sessionReducer;
 };

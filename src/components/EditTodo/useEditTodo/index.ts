@@ -3,8 +3,8 @@ import {
   match,
   transition,
   TTransitions,
-  useCommandEffect,
   useDevtools,
+  useTransitionEffect,
 } from "react-states";
 import { useEnvironment } from "../../../environment-interface";
 import {
@@ -16,7 +16,6 @@ import * as selectors from "../../../selectors";
 import { Action } from "./actions";
 import {
   checklistStates,
-  commands,
   dateStates,
   EDITING,
   State,
@@ -91,29 +90,12 @@ const transitions: TTransitions<State, Action> = {
         }),
       }),
     ADD_TODO: ({ description, date, time, checkList }) =>
-      EDITING(
-        {
-          checkList,
-          date,
-          description,
-          time,
-        },
-        commands.ADD_TODO({
-          description,
-          checkList: match(checkList, {
-            ACTIVE: ({ items }) => items,
-            INACTIVE: () => undefined,
-          }),
-          date: match(date, {
-            ACTIVE: ({ date }) => date,
-            INACTIVE: () => undefined,
-          }),
-          time: match(time, {
-            ACTIVE: ({ time }) => time,
-            INACTIVE: () => undefined,
-          }),
-        })
-      ),
+      EDITING({
+        checkList,
+        date,
+        description,
+        time,
+      }),
   },
 };
 
@@ -164,23 +146,32 @@ export const useEditTodo = ({
 
   const [state] = todoReducer;
 
-  useCommandEffect(
+  useTransitionEffect(
     state,
+    "EDITING",
     "ADD_TODO",
     ({ description, checkList, date, time }) => {
       storage.storeTodo(
         {
           id: todo ? todo.id : storage.createTodoId(),
           description,
-          date,
-          time,
+          date: match(date, {
+            ACTIVE: ({ date }) => date,
+            INACTIVE: () => undefined,
+          }),
+          time: match(time, {
+            ACTIVE: ({ time }) => time,
+            INACTIVE: () => undefined,
+          }),
         },
-        checkList
-          ? checkList.map(({ title, id }) => ({
+        match(checkList, {
+          ACTIVE: ({ items }) =>
+            items.map(({ title, id }) => ({
               id: id || storage.createCheckListItemId(),
               title,
-            }))
-          : undefined
+            })),
+          INACTIVE: () => undefined,
+        })
       );
       onExit();
     }

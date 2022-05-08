@@ -1,11 +1,9 @@
 import { useReducer } from "react";
 import {
-  $COMMAND,
-  PickCommand,
   transition,
   TTransitions,
-  useCommandEffect,
   useDevtools,
+  useTransitionEffect,
 } from "react-states";
 
 import { useEnvironment } from "../../environment-interface";
@@ -32,34 +30,11 @@ const actions = {
 
 type Action = ReturnType<typeof actions[keyof typeof actions]>;
 
-const commands = {
-  TOGGLE_WEEKDAY: (params: {
-    todoId: string;
-    weekdayIndex: number;
-    active: boolean;
-  }) => ({
-    cmd: "TOGGLE_WEEKDAY" as const,
-    ...params,
-  }),
-  CHANGE_WEEKDAY_DINNER: (params: {
-    weekdayIndex: number;
-    dinnerId: string | null;
-  }) => ({
-    cmd: "CHANGE_WEEKDAY_DINNER" as const,
-    ...params,
-  }),
-};
-
-type Command = ReturnType<typeof commands[keyof typeof commands]>;
-
 const states = {
-  PLANNING: (
-    { userId }: { userId: string },
-    command?: PickCommand<Command, "TOGGLE_WEEKDAY" | "CHANGE_WEEKDAY_DINNER">
-  ) => ({
+  PLANNING: ({ userId }: { userId: string }) => ({
     state: "PLANNING" as const,
     userId,
-    [$COMMAND]: command,
+
     ...actions,
   }),
 };
@@ -71,24 +46,9 @@ export const { PLANNING } = states;
 const transitions: TTransitions<State, Action> = {
   PLANNING: {
     CHANGE_WEEKDAY_DINNER: (state, { dinnerId, weekdayIndex }) =>
-      PLANNING(
-        state,
-        commands.CHANGE_WEEKDAY_DINNER({
-          dinnerId,
-          weekdayIndex,
-        })
-      ),
-    TOGGLE_WEEKDAY: (state, { userId, todoId, weekdayIndex, active }) =>
-      userId === state.userId
-        ? PLANNING(
-            { userId: state.userId },
-            commands.TOGGLE_WEEKDAY({
-              todoId,
-              weekdayIndex,
-              active,
-            })
-          )
-        : state,
+      PLANNING(state),
+    TOGGLE_WEEKDAY: (state, { userId }) =>
+      userId === state.userId ? PLANNING(state) : state,
   },
 };
 
@@ -114,10 +74,11 @@ export const usePlanNextWeek = ({
 
   const [state] = planNextWeekReducer;
 
-  useCommandEffect(
+  useTransitionEffect(
     state,
+    "PLANNING",
     "TOGGLE_WEEKDAY",
-    ({ todoId, weekdayIndex, active }) => {
+    (_, { todoId, weekdayIndex, active }) => {
       storage.setWeekTaskActivity({
         weekId,
         todoId,
@@ -128,10 +89,11 @@ export const usePlanNextWeek = ({
     }
   );
 
-  useCommandEffect(
+  useTransitionEffect(
     state,
+    "PLANNING",
     "CHANGE_WEEKDAY_DINNER",
-    ({ weekdayIndex, dinnerId }) => {
+    (_, { weekdayIndex, dinnerId }) => {
       storage.setWeekDinner({
         weekId,
         dinnerId,

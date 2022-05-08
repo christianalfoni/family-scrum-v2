@@ -1,12 +1,10 @@
 import { useReducer } from "react";
 import {
-  $COMMAND,
   match,
-  PickCommand,
   transition,
   TTransitions,
-  useCommandEffect,
   useDevtools,
+  useTransitionEffect,
 } from "react-states";
 import { useEnvironment } from "../../environment-interface";
 
@@ -28,19 +26,6 @@ const actions = {
 };
 type Action = ReturnType<typeof actions[keyof typeof actions]>;
 
-const commands = {
-  ADD_GROCERY: (name: string) => ({
-    cmd: "ADD_GROCERY" as const,
-    name,
-  }),
-  SHOP_GROCERY: (groceryId: string) => ({
-    cmd: "SHOP_GROCERY" as const,
-    groceryId,
-  }),
-};
-
-type Command = ReturnType<typeof commands[keyof typeof commands]>;
-
 const sleepStates = {
   ALLOW_SLEEP: () => ({
     state: "ALLOW_SLEEP" as const,
@@ -58,26 +43,18 @@ type BaseState = {
 };
 
 const states = {
-  FILTERED: (
-    { sleep, input }: Pick<BaseState, "sleep" | "input">,
-    command?: PickCommand<Command, "ADD_GROCERY" | "SHOP_GROCERY">
-  ) => ({
+  FILTERED: ({ sleep, input }: Pick<BaseState, "sleep" | "input">) => ({
     state: "FILTERED" as const,
     input,
     sleep,
-    [$COMMAND]: command,
     SHOP_GROCERY: actions.SHOP_GROCERY,
     TOGGLE_NO_SLEEP: actions.TOGGLE_NO_SLEEP,
     GROCERY_INPUT_CHANGED: actions.GROCERY_INPUT_CHANGED,
     ADD_GROCERY: actions.ADD_GROCERY,
   }),
-  UNFILTERED: (
-    { sleep }: Pick<BaseState, "sleep">,
-    command?: PickCommand<Command, "SHOP_GROCERY">
-  ) => ({
+  UNFILTERED: ({ sleep }: Pick<BaseState, "sleep">) => ({
     state: "UNFILTERED" as const,
     sleep,
-    [$COMMAND]: command,
     GROCERY_INPUT_CHANGED: actions.GROCERY_INPUT_CHANGED,
     SHOP_GROCERY: actions.SHOP_GROCERY,
     TOGGLE_NO_SLEEP: actions.TOGGLE_NO_SLEEP,
@@ -88,13 +65,9 @@ type State = ReturnType<typeof states[keyof typeof states]>;
 
 export const { FILTERED, UNFILTERED } = states;
 
-const SHOP_GROCERY = (state: State, { groceryId }: { groceryId: string }) =>
-  match(state, {
-    UNFILTERED: (unfilteredState) =>
-      UNFILTERED(unfilteredState, commands.SHOP_GROCERY(groceryId)),
-    FILTERED: (filteredState) =>
-      FILTERED(filteredState, commands.SHOP_GROCERY(groceryId)),
-  });
+const SHOP_GROCERY = (state: State) => ({
+  ...state,
+});
 
 const TOGGLE_NO_SLEEP = (state: State) =>
   match(state, {
@@ -140,13 +113,10 @@ const transitions: TTransitions<State, Action> = {
     SHOP_GROCERY,
     TOGGLE_NO_SLEEP,
     ADD_GROCERY: (state) =>
-      FILTERED(
-        {
-          ...state,
-          input: "",
-        },
-        commands.ADD_GROCERY(state.input)
-      ),
+      FILTERED({
+        ...state,
+        input: "",
+      }),
   },
 };
 
@@ -170,12 +140,21 @@ export const useGroceriesShopping = ({
 
   const [state] = groceriesShoppingReducer;
 
-  useCommandEffect(state, "ADD_GROCERY", ({ name }) => {
+  useTransitionEffect(state, "FILTERED", "ADD_GROCERY", ({ input }) => {
     storage.storeGrocery({
       id: storage.createGroceryId(),
-      name,
+      name: input,
     });
   });
+
+  useTransitionEffect(
+    state,
+    ["FILTERED", "UNFILTERED"],
+    "SHOP_GROCERY",
+    (_, { groceryId }) => {
+      storage.deleteGrocery(groceryId);
+    }
+  );
 
   return groceriesShoppingReducer;
 };
