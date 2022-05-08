@@ -147,9 +147,14 @@ export const useGroceriesShopping = ({
     });
   });
 
-  useTransitionEffect(state, "FILTERED", "SHOP_GROCERY", (_, { groceryId }) => {
-    storage.deleteGrocery(groceryId);
-  });
+  useTransitionEffect(
+    state,
+    ["FILTERED", "UNFILTERED"],
+    "SHOP_GROCERY",
+    (_, { groceryId }) => {
+      storage.deleteGrocery(groceryId);
+    }
+  );
 
   return groceriesShoppingReducer;
 };

@@ -1,12 +1,10 @@
 import { useReducer } from "react";
 import {
-  $COMMAND,
   match,
-  PickCommand,
   transition,
   TTransitions,
-  useCommandEffect,
   useDevtools,
+  useTransitionEffect,
 } from "react-states";
 import { useEnvironment } from "../../environment-interface";
 import { FamilyUserDTO } from "../../environment-interface/authentication";
@@ -24,15 +22,12 @@ const actions = {
     type: "DELETE_CHECKLIST_ITEM" as const,
     itemId,
   }),
-  ADD_CHECKLIST_ITEM: () => ({
+  ADD_CHECKLIST_ITEM: (title: string) => ({
     type: "ADD_CHECKLIST_ITEM" as const,
+    title,
   }),
   TOGGLE_SHOW_CHECKLIST: () => ({
     type: "TOGGLE_SHOW_CHECKLIST" as const,
-  }),
-  CHANGE_NEW_CHECKLIST_ITEM_TITLE: (title: string) => ({
-    type: "CHANGE_NEW_CHECKLIST_ITEM_TITLE" as const,
-    title,
   }),
   SHOW_ADD_CHECKLIST_ITEM: () => ({
     type: "SHOW_ADD_CHECKLIST_ITEM" as const,
@@ -41,35 +36,13 @@ const actions = {
 
 type Action = ReturnType<typeof actions[keyof typeof actions]>;
 
-const commands = {
-  TOGGLE_CHECKLIST_ITEM: (itemId: string) => ({
-    cmd: "TOGGLE_CHECKLIST_ITEM" as const,
-    itemId,
-  }),
-  DELETE_CHECKLIST_ITEM: (itemId: string) => ({
-    cmd: "DELETE_CHECKLIST_ITEM" as const,
-    itemId,
-  }),
-  ADD_CHECKLIST_ITEM: (title: string) => ({
-    cmd: "ADD_CHECKLIST_ITEM" as const,
-    title,
-  }),
-  ARCHIVE_TODO: () => ({
-    cmd: "ARCHIVE_TODO" as const,
-  }),
-};
-
-type Command = ReturnType<typeof commands[keyof typeof commands]>;
-
 const addCheckListItemStates = {
   INACTIVE: () => ({
     state: "INACTIVE" as const,
     SHOW_ADD_CHECKLIST_ITEM: actions.SHOW_ADD_CHECKLIST_ITEM,
   }),
-  ACTIVE: (newItemTitle: string) => ({
+  ACTIVE: () => ({
     state: "ACTIVE" as const,
-    newItemTitle,
-    CHANGE_NEW_CHECKLIST_ITEM_TITLE: actions.CHANGE_NEW_CHECKLIST_ITEM_TITLE,
     ADD_CHECKLIST_ITEM: actions.ADD_CHECKLIST_ITEM,
   }),
 };
@@ -95,24 +68,13 @@ type CheckListState = ReturnType<
 >;
 
 const states = {
-  TODO: (command?: PickCommand<Command, "ARCHIVE_TODO">) => ({
+  TODO: () => ({
     state: "TODO" as const,
-    [$COMMAND]: command,
     ARCHIVE_TODO: actions.ARCHIVE_TODO,
   }),
-  TODO_WITH_CHECKLIST: (
-    checkList: CheckListState,
-    command?: PickCommand<
-      Command,
-      | "ARCHIVE_TODO"
-      | "ADD_CHECKLIST_ITEM"
-      | "DELETE_CHECKLIST_ITEM"
-      | "TOGGLE_CHECKLIST_ITEM"
-    >
-  ) => ({
+  TODO_WITH_CHECKLIST: (checkList: CheckListState) => ({
     state: "TODO_WITH_CHECKLIST" as const,
     checkList,
-    [$COMMAND]: command,
     TOGGLE_SHOW_CHECKLIST: actions.TOGGLE_SHOW_CHECKLIST,
     ARCHIVE_TODO: actions.ARCHIVE_TODO,
   }),
@@ -124,43 +86,25 @@ export const { TODO, TODO_WITH_CHECKLIST } = states;
 
 const transitions: TTransitions<State, Action> = {
   TODO: {
-    ARCHIVE_TODO: (state) => TODO(commands.ARCHIVE_TODO()),
+    ARCHIVE_TODO: () => TODO(),
   },
   TODO_WITH_CHECKLIST: {
-    ARCHIVE_TODO: (state) =>
-      TODO_WITH_CHECKLIST(state.checkList, commands.ARCHIVE_TODO()),
-    TOGGLE_CHECKLIST_ITEM: (state, { itemId }) =>
-      TODO_WITH_CHECKLIST(
-        state.checkList,
-        commands.TOGGLE_CHECKLIST_ITEM(itemId)
-      ),
-    DELETE_CHECKLIST_ITEM: (state, { itemId }) =>
-      TODO_WITH_CHECKLIST(
-        state.checkList,
-        commands.DELETE_CHECKLIST_ITEM(itemId)
-      ),
+    ARCHIVE_TODO: (state) => TODO_WITH_CHECKLIST(state.checkList),
+    TOGGLE_CHECKLIST_ITEM: (state) =>
+      match(state.checkList, {
+        COLLAPSED: () => state,
+        EXPANDED: () => TODO_WITH_CHECKLIST(state.checkList),
+      }),
+    DELETE_CHECKLIST_ITEM: (state) => TODO_WITH_CHECKLIST(state.checkList),
     ADD_CHECKLIST_ITEM: (state) =>
       match(state.checkList, {
         COLLAPSED: () => state,
         EXPANDED: ({ addCheckListItem }) =>
           match(addCheckListItem, {
             INACTIVE: () => state,
-            ACTIVE: ({ newItemTitle }) =>
+            ACTIVE: () =>
               TODO_WITH_CHECKLIST(
-                checkListStates.EXPANDED(addCheckListItemStates.INACTIVE()),
-                commands.ADD_CHECKLIST_ITEM(newItemTitle)
-              ),
-          }),
-      }),
-    CHANGE_NEW_CHECKLIST_ITEM_TITLE: (state, { title }) =>
-      match(state.checkList, {
-        COLLAPSED: () => state,
-        EXPANDED: ({ addCheckListItem }) =>
-          match(addCheckListItem, {
-            INACTIVE: () => state,
-            ACTIVE: ({ newItemTitle }) =>
-              TODO_WITH_CHECKLIST(
-                checkListStates.EXPANDED(addCheckListItemStates.ACTIVE(title))
+                checkListStates.EXPANDED(addCheckListItemStates.INACTIVE())
               ),
           }),
       }),
@@ -177,7 +121,7 @@ const transitions: TTransitions<State, Action> = {
         COLLAPSED: () => state,
         EXPANDED: () =>
           TODO_WITH_CHECKLIST(
-            checkListStates.EXPANDED(addCheckListItemStates.ACTIVE(""))
+            checkListStates.EXPANDED(addCheckListItemStates.ACTIVE())
           ),
       }),
   },
@@ -207,25 +151,45 @@ export const useTodoItem = ({
 
   const [state] = todoItemReducer;
 
-  useCommandEffect(state, "ARCHIVE_TODO", () => {
-    storage.archiveTodo(todo.id);
-  });
+  useTransitionEffect(
+    state,
+    ["TODO", "TODO_WITH_CHECKLIST"],
+    "ARCHIVE_TODO",
+    () => {
+      storage.archiveTodo(todo.id);
+    }
+  );
 
-  useCommandEffect(state, "TOGGLE_CHECKLIST_ITEM", ({ itemId }) => {
-    storage.toggleCheckListItem(user.id, itemId);
-  });
+  useTransitionEffect(
+    state,
+    "TODO_WITH_CHECKLIST",
+    "TOGGLE_CHECKLIST_ITEM",
+    (_, { itemId }) => {
+      storage.toggleCheckListItem(user.id, itemId);
+    }
+  );
 
-  useCommandEffect(state, "DELETE_CHECKLIST_ITEM", ({ itemId }) => {
-    storage.deleteChecklistItem(itemId);
-  });
+  useTransitionEffect(
+    state,
+    "TODO_WITH_CHECKLIST",
+    "DELETE_CHECKLIST_ITEM",
+    (_, { itemId }) => {
+      storage.deleteChecklistItem(itemId);
+    }
+  );
 
-  useCommandEffect(state, "ADD_CHECKLIST_ITEM", ({ title }) => {
-    storage.addChecklistItem({
-      id: storage.createCheckListItemId(),
-      todoId: todo.id,
-      title,
-    });
-  });
+  useTransitionEffect(
+    state,
+    "TODO_WITH_CHECKLIST",
+    "ADD_CHECKLIST_ITEM",
+    (_, { title }) => {
+      storage.addChecklistItem({
+        id: storage.createCheckListItemId(),
+        todoId: todo.id,
+        title,
+      });
+    }
+  );
 
   return todoItemReducer;
 };
