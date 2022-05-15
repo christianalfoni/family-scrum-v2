@@ -644,15 +644,17 @@ export const createStorage = (
                 aggr[doc.id] = {
                   ...data.activityByUserId,
                   // If other users are updated, we want to keep a reference to our optimistic version
-                  [userId]: weeks[weekId]?.todos[doc.id]?.[userId] ?? [
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                  ],
+                  [userId]:
+                    weeks[weekId]?.todos[doc.id]?.[userId] ??
+                    (data.activityByUserId[userId] || [
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                    ]),
                 };
 
                 return aggr;
@@ -722,6 +724,8 @@ export const createStorage = (
               ],
             },
           };
+
+          console.log(todoDocRef, update);
 
           transaction.set(todoDocRef, update);
         })

@@ -3438,10 +3438,10 @@ react-refresh@0.8.3:
   resolved "https://registry.yarnpkg.com/react-refresh/-/react-refresh-0.8.3.tgz#721d4657672d400c5e3c75d063c4a85fb2d5d68f"
   integrity sha512-X8jZHc7nCMjaCqoU+V2I0cOhNW+QMBwSUkeXnTi8IPe6zaRWfn60ZzvFDZqWPfmSJfjub7dDW1SP0jaHWLu/hg==
 
-react-states@^6.2.6:
-  version "6.2.6"
-  resolved "https://registry.yarnpkg.com/react-states/-/react-states-6.2.6.tgz#6598ab29f68657c7bff604e13ecd0fce5f2edd24"
-  integrity sha512-87UFaQYrRKn6KMNoofSwp2zss2Y6pWrTyxb0gYg25LdYMuRW6nyVh6oBGYuLp0N4txkDUFKVxMAk/pvCvfjhkg==
+react-states@^6.3.0:
+  version "6.3.0"
+  resolved "https://registry.yarnpkg.com/react-states/-/react-states-6.3.0.tgz#6a6efcae76d0cd132076085514fa8f7a27d2a236"
+  integrity sha512-+oxzcHmRKljWdzqjDzMsGaV7cyoA3zKZH0kRh/BOxj3DgIqsiMo0d02yqH+oglqRt0qxruQwls/kaWYVOGqkOA==
 
 react@^17.0.2:
   version "17.0.2"

@@ -78,11 +78,11 @@ export const usePlanNextWeek = ({
     state,
     "PLANNING",
     "TOGGLE_WEEKDAY",
-    (_, { todoId, weekdayIndex, active }) => {
+    ({ userId }, { todoId, weekdayIndex, active }) => {
       storage.setWeekTaskActivity({
         weekId,
         todoId,
-        userId: user.id,
+        userId,
         active,
         weekdayIndex,
       });

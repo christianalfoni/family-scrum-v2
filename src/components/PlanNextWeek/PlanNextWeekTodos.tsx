@@ -8,6 +8,7 @@ import {
   CheckListItemDTO,
   FamilyDTO,
   TodoDTO,
+  WeekDTO,
   WeekTodoActivity,
 } from "../../environment-interface/storage";
 
@@ -25,8 +26,8 @@ const PlanTodoItem = React.memo(
     checkListItems,
     family,
     toggleWeekday,
-    previousWeekActivity,
-    weekActivity,
+    previousWeek,
+    week,
     onClick,
   }: {
     todo: TodoDTO;
@@ -34,8 +35,8 @@ const PlanTodoItem = React.memo(
     checkListItems: Record<string, CheckListItemDTO>;
     family: FamilyDTO;
     userIds: string[];
-    previousWeekActivity: WeekTodoActivity;
-    weekActivity: WeekTodoActivity;
+    previousWeek: WeekDTO;
+    week: WeekDTO;
     toggleWeekday: (data: {
       active: boolean;
       todoId: string;
@@ -51,6 +52,17 @@ const PlanTodoItem = React.memo(
       onClick={() => onClick(todo.id)}
     >
       {userIds.map((userId) => {
+        const weekActivity = week.todos[todo.id]?.[userId] ?? [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+        ];
+        const previousWeekActivity = previousWeek.todos[todo.id]?.[userId];
+
         return (
           <div key={userId} className="flex pt-2 items-center justify-between">
             <img
@@ -147,19 +159,9 @@ export const PlanNextWeekTodos = ({
     <PlanTodoItem
       key={todo.id}
       family={family}
-      weekActivity={
-        nextWeek.todos[todo.id]?.[user.id] ?? [
-          false,
-          false,
-          false,
-          false,
-          false,
-          false,
-          false,
-        ]
-      }
+      week={nextWeek}
       checkListItems={checkListItemsByTodoId[todo.id]}
-      previousWeekActivity={previousWeek.todos[todo.id]?.[user.id]}
+      previousWeek={previousWeek}
       todo={todo}
       toggleWeekday={toggleWeekday}
       user={user}

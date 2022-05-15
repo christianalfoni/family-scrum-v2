@@ -140,12 +140,18 @@ export const useGroceriesShopping = ({
 
   const [state] = groceriesShoppingReducer;
 
-  useTransitionEffect(state, "FILTERED", "ADD_GROCERY", ({ input }) => {
-    storage.storeGrocery({
-      id: storage.createGroceryId(),
-      name: input,
-    });
-  });
+  useTransitionEffect(
+    state,
+    "FILTERED",
+    "ADD_GROCERY",
+    "FILTERED",
+    (_, __, { input }) => {
+      storage.storeGrocery({
+        id: storage.createGroceryId(),
+        name: input,
+      });
+    }
+  );
 
   useTransitionEffect(
     state,
