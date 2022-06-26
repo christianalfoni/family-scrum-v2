@@ -129,9 +129,8 @@ export const PlanNextWeekTodos = ({
         nextWeek,
         checkListItemsByTodoId,
       },
-      PUSH_VIEW,
     },
-    dispatchDashboard,
+    { PUSH_VIEW },
   ] = useLoadedDashboard();
   const t = useTranslations("PlanWeekView");
   const sortedTodos = selectors.todosByType(
@@ -151,7 +150,7 @@ export const PlanNextWeekTodos = ({
     [family]
   );
   const onTodoClick = React.useCallback(
-    (id: string) => dispatchDashboard(PUSH_VIEW(viewStates.EDIT_TODO(id))),
+    (id: string) => PUSH_VIEW(viewStates.EDIT_TODO(id)),
     []
   );
 
