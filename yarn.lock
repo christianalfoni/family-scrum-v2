@@ -3428,6 +3428,11 @@ react-dom@^17.0.2:
     object-assign "^4.1.1"
     scheduler "^0.20.2"
 
+react-environment-interface@^0.1.3:
+  version "0.1.3"
+  resolved "https://registry.yarnpkg.com/react-environment-interface/-/react-environment-interface-0.1.3.tgz#533c17526ae2782192246e55d41b03727fff9ffb"
+  integrity sha512-9zCEPe4DB+yESaIvGJgKYrM/nulO6qJjAgiPw3m7zAgKxncXJbgYLTXUVc3I9e00G3mXR8dqgPzJAsQa16z52w==
+
 react-is@16.13.1, react-is@^16.8.1:
   version "16.13.1"
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-16.13.1.tgz#789729a4dc36de2999dc156dd6c1d9c18cea56a4"
@@ -3438,10 +3443,10 @@ react-refresh@0.8.3:
   resolved "https://registry.yarnpkg.com/react-refresh/-/react-refresh-0.8.3.tgz#721d4657672d400c5e3c75d063c4a85fb2d5d68f"
   integrity sha512-X8jZHc7nCMjaCqoU+V2I0cOhNW+QMBwSUkeXnTi8IPe6zaRWfn60ZzvFDZqWPfmSJfjub7dDW1SP0jaHWLu/hg==
 
-react-states@^6.3.0:
-  version "6.3.0"
-  resolved "https://registry.yarnpkg.com/react-states/-/react-states-6.3.0.tgz#6a6efcae76d0cd132076085514fa8f7a27d2a236"
-  integrity sha512-+oxzcHmRKljWdzqjDzMsGaV7cyoA3zKZH0kRh/BOxj3DgIqsiMo0d02yqH+oglqRt0qxruQwls/kaWYVOGqkOA==
+react-states@^7.1.0:
+  version "7.1.0"
+  resolved "https://registry.yarnpkg.com/react-states/-/react-states-7.1.0.tgz#07b8b2e207f44d876083bc5348ebe6fa7ef91bdb"
+  integrity sha512-glWZAhTxKA+PSRbXm/MGNoimoavolozH7Ec8DcFI2x8IFJnRNtPVA1TDoymvI6DWqCd6eQepMF55zWND/qvJuw==
 
 react@^17.0.2:
   version "17.0.2"

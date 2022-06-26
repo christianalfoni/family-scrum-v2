@@ -1,5 +1,5 @@
 import { PickState } from "react-states";
-import { Data, LOADED, LOADING, State, viewStates } from "./state";
+import { Data, states, State, viewStates } from "./state";
 
 export const isSameView = (viewA: any, viewB: any) => {
   const viewAKeys = Object.keys(viewA);
@@ -35,15 +35,15 @@ export const evaluateLoadedState = (
   };
 
   return isDataLoaded(data)
-    ? LOADED({ user, data, viewStack: [viewStates.DASHBOARD()] })
-    : LOADING({ user, data });
+    ? states.LOADED({ user, data, viewStack: [viewStates.DASHBOARD()] })
+    : states.LOADING({ user, data });
 };
 
 export const updatedLoadedData = (
   state: PickState<State, "LOADED">,
   newData: Partial<Data>
 ) =>
-  LOADED({
+  states.LOADED({
     ...state,
     data: {
       ...state.data,

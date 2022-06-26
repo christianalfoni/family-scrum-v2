@@ -1,11 +1,5 @@
 import { useReducer } from "react";
-import {
-  match,
-  transition,
-  TTransitions,
-  useDevtools,
-  useTransitionEffect,
-} from "react-states";
+import { match, transition, useDevtools, useTransition } from "react-states";
 import { useEnvironment } from "../../../environment-interface";
 import {
   CheckListItemsByTodoId,
@@ -13,94 +7,111 @@ import {
 } from "../../../environment-interface/storage";
 import * as selectors from "../../../selectors";
 
-import { Action } from "./actions";
+import { Action, actions } from "./actions";
 import {
   checklistStates,
   dateStates,
-  EDITING,
+  states,
   State,
   timeStates,
+  groceryStates,
 } from "./state";
 
-const transitions: TTransitions<State, Action> = {
-  EDITING: {
-    DESCRIPTION_CHANGED: (state, { description }) =>
-      EDITING({
-        ...state,
-        description,
-      }),
-    DATE_TOGGLED: (state) =>
-      EDITING({
-        ...state,
-        date: match(state.date, {
-          ACTIVE: () => dateStates.INACTIVE(),
-          INACTIVE: () => dateStates.ACTIVE(Date.now()),
+export const reducer = (prevState: State, action: Action) =>
+  transition(prevState, action, {
+    EDITING: {
+      DESCRIPTION_CHANGED: (state, { description }) =>
+        states.EDITING({
+          ...state,
+          description,
         }),
-      }),
-    DATE_CHANGED: (state, { date }) =>
-      EDITING({
-        ...state,
-        date: match(state.date, {
-          ACTIVE: () => dateStates.ACTIVE(date),
-          INACTIVE: (inactiveState) => inactiveState,
+      DATE_TOGGLED: (state) =>
+        states.EDITING({
+          ...state,
+          date: match(state.date, {
+            ACTIVE: () => dateStates.INACTIVE(),
+            INACTIVE: () => dateStates.ACTIVE(Date.now()),
+          }),
         }),
-      }),
-    TIME_TOGGLED: (state) =>
-      EDITING({
-        ...state,
-        time: match(state.time, {
-          ACTIVE: () => timeStates.INACTIVE(),
-          INACTIVE: () => timeStates.ACTIVE("10:00"),
+      DATE_CHANGED: (state, { date }) =>
+        states.EDITING({
+          ...state,
+          date: match(state.date, {
+            ACTIVE: () => dateStates.ACTIVE(date),
+            INACTIVE: (inactiveState) => inactiveState,
+          }),
         }),
-      }),
-    TIME_CHANGED: (state, { time }) =>
-      EDITING({
-        ...state,
-        time: match(state.time, {
-          ACTIVE: () => timeStates.ACTIVE(time),
-          INACTIVE: (inactiveState) => inactiveState,
+      TIME_TOGGLED: (state) =>
+        states.EDITING({
+          ...state,
+          time: match(state.time, {
+            ACTIVE: () => timeStates.INACTIVE(),
+            INACTIVE: () => timeStates.ACTIVE("10:00"),
+          }),
         }),
-      }),
-    CHECKLIST_TOGGLED: (state) =>
-      EDITING({
-        ...state,
-        checkList: match(state.checkList, {
-          ACTIVE: () => checklistStates.INACTIVE(),
-          INACTIVE: () => checklistStates.ACTIVE([]),
+      TIME_CHANGED: (state, { time }) =>
+        states.EDITING({
+          ...state,
+          time: match(state.time, {
+            ACTIVE: () => timeStates.ACTIVE(time),
+            INACTIVE: (inactiveState) => inactiveState,
+          }),
         }),
-      }),
-    CHECKLIST_ITEM_ADDED: (state, { title }) =>
-      EDITING({
-        ...state,
-        checkList: match(state.checkList, {
-          ACTIVE: ({ items }) => checklistStates.ACTIVE([...items, { title }]),
-          INACTIVE: (inactiveState) => inactiveState,
+      CHECKLIST_TOGGLED: (state) =>
+        states.EDITING({
+          ...state,
+          checkList: match(state.checkList, {
+            ACTIVE: () => checklistStates.INACTIVE(),
+            INACTIVE: () => checklistStates.ACTIVE([]),
+          }),
         }),
-      }),
-    CHECKLIST_ITEM_REMOVED: (state, { index }) =>
-      EDITING({
-        ...state,
-        checkList: match(state.checkList, {
-          ACTIVE: ({ items }) =>
-            checklistStates.ACTIVE([
-              ...items.slice(0, index),
-              ...items.slice(index + 1),
-            ]),
-          INACTIVE: (inactiveState) => inactiveState,
+      CHECKLIST_ITEM_ADDED: (state, { title }) =>
+        states.EDITING({
+          ...state,
+          checkList: match(state.checkList, {
+            ACTIVE: ({ items }) =>
+              checklistStates.ACTIVE([...items, { title }]),
+            INACTIVE: (inactiveState) => inactiveState,
+          }),
         }),
-      }),
-    ADD_TODO: ({ description, date, time, checkList }) =>
-      EDITING({
-        checkList,
-        date,
-        description,
-        time,
-      }),
-  },
-};
-
-export const reducer = (state: State, action: Action) =>
-  transition(state, action, transitions);
+      CHECKLIST_ITEM_REMOVED: (state, { index }) =>
+        states.EDITING({
+          ...state,
+          checkList: match(state.checkList, {
+            ACTIVE: ({ items }) =>
+              checklistStates.ACTIVE([
+                ...items.slice(0, index),
+                ...items.slice(index + 1),
+              ]),
+            INACTIVE: (inactiveState) => inactiveState,
+          }),
+        }),
+      GROCERY_TOGGLED: (state) =>
+        states.EDITING({
+          ...state,
+          grocery: match(state.grocery, {
+            ACTIVE: () => groceryStates.INACTIVE(),
+            INACTIVE: () => groceryStates.ACTIVE(""),
+          }),
+        }),
+      GROCERY_NAME_CHANGED: (state, { name }) =>
+        states.EDITING({
+          ...state,
+          grocery: match(state.grocery, {
+            ACTIVE: () => groceryStates.ACTIVE(name),
+            INACTIVE: (inactiveState) => inactiveState,
+          }),
+        }),
+      ADD_TODO: ({ description, date, time, checkList, grocery }) =>
+        states.EDITING({
+          checkList,
+          date,
+          description,
+          time,
+          grocery,
+        }),
+    },
+  });
 
 export const useEditTodo = ({
   todo,
@@ -118,7 +129,7 @@ export const useEditTodo = ({
     reducer,
     initialState ||
       (todo
-        ? EDITING({
+        ? states.EDITING({
             description: todo.description,
             checkList: todo.checkList
               ? checklistStates.ACTIVE(
@@ -133,24 +144,27 @@ export const useEditTodo = ({
             time: todo.time
               ? timeStates.ACTIVE(todo.time)
               : timeStates.INACTIVE(),
+            grocery: todo.grocery
+              ? groceryStates.ACTIVE(todo.grocery)
+              : groceryStates.INACTIVE(),
           })
-        : EDITING({
+        : states.EDITING({
             description: "",
             checkList: checklistStates.INACTIVE(),
             date: dateStates.INACTIVE(),
             time: timeStates.INACTIVE(),
+            grocery: groceryStates.INACTIVE(),
           }))
   );
 
   useDevtools("EditTodo", todoReducer);
 
-  const [state] = todoReducer;
+  const [state, dispatch] = todoReducer;
 
-  useTransitionEffect(
+  useTransition(
     state,
-    "EDITING",
-    "ADD_TODO",
-    ({ description, checkList, date, time }) => {
+    "EDITING => ADD_TODO => EDITING",
+    ({ description, checkList, date, time, grocery }) => {
       storage.storeTodo(
         {
           id: todo ? todo.id : storage.createTodoId(),
@@ -161,6 +175,10 @@ export const useEditTodo = ({
           }),
           time: match(time, {
             ACTIVE: ({ time }) => time,
+            INACTIVE: () => undefined,
+          }),
+          grocery: match(grocery, {
+            ACTIVE: ({ name }) => name,
             INACTIVE: () => undefined,
           }),
         },
@@ -177,5 +195,5 @@ export const useEditTodo = ({
     }
   );
 
-  return todoReducer;
+  return [state, actions(dispatch)] as const;
 };

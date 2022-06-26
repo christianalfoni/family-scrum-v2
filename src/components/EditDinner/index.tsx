@@ -7,10 +7,9 @@ import {
   PlusIcon,
   TrashIcon,
 } from "@heroicons/react/outline";
-import { match, PickState } from "react-states";
+import { match } from "react-states";
 import { DinnerDTO } from "../../environment-interface/storage";
 import { useEditDinner } from "./useEditDinner";
-import { ImageState } from "../../useImage";
 import { useTranslations } from "next-intl";
 
 export const EditDinner = ({
@@ -21,32 +20,16 @@ export const EditDinner = ({
   onBackClick: () => void;
 }) => {
   const {
-    dinner: [state, dispatch],
+    dinner: [
+      { dinner, newIngredientName, newPreparationDescription, validation },
+      actions,
+    ],
     image: [imageState, imageDispatch],
   } = useEditDinner({
     initialDinner,
     onExit: onBackClick,
   });
   const t = useTranslations("DinnerView");
-
-  const {
-    dinner,
-    NAME_CHANGED,
-    DESCRIPTION_CHANGED,
-    NEW_INGREDIENT_NAME_CHANGED,
-    ADD_INGREDIENT,
-    ADD_INSTRUCTION,
-    ADD_PREPARATION_ITEM,
-    INSTRUCTION_CHANGED,
-    NEW_PREPARATION_ITEM_DESCRIPTION_CHANGED,
-    REMOVE_INGREDIENT,
-    REMOVE_INSTRUCTION,
-    REMOVE_PREPARATION_ITEM,
-    SAVE,
-    newIngredientName,
-    newPreparationDescription,
-    validation,
-  } = state;
 
   const imageWrapperClassName =
     "flex h-40 bg-gray-500 items-center justify-center w-full text-gray-300";
@@ -72,12 +55,17 @@ export const EditDinner = ({
           imageState,
           {
             LOADING: () => <div className={imageWrapperClassName}>...</div>,
-            CAPTURING: ({ CAPTURE }) => (
+            CAPTURE_STARTED: ({ CAPTURE }) => (
               <video
                 id={dinner.id}
                 className={imageWrapperClassName}
                 onClick={() => imageDispatch(CAPTURE(dinner.id))}
               ></video>
+            ),
+            CAPTURING: () => (
+              <video id={dinner.id} className={imageWrapperClassName}>
+                <div className={imageWrapperClassName}>...</div>,
+              </video>
             ),
             NOT_FOUND: ({ START_CAPTURE }) => (
               <div
@@ -115,7 +103,7 @@ export const EditDinner = ({
               type="text"
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-sky-500 focus:border-sky-500 text-sm"
               value={dinner.name}
-              onChange={(event) => dispatch(NAME_CHANGED(event.target.value))}
+              onChange={(event) => actions.NAME_CHANGED(event.target.value)}
             />
           </div>
           <div className="mt-4">
@@ -128,7 +116,7 @@ export const EditDinner = ({
                 className="shadow-sm focus:ring-sky-500 focus:border-sky-500 mt-1 block w-full sm:text-sm border border-gray-300 rounded-md"
                 value={dinner.description}
                 onChange={(event) =>
-                  dispatch(DESCRIPTION_CHANGED(event.target.value))
+                  actions.DESCRIPTION_CHANGED(event.target.value)
                 }
               />
             </div>
@@ -146,7 +134,7 @@ export const EditDinner = ({
                     type="text"
                     value={newIngredientName}
                     onChange={(event) =>
-                      dispatch(NEW_INGREDIENT_NAME_CHANGED(event.target.value))
+                      actions.NEW_INGREDIENT_NAME_CHANGED(event.target.value)
                     }
                     className="block w-full shadow-sm focus:ring-light-blue-500 focus:border-light-blue-500 sm:text-sm border-gray-300 rounded-md"
                     placeholder={`${"name"}...`}
@@ -157,7 +145,7 @@ export const EditDinner = ({
                   <button
                     type="button"
                     className="bg-white inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-light-blue-500"
-                    onClick={() => dispatch(ADD_INGREDIENT())}
+                    onClick={() => actions.ADD_INGREDIENT()}
                   >
                     <PlusIcon
                       className="-ml-2 mr-1 h-5 w-5 text-gray-400"
@@ -182,7 +170,7 @@ export const EditDinner = ({
                       <label className="w-full">{grocery}</label>
                       <span
                         className="p-2 text-gray-300"
-                        onClick={() => dispatch(REMOVE_INGREDIENT(index))}
+                        onClick={() => actions.REMOVE_INGREDIENT(index)}
                       >
                         <TrashIcon className="w-6 h-6" />
                       </span>
@@ -204,10 +192,8 @@ export const EditDinner = ({
                     type="text"
                     value={newPreparationDescription}
                     onChange={(event) =>
-                      dispatch(
-                        NEW_PREPARATION_ITEM_DESCRIPTION_CHANGED(
-                          event.target.value
-                        )
+                      actions.NEW_PREPARATION_ITEM_DESCRIPTION_CHANGED(
+                        event.target.value
                       )
                     }
                     className="block w-full shadow-sm focus:ring-light-blue-500 focus:border-light-blue-500 sm:text-sm border-gray-300 rounded-md"
@@ -220,7 +206,7 @@ export const EditDinner = ({
                     type="button"
                     className="bg-white inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-light-blue-500"
                     onClick={() => {
-                      dispatch(ADD_PREPARATION_ITEM());
+                      actions.ADD_PREPARATION_ITEM();
                     }}
                   >
                     <PlusIcon
@@ -246,7 +232,7 @@ export const EditDinner = ({
                       <label className="w-full">{title}</label>
                       <span
                         className="p-2 text-gray-300"
-                        onClick={() => dispatch(REMOVE_PREPARATION_ITEM(index))}
+                        onClick={() => actions.REMOVE_PREPARATION_ITEM(index)}
                       >
                         <TrashIcon className="w-6 h-6" />
                       </span>
@@ -270,19 +256,17 @@ export const EditDinner = ({
                       className="shadow-sm focus:ring-sky-500 focus:border-sky-500 mt-1 block w-full sm:text-sm border border-gray-300 rounded-md"
                       value={instruction}
                       onChange={(event) =>
-                        dispatch(
-                          INSTRUCTION_CHANGED({
-                            instruction: event.target.value,
-                            index,
-                          })
-                        )
+                        actions.INSTRUCTION_CHANGED({
+                          instruction: event.target.value,
+                          index,
+                        })
                       }
                     />
                     {index > 0 ? (
                       <button
                         type="button"
                         className="absolute bottom-2 right-2 bg-white inline-flex items-center p-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-light-blue-500"
-                        onClick={() => dispatch(REMOVE_INSTRUCTION(index))}
+                        onClick={() => actions.REMOVE_INSTRUCTION(index)}
                       >
                         <TrashIcon
                           className="h-5 w-5 text-gray-400"
@@ -295,7 +279,7 @@ export const EditDinner = ({
               ))}
               <div
                 className="flex items-center justify-center p-4 text-gray-500"
-                onClick={() => dispatch(ADD_INSTRUCTION())}
+                onClick={() => actions.ADD_INSTRUCTION()}
               >
                 <PlusIcon className="w-4 h-4" /> {t("addInstructionStep")}
               </div>
@@ -311,7 +295,7 @@ export const EditDinner = ({
                 }),
                 VALID: () => ({
                   disabled: false,
-                  onClick: () => dispatch(SAVE()),
+                  onClick: () => actions.SAVE(),
                 }),
               })}
             >

@@ -1,4 +1,4 @@
-import { TEmit } from "react-states";
+import { TEmit } from "react-environment-interface";
 import { Capture, CaptureEvent } from "../../environment-interface/capture";
 
 export const createCapture = (emit: TEmit<CaptureEvent>): Capture => {

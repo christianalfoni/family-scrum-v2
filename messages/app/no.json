@@ -11,6 +11,7 @@
   "AddTodoView": {
     "addTodo": "Nytt gjøremål",
     "setDate": "Sett dato",
+    "setGrocery": "Sett matvare",
     "setTime": "Sett tid",
     "addCheckList": "Legg til sjekkliste",
     "save": "Lagre",

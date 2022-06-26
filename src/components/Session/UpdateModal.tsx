@@ -11,7 +11,7 @@ import { VersionState } from "./useSession";
 
 export const UpdateModal = () => {
   const t = useTranslations("UpdateModal");
-  const [session, dispatch] = useSession();
+  const [session, { UPDATE }] = useSession();
 
   const content = match(
     session,
@@ -20,7 +20,7 @@ export const UpdateModal = () => {
         match(
           version,
           {
-            EXPIRED: ({ UPDATE }) => (
+            EXPIRED: () => (
               <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
                 <Transition.Child
                   as={Fragment}
@@ -69,7 +69,7 @@ export const UpdateModal = () => {
                       <button
                         type="button"
                         className="inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:text-sm"
-                        onClick={() => dispatch(UPDATE())}
+                        onClick={() => UPDATE()}
                       >
                         {t("update")}
                       </button>

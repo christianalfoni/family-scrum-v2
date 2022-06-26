@@ -1,59 +1,56 @@
 import { useReducer } from "react";
 import {
+  createActions,
+  createStates,
+  ActionsUnion,
+  StatesUnion,
   transition,
-  TTransitions,
   useDevtools,
-  useTransitionEffect,
+  useTransition,
 } from "react-states";
 
 import { useEnvironment } from "../../environment-interface";
 import { FamilyUserDTO } from "../../environment-interface/authentication";
 
-const actions = {
+const actions = createActions({
   TOGGLE_WEEKDAY: (params: {
     todoId: string;
     userId: string;
     weekdayIndex: number;
     active: boolean;
   }) => ({
-    type: "TOGGLE_WEEKDAY" as const,
     ...params,
   }),
   CHANGE_WEEKDAY_DINNER: (params: {
     weekdayIndex: number;
     dinnerId: string | null;
   }) => ({
-    type: "CHANGE_WEEKDAY_DINNER" as const,
     ...params,
   }),
-};
+});
 
-type Action = ReturnType<typeof actions[keyof typeof actions]>;
+type Action = ActionsUnion<typeof actions>;
 
-const states = {
+const states = createStates({
   PLANNING: ({ userId }: { userId: string }) => ({
-    state: "PLANNING" as const,
     userId,
-
     ...actions,
   }),
-};
+});
 
-type State = ReturnType<typeof states[keyof typeof states]>;
+type State = StatesUnion<typeof states>;
 
 export const { PLANNING } = states;
 
-const transitions: TTransitions<State, Action> = {
-  PLANNING: {
-    CHANGE_WEEKDAY_DINNER: (state, { dinnerId, weekdayIndex }) =>
-      PLANNING(state),
-    TOGGLE_WEEKDAY: (state, { userId }) =>
-      userId === state.userId ? PLANNING(state) : state,
-  },
-};
-
-const reducer = (state: State, action: Action) =>
-  transition(state, action, transitions);
+const reducer = (prevState: State, action: Action) =>
+  transition(prevState, action, {
+    PLANNING: {
+      CHANGE_WEEKDAY_DINNER: (state, { dinnerId, weekdayIndex }) =>
+        PLANNING(state),
+      TOGGLE_WEEKDAY: (state, { userId }) =>
+        userId === state.userId ? PLANNING(state) : state,
+    },
+  });
 
 export const usePlanNextWeek = ({
   user,
@@ -72,12 +69,11 @@ export const usePlanNextWeek = ({
 
   useDevtools("PlanWeek", planNextWeekReducer);
 
-  const [state] = planNextWeekReducer;
+  const [state, dispatch] = planNextWeekReducer;
 
-  useTransitionEffect(
+  useTransition(
     state,
-    "PLANNING",
-    "TOGGLE_WEEKDAY",
+    "PLANNING => TOGGLE_WEEKDAY => PLANNING",
     ({ userId }, { todoId, weekdayIndex, active }) => {
       storage.setWeekTaskActivity({
         weekId,
@@ -89,10 +85,9 @@ export const usePlanNextWeek = ({
     }
   );
 
-  useTransitionEffect(
+  useTransition(
     state,
-    "PLANNING",
-    "CHANGE_WEEKDAY_DINNER",
+    "PLANNING => CHANGE_WEEKDAY_DINNER => PLANNING",
     (_, { weekdayIndex, dinnerId }) => {
       storage.setWeekDinner({
         weekId,
@@ -102,5 +97,5 @@ export const usePlanNextWeek = ({
     }
   );
 
-  return planNextWeekReducer;
+  return [state, actions(dispatch)] as const;
 };

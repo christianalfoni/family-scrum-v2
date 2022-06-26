@@ -1,3 +1,4 @@
+import { createStates, StatesUnion } from "react-states";
 import { FamilyUserDTO } from "../../../environment-interface/authentication";
 import {
   CheckListItemsByTodoId,
@@ -20,34 +21,23 @@ export type Data = {
   checkListItemsByTodoId: CheckListItemsByTodoId;
 };
 
-export const viewStates = {
-  DASHBOARD: () => ({
-    state: "DASHBOARD" as const,
-  }),
-  GROCERIES_SHOPPING: () => ({
-    state: "GROCERIES_SHOPPING" as const,
-  }),
-  CHECKLISTS: () => ({
-    state: "CHECKLISTS" as const,
-  }),
+export const viewStates = createStates({
+  DASHBOARD: () => ({}),
+  GROCERIES_SHOPPING: () => ({}),
+  CHECKLISTS: () => ({}),
   PLAN_NEXT_WEEK: (subView: "DINNERS" | "TODOS") => ({
-    state: "PLAN_NEXT_WEEK" as const,
     subView,
   }),
-  DINNERS: () => ({
-    state: "DINNERS" as const,
-  }),
+  DINNERS: () => ({}),
   EDIT_DINNER: (id?: string) => ({
-    state: "EDIT_DINNER" as const,
     id,
   }),
   EDIT_TODO: (id?: string) => ({
-    state: "EDIT_TODO" as const,
     id,
   }),
-};
+});
 
-export type ViewState = ReturnType<typeof viewStates[keyof typeof viewStates]>;
+export type ViewState = StatesUnion<typeof viewStates>;
 
 type BaseState = {
   user: FamilyUserDTO;
@@ -55,40 +45,24 @@ type BaseState = {
   viewStack: ViewState[];
 };
 
-const states = {
-  AWAITING_AUTHENTICATION: () => ({
-    state: "AWAITING_AUTHENTICATION" as const,
-  }),
-  REQUIRING_AUTHENTICATION: () => ({
-    state: "REQUIRING_AUTHENTICATION" as const,
-  }),
+export const states = createStates({
+  AWAITING_AUTHENTICATION: () => ({}),
+  REQUIRING_AUTHENTICATION: () => ({}),
   LOADING: ({
     user,
     data,
   }: Pick<BaseState, "user"> & { data: Partial<Data> }) => ({
-    state: "LOADING" as const,
     user,
     data,
   }),
   LOADED: ({ user, data, viewStack }: BaseState) => ({
-    state: "LOADED" as const,
     user,
     data,
     viewStack,
-    ...actions,
   }),
   ERROR: ({ error }: { error: string }) => ({
-    state: "ERROR" as const,
     error,
   }),
-};
+});
 
-export type State = ReturnType<typeof states[keyof typeof states]>;
-
-export const {
-  AWAITING_AUTHENTICATION,
-  ERROR,
-  LOADED,
-  LOADING,
-  REQUIRING_AUTHENTICATION,
-} = states;
+export type State = StatesUnion<typeof states>;

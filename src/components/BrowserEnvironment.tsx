@@ -1,7 +1,9 @@
 import React from "react";
 
 import { EnvironmentProvider } from "../environment-interface";
-import { environment } from "../environments/browser";
+import { createBrowserEnvironment } from "../environments/browser";
+
+const environment = createBrowserEnvironment();
 
 export default function BrowserEnvironment({
   children,

@@ -2,6 +2,7 @@ import {
   CheckCircleIcon,
   ChevronLeftIcon,
   HeartIcon,
+  PlusIcon,
 } from "@heroicons/react/outline";
 import { useTranslations } from "next-intl";
 
@@ -12,14 +13,12 @@ import { PlanNextWeekTodos } from "./PlanNextWeekTodos";
 import { useLoadedDashboard } from "../Dashboard";
 
 export const PlanNextWeek = ({ view }: { view: "DINNERS" | "TODOS" }) => {
-  const [{ user, data, POP_VIEW, REPLACE_VIEW }, dispatchDashboard] =
+  const [{ user, data }, { POP_VIEW, REPLACE_VIEW, PUSH_VIEW }] =
     useLoadedDashboard();
-  const [{ CHANGE_WEEKDAY_DINNER, TOGGLE_WEEKDAY }, dispatch] = usePlanNextWeek(
-    {
-      user,
-      weekId: data.nextWeek.id,
-    }
-  );
+  const [, { CHANGE_WEEKDAY_DINNER, TOGGLE_WEEKDAY }] = usePlanNextWeek({
+    user,
+    weekId: data.nextWeek.id,
+  });
   const t = useTranslations("PlanWeekView");
 
   return (
@@ -28,21 +27,16 @@ export const PlanNextWeek = ({ view }: { view: "DINNERS" | "TODOS" }) => {
         <div className="flex items-center">
           <div className="flex-1">
             <button
-              onClick={() => dispatchDashboard(POP_VIEW())}
+              onClick={() => POP_VIEW()}
               className="bg-white p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500"
             >
               <ChevronLeftIcon className="h-6 w-6" aria-hidden="true" />
             </button>
           </div>
-
           <div className="flex shadow-sm flex-2">
             <button
               type="button"
-              onClick={() =>
-                dispatchDashboard(
-                  REPLACE_VIEW(viewStates.PLAN_NEXT_WEEK("DINNERS"))
-                )
-              }
+              onClick={() => REPLACE_VIEW(viewStates.PLAN_NEXT_WEEK("DINNERS"))}
               className="flex-1 relative inline-flex items-center px-4 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-900 hover:bg-gray-50 focus:z-10 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600"
             >
               <HeartIcon
@@ -55,11 +49,7 @@ export const PlanNextWeek = ({ view }: { view: "DINNERS" | "TODOS" }) => {
             </button>
             <button
               type="button"
-              onClick={() =>
-                dispatchDashboard(
-                  REPLACE_VIEW(viewStates.PLAN_NEXT_WEEK("TODOS"))
-                )
-              }
+              onClick={() => REPLACE_VIEW(viewStates.PLAN_NEXT_WEEK("TODOS"))}
               className="flex-1 inline-flex -ml-px relative items-center px-4 py-2 rounded-r-md border border-gray-300 bg-gray-50 text-sm font-medium text-gray-900 hover:bg-gray-50 focus:z-10 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600"
             >
               <CheckCircleIcon
@@ -71,7 +61,20 @@ export const PlanNextWeek = ({ view }: { view: "DINNERS" | "TODOS" }) => {
               <span>{t("todos")}</span>
             </button>
           </div>
-          <span className="flex-1" />
+          <div className="flex-1 flex">
+            <button
+              className="ml-auto"
+              onClick={() =>
+                PUSH_VIEW(
+                  view === "DINNERS"
+                    ? viewStates.EDIT_DINNER()
+                    : viewStates.EDIT_TODO()
+                )
+              }
+            >
+              <PlusIcon className="w-6 h-6" />
+            </button>
+          </div>
         </div>
       </div>
       {view === "DINNERS" ? (
@@ -79,15 +82,11 @@ export const PlanNextWeek = ({ view }: { view: "DINNERS" | "TODOS" }) => {
           dinners={data.dinners}
           weekDinners={data.nextWeek.dinners}
           onChangeDinner={(weekdayIndex, dinnerId) =>
-            dispatch(CHANGE_WEEKDAY_DINNER({ dinnerId, weekdayIndex }))
+            CHANGE_WEEKDAY_DINNER({ dinnerId, weekdayIndex })
           }
         />
       ) : (
-        <PlanNextWeekTodos
-          toggleWeekday={(params) => {
-            dispatch(TOGGLE_WEEKDAY(params));
-          }}
-        />
+        <PlanNextWeekTodos toggleWeekday={(params) => TOGGLE_WEEKDAY(params)} />
       )}
     </div>
   );

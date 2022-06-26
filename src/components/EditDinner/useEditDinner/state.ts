@@ -1,5 +1,11 @@
+import { createStates, StatesUnion } from "react-states";
 import { DinnerDTO } from "../../../environment-interface/storage";
 import { actions } from "./actions";
+
+const validationStates = createStates({
+  VALID: () => ({}),
+  INVALID: () => ({}),
+});
 
 const validateDinner = ({
   name,
@@ -14,19 +20,6 @@ const validateDinner = ({
     ? validationStates.VALID()
     : validationStates.INVALID();
 
-const validationStates = {
-  VALID: () => ({
-    state: "VALID" as const,
-  }),
-  INVALID: () => ({
-    state: "INVALID" as const,
-  }),
-};
-
-type ValidationState = ReturnType<
-  typeof validationStates.VALID | typeof validationStates.INVALID
->;
-
 type BaseState = {
   newIngredientName: string;
   newPreparationDescription: string;
@@ -34,24 +27,20 @@ type BaseState = {
   imageSrc?: string;
 };
 
-const states = {
+export const states = createStates({
   EDITING: ({
     dinner,
     newIngredientName,
     newPreparationDescription,
     imageSrc,
   }: BaseState) => ({
-    state: "EDITING" as const,
     dinner,
     newIngredientName,
     newPreparationDescription,
     imageSrc,
     validation: validateDinner(dinner),
-
     ...actions,
   }),
-};
+});
 
-export type State = ReturnType<typeof states[keyof typeof states]>;
-
-export const { EDITING } = states;
+export type State = StatesUnion<typeof states>;

@@ -17,7 +17,7 @@ import {
   getPreviousWeekId,
 } from "../../utils";
 import { createCheckListItemsByTodoId } from "./utils";
-import { TEmit } from "react-states";
+import { TEmit } from "react-environment-interface";
 
 const FAMILY_DATA_COLLECTION = "familyData";
 const GROCERIES_COLLECTION = "groceries";
@@ -724,8 +724,6 @@ export const createStorage = (
               ],
             },
           };
-
-          console.log(todoDocRef, update);
 
           transaction.set(todoDocRef, update);
         })

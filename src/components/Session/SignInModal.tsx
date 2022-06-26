@@ -12,7 +12,7 @@ import { useSession } from ".";
 
 export const SignInModal = () => {
   const t = useTranslations("SignInModal");
-  const [session, dispatch] = useSession();
+  const [session, { SIGN_IN }] = useSession();
 
   const open = match(
     session,
@@ -93,7 +93,7 @@ export const SignInModal = () => {
                     </div>
                   </div>
                 ),
-                SIGNED_OUT: ({ SIGN_IN }) => (
+                SIGNED_OUT: () => (
                   <>
                     <div>
                       <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
@@ -120,7 +120,7 @@ export const SignInModal = () => {
                       <button
                         type="button"
                         className="inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:text-sm"
-                        onClick={() => dispatch(SIGN_IN())}
+                        onClick={() => SIGN_IN()}
                       >
                         {t("loginWithGoogle")}
                       </button>

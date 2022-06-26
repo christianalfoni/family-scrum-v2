@@ -1,14 +1,16 @@
 import { createContext, Dispatch, useContext } from "react";
 
 import {
-  SessionAction,
   SessionState,
+  actions,
   useSession as useSessionReducer,
 } from "./useSession";
 import { SignInModal } from "./SignInModal";
 import { UpdateModal } from "./UpdateModal";
 
-const context = createContext({} as [SessionState, Dispatch<SessionAction>]);
+const context = createContext(
+  [] as unknown as readonly [SessionState, ReturnType<typeof actions>]
+);
 
 export const useSession = () => useContext(context);
 

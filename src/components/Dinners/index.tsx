@@ -4,13 +4,9 @@ import * as selectors from "../../selectors";
 import { DinnerDTO } from "../../environment-interface/storage";
 import { useImage } from "../../useImage";
 import { useEnvironment } from "../../environment-interface";
-import {
-  DashboardAction,
-  DashboardState,
-  viewStates,
-} from "../Dashboard/useDashboard";
-import { PickState } from "react-states";
+import { viewStates } from "../Dashboard/useDashboard";
 import { useTranslations } from "next-intl";
+import { LoadedDashboard } from "../Dashboard";
 
 const Dinner = ({
   dinner,
@@ -46,12 +42,8 @@ const Dinner = ({
   );
 };
 
-export const Dinners = ({
-  dashboard,
-}: {
-  dashboard: [PickState<DashboardState, "LOADED">, Dispatch<DashboardAction>];
-}) => {
-  const [{ data, POP_VIEW, PUSH_VIEW }, dispatch] = dashboard;
+export const Dinners = ({ dashboard }: { dashboard: LoadedDashboard }) => {
+  const [{ data }, { POP_VIEW, PUSH_VIEW }] = dashboard;
   const sortedDinners = selectors.sortedDinners(data.dinners);
   const t = useTranslations("DinnersView");
 
@@ -61,17 +53,17 @@ export const Dinners = ({
         <div className="flex items-center">
           <div className="flex-1">
             <button
-              onClick={() => dispatch(POP_VIEW())}
+              onClick={() => POP_VIEW()}
               className=" bg-white p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500"
             >
               <ChevronLeftIcon className="h-6 w-6" aria-hidden="true" />
             </button>
           </div>
-          <h1 className="flex-2 text-lg font-medium">{t('dinners')}</h1>
+          <h1 className="flex-2 text-lg font-medium">{t("dinners")}</h1>
           <div className="flex-1 flex">
             <button
               className="ml-auto"
-              onClick={() => dispatch(PUSH_VIEW(viewStates.EDIT_DINNER()))}
+              onClick={() => PUSH_VIEW(viewStates.EDIT_DINNER())}
             >
               <PlusIcon className="w-6 h-6" />
             </button>
@@ -84,14 +76,14 @@ export const Dinners = ({
             <Dinner
               key={dinner.id}
               dinner={dinner}
-              onClick={(id) => dispatch(PUSH_VIEW(viewStates.EDIT_DINNER(id)))}
+              onClick={(id) => PUSH_VIEW(viewStates.EDIT_DINNER(id))}
             />
           ))}
         </ul>
       ) : (
         <div className="flex items-center justify-center h-full">
           <a
-            onClick={() => dispatch(PUSH_VIEW(viewStates.EDIT_DINNER()))}
+            onClick={() => PUSH_VIEW(viewStates.EDIT_DINNER())}
             className="ml-6 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
           >
             New Dinner

@@ -1,127 +1,120 @@
 import { useReducer } from "react";
-import {
-  transition,
-  TTransitions,
-  useDevtools,
-  useTransitionEffect,
-} from "react-states";
+import { transition, useDevtools, useEnter, useTransition } from "react-states";
 
 import { useEnvironment } from "../../../environment-interface";
 import { DinnerDTO } from "../../../environment-interface/storage";
 import { useImage } from "../../../useImage";
-import { Action } from "./actions";
-import { State, EDITING } from "./state";
+import { Action, actions } from "./actions";
+import { State, states } from "./state";
 
-const transitions: TTransitions<State, Action> = {
-  EDITING: {
-    NAME_CHANGED: (state, { name }) =>
-      EDITING({
-        ...state,
-        dinner: {
-          ...state.dinner,
-          name,
-        },
-      }),
-    DESCRIPTION_CHANGED: (state, { description }) =>
-      EDITING({
-        ...state,
-        dinner: {
-          ...state.dinner,
-          description,
-        },
-      }),
-    NEW_INGREDIENT_NAME_CHANGED: (state, { name }) =>
-      EDITING({
-        ...state,
-        newIngredientName: name,
-      }),
-    ADD_INGREDIENT: (state) =>
-      EDITING({
-        ...state,
-        dinner: {
-          ...state.dinner,
-          groceries: [...state.dinner.groceries, state.newIngredientName],
-        },
-        newIngredientName: "",
-      }),
-    REMOVE_INGREDIENT: (state, { index }) =>
-      EDITING({
-        ...state,
-        dinner: {
-          ...state.dinner,
-          groceries: state.dinner.groceries.filter(
-            (_, itemIndex) => itemIndex !== index
-          ),
-        },
-      }),
-    NEW_PREPARATION_ITEM_DESCRIPTION_CHANGED: (state, { description }) =>
-      EDITING({
-        ...state,
-        newPreparationDescription: description,
-      }),
-    ADD_PREPARATION_ITEM: (state) =>
-      EDITING({
-        ...state,
-        dinner: {
-          ...state.dinner,
-          preparationCheckList: [
-            ...state.dinner.preparationCheckList,
-            state.newPreparationDescription,
-          ],
-        },
-        newPreparationDescription: "",
-      }),
-    REMOVE_PREPARATION_ITEM: (state, { index }) =>
-      EDITING({
-        ...state,
-        dinner: {
-          ...state.dinner,
-          preparationCheckList: state.dinner.preparationCheckList.filter(
-            (_, itemIndex) => itemIndex !== index
-          ),
-        },
-      }),
-    INSTRUCTION_CHANGED: (state, { instruction, index }) =>
-      EDITING({
-        ...state,
-        dinner: {
-          ...state.dinner,
-          instructions: state.dinner.instructions.map(
-            (current, instructionIndex) =>
-              index === instructionIndex ? instruction : current
-          ),
-        },
-      }),
-    ADD_INSTRUCTION: (state) =>
-      EDITING({
-        ...state,
-        dinner: {
-          ...state.dinner,
-          instructions: [...state.dinner.instructions, ""],
-        },
-      }),
-    REMOVE_INSTRUCTION: (state, { index }) =>
-      EDITING({
-        ...state,
-        dinner: {
-          ...state.dinner,
-          instructions: state.dinner.instructions.filter(
-            (_, itemIndex) => itemIndex !== index
-          ),
-        },
-      }),
-    ADD_IMAGE_SOURCE: (state, { src }) =>
-      EDITING({
-        ...state,
-        imageSrc: src,
-      }),
-    SAVE: (state) =>
-      state.validation.state === "VALID" ? EDITING(state) : state,
-  },
-};
-
-const reducer = (state: State, action: Action) =>
-  transition(state, action, transitions);
+const reducer = (prevState: State, action: Action) =>
+  transition(prevState, action, {
+    EDITING: {
+      NAME_CHANGED: (state, { name }) =>
+        states.EDITING({
+          ...state,
+          dinner: {
+            ...state.dinner,
+            name,
+          },
+        }),
+      DESCRIPTION_CHANGED: (state, { description }) =>
+        states.EDITING({
+          ...state,
+          dinner: {
+            ...state.dinner,
+            description,
+          },
+        }),
+      NEW_INGREDIENT_NAME_CHANGED: (state, { name }) =>
+        states.EDITING({
+          ...state,
+          newIngredientName: name,
+        }),
+      ADD_INGREDIENT: (state) =>
+        states.EDITING({
+          ...state,
+          dinner: {
+            ...state.dinner,
+            groceries: [...state.dinner.groceries, state.newIngredientName],
+          },
+          newIngredientName: "",
+        }),
+      REMOVE_INGREDIENT: (state, { index }) =>
+        states.EDITING({
+          ...state,
+          dinner: {
+            ...state.dinner,
+            groceries: state.dinner.groceries.filter(
+              (_, itemIndex) => itemIndex !== index
+            ),
+          },
+        }),
+      NEW_PREPARATION_ITEM_DESCRIPTION_CHANGED: (state, { description }) =>
+        states.EDITING({
+          ...state,
+          newPreparationDescription: description,
+        }),
+      ADD_PREPARATION_ITEM: (state) =>
+        states.EDITING({
+          ...state,
+          dinner: {
+            ...state.dinner,
+            preparationCheckList: [
+              ...state.dinner.preparationCheckList,
+              state.newPreparationDescription,
+            ],
+          },
+          newPreparationDescription: "",
+        }),
+      REMOVE_PREPARATION_ITEM: (state, { index }) =>
+        states.EDITING({
+          ...state,
+          dinner: {
+            ...state.dinner,
+            preparationCheckList: state.dinner.preparationCheckList.filter(
+              (_, itemIndex) => itemIndex !== index
+            ),
+          },
+        }),
+      INSTRUCTION_CHANGED: (state, { instruction, index }) =>
+        states.EDITING({
+          ...state,
+          dinner: {
+            ...state.dinner,
+            instructions: state.dinner.instructions.map(
+              (current, instructionIndex) =>
+                index === instructionIndex ? instruction : current
+            ),
+          },
+        }),
+      ADD_INSTRUCTION: (state) =>
+        states.EDITING({
+          ...state,
+          dinner: {
+            ...state.dinner,
+            instructions: [...state.dinner.instructions, ""],
+          },
+        }),
+      REMOVE_INSTRUCTION: (state, { index }) =>
+        states.EDITING({
+          ...state,
+          dinner: {
+            ...state.dinner,
+            instructions: state.dinner.instructions.filter(
+              (_, itemIndex) => itemIndex !== index
+            ),
+          },
+        }),
+      ADD_IMAGE_SOURCE: (state, { src }) =>
+        states.EDITING({
+          ...state,
+          imageSrc: src,
+        }),
+      SAVE: (state) =>
+        state.validation.state === "VALID" ? states.EDITING(state) : state,
+    },
+  });
 
 export const useEditDinner = ({
   initialDinner,
@@ -136,7 +129,7 @@ export const useEditDinner = ({
   const dinnerReducer = useReducer(
     reducer,
     initialState ||
-      EDITING({
+      states.EDITING({
         dinner: initialDinner || {
           id: storage.createDinnerId(),
           name: "",
@@ -155,6 +148,7 @@ export const useEditDinner = ({
   useDevtools("Dinner", dinnerReducer);
 
   const [state, dispatch] = dinnerReducer;
+  const actionsDispatch = actions(dispatch);
 
   const imageReducer = useImage({
     ref: storage.getDinnerImageRef(state.dinner.id),
@@ -162,17 +156,17 @@ export const useEditDinner = ({
 
   const [imageState] = imageReducer;
 
-  useTransitionEffect(state, "EDITING", "SAVE", ({ dinner }) => {
-    storage.storeDinner(dinner);
+  useTransition(state, "EDITING => SAVE => EDITING", ({ dinner, imageSrc }) => {
+    storage.storeDinner(dinner, imageSrc);
     onExit();
   });
 
-  useTransitionEffect(imageState, "CAPTURED", ({ src }) => {
-    dispatch(state.ADD_IMAGE_SOURCE(src));
+  useEnter(imageState, "CAPTURED", ({ src }) => {
+    actionsDispatch.ADD_IMAGE_SOURCE(src);
   });
 
   return {
-    dinner: dinnerReducer,
+    dinner: [state, actionsDispatch] as const,
     image: imageReducer,
   };
 };

@@ -1,17 +1,14 @@
-import type { ViewState } from "./state";
+import { createActions, ActionsUnion } from "react-states";
+import { ViewState } from "./state";
 
-export const actions = {
+export const actions = createActions({
   PUSH_VIEW: (view: ViewState) => ({
-    type: "PUSH_VIEW" as const,
     view,
   }),
-  POP_VIEW: () => ({
-    type: "POP_VIEW" as const,
-  }),
+  POP_VIEW: () => ({}),
   REPLACE_VIEW: (view: ViewState) => ({
-    type: "REPLACE_VIEW" as const,
     view,
   }),
-};
+});
 
-export type Action = ReturnType<typeof actions[keyof typeof actions]>;
+export type Action = ActionsUnion<typeof actions>;
