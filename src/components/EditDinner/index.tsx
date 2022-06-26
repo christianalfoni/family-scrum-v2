@@ -47,7 +47,23 @@ export const EditDinner = ({
             </button>
           </div>
           <h1 className="flex-2 text-lg font-medium">{t("addDinner")}</h1>
-          <span className="flex-1" />
+          <div className="flex-1 flex">
+            <button
+              type="submit"
+              className="ml-auto disabled:opacity-50 mx-autoinline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+              {...match(validation, {
+                INVALID: () => ({
+                  disabled: true,
+                }),
+                VALID: () => ({
+                  disabled: false,
+                  onClick: () => actions.SAVE(),
+                }),
+              })}
+            >
+              {"save"}
+            </button>
+          </div>
         </div>
       </div>
       <div className="h-full overflow-y-scroll">
@@ -57,13 +73,20 @@ export const EditDinner = ({
             LOADING: () => <div className={imageWrapperClassName}>...</div>,
             CAPTURE_STARTED: () => (
               <video
+                autoPlay
+                playsInline
                 id={dinner.id}
                 className={imageWrapperClassName}
                 onClick={() => CAPTURE(dinner.id)}
               ></video>
             ),
             CAPTURING: () => (
-              <video id={dinner.id} className={imageWrapperClassName}>
+              <video
+                autoPlay
+                playsInline
+                id={dinner.id}
+                className={imageWrapperClassName}
+              >
                 <div className={imageWrapperClassName}>...</div>,
               </video>
             ),
@@ -284,23 +307,6 @@ export const EditDinner = ({
                 <PlusIcon className="w-4 h-4" /> {t("addInstructionStep")}
               </div>
             </div>
-          </div>
-          <div className="mt-4 flex justify-center">
-            <button
-              type="submit"
-              className="disabled:opacity-50 mx-autoinline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
-              {...match(validation, {
-                INVALID: () => ({
-                  disabled: true,
-                }),
-                VALID: () => ({
-                  disabled: false,
-                  onClick: () => actions.SAVE(),
-                }),
-              })}
-            >
-              {"save"}
-            </button>
           </div>
         </div>
       </div>

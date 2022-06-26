@@ -226,7 +226,6 @@ export const EditTodo = ({
             ),
           })}
         </div>
-        {/*
         <div className="px-4 border-t border-gray-200  text-gray-500 text-lg font-medium ">
           {match(grocery, {
             ACTIVE: ({ name }) => (
@@ -255,7 +254,6 @@ export const EditTodo = ({
             ),
           })}
         </div>
-        */}
       </div>
     </div>
   );
