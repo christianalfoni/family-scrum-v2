@@ -94,12 +94,14 @@ const WeekdaySlideContent = ({
   date: string;
   children: React.ReactNode;
 }) => (
-  <div className="px-6">
+  <div className="px-6 h-full">
     <div className="flex items-center">
       <h1 className="text-xl">{title}</h1>
       <span className="text-md text-gray-500 ml-auto">{date}</span>
     </div>
-    {children}
+    <div className="h-full overflow-y-scroll">
+      <div className="pb-12">{children}</div>
+    </div>
   </div>
 );
 
@@ -192,9 +194,8 @@ export const DashboardContent = () => {
   const [
     {
       data: { groceries, family, currentWeek, todos, dinners },
-      PUSH_VIEW,
     },
-    dispatch,
+    { PUSH_VIEW },
   ] = useLoadedDashboard();
   const currentDayIndex = getDayIndex();
   const currentWeekDate = getFirstDateOfCurrentWeek();
@@ -213,7 +214,7 @@ export const DashboardContent = () => {
         <MenuCard
           Icon={ShoppingCartIcon}
           onClick={() => {
-            dispatch(PUSH_VIEW(viewStates.GROCERIES_SHOPPING()));
+            PUSH_VIEW(viewStates.GROCERIES_SHOPPING());
           }}
           color="bg-red-500"
         >
@@ -223,7 +224,7 @@ export const DashboardContent = () => {
           disabled={!checkLists.length}
           Icon={ClipboardCheckIcon}
           onClick={() => {
-            dispatch(PUSH_VIEW(viewStates.CHECKLISTS()));
+            PUSH_VIEW(viewStates.CHECKLISTS());
           }}
           color="bg-blue-500"
         >
@@ -232,7 +233,7 @@ export const DashboardContent = () => {
         <MenuCard
           Icon={ChatAlt2Icon}
           onClick={() => {
-            dispatch(PUSH_VIEW(viewStates.PLAN_NEXT_WEEK("DINNERS")));
+            PUSH_VIEW(viewStates.PLAN_NEXT_WEEK("DINNERS"));
           }}
           color="bg-green-500"
         >
@@ -241,7 +242,7 @@ export const DashboardContent = () => {
         <MenuCard
           Icon={HeartIcon}
           onClick={() => {
-            dispatch(PUSH_VIEW(viewStates.DINNERS()));
+            PUSH_VIEW(viewStates.DINNERS());
           }}
           color="bg-purple-500"
         >
@@ -348,7 +349,7 @@ export const DashboardContent = () => {
         <button
           type="button"
           onClick={() => {
-            dispatch(PUSH_VIEW(viewStates.EDIT_TODO()));
+            PUSH_VIEW(viewStates.EDIT_TODO());
           }}
           className="z-50 fixed right-6 bottom-14 h-14 w-14 rounded-full inline-flex items-center justify-center px-3 py-2 border border-gray-300 shadow-lg text-sm font-medium  text-gray-500 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
         >

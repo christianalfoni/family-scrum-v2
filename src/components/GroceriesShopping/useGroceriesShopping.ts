@@ -1,127 +1,84 @@
 import { useReducer } from "react";
 import {
+  createActions,
+  createStates,
+  ActionsUnion,
+  StatesUnion,
   match,
   transition,
-  TTransitions,
   useDevtools,
-  useTransitionEffect,
+  useTransition,
 } from "react-states";
 import { useEnvironment } from "../../environment-interface";
 
-const actions = {
-  ADD_GROCERY: () => ({
-    type: "ADD_GROCERY" as const,
-  }),
+const actions = createActions({
+  ADD_GROCERY: () => ({}),
   GROCERY_INPUT_CHANGED: (input: string) => ({
-    type: "GROCERY_INPUT_CHANGED" as const,
     input,
   }),
   SHOP_GROCERY: (groceryId: string) => ({
-    type: "SHOP_GROCERY" as const,
     groceryId,
   }),
-  TOGGLE_NO_SLEEP: () => ({
-    type: "TOGGLE_NO_SLEEP" as const,
-  }),
-};
-type Action = ReturnType<typeof actions[keyof typeof actions]>;
-
-const sleepStates = {
-  ALLOW_SLEEP: () => ({
-    state: "ALLOW_SLEEP" as const,
-  }),
-  PREVENT_SLEEP: () => ({
-    state: "PREVENT_SLEEP" as const,
-  }),
-};
-
-type SleepState = ReturnType<typeof sleepStates[keyof typeof sleepStates]>;
-
-type BaseState = {
-  sleep: SleepState;
-  input: string;
-};
-
-const states = {
-  FILTERED: ({ sleep, input }: Pick<BaseState, "sleep" | "input">) => ({
-    state: "FILTERED" as const,
-    input,
-    sleep,
-    SHOP_GROCERY: actions.SHOP_GROCERY,
-    TOGGLE_NO_SLEEP: actions.TOGGLE_NO_SLEEP,
-    GROCERY_INPUT_CHANGED: actions.GROCERY_INPUT_CHANGED,
-    ADD_GROCERY: actions.ADD_GROCERY,
-  }),
-  UNFILTERED: ({ sleep }: Pick<BaseState, "sleep">) => ({
-    state: "UNFILTERED" as const,
-    sleep,
-    GROCERY_INPUT_CHANGED: actions.GROCERY_INPUT_CHANGED,
-    SHOP_GROCERY: actions.SHOP_GROCERY,
-    TOGGLE_NO_SLEEP: actions.TOGGLE_NO_SLEEP,
-  }),
-};
-
-type State = ReturnType<typeof states[keyof typeof states]>;
-
-export const { FILTERED, UNFILTERED } = states;
-
-const SHOP_GROCERY = (state: State) => ({
-  ...state,
+  TOGGLE_NO_SLEEP: () => ({}),
 });
 
-const TOGGLE_NO_SLEEP = (state: State) =>
-  match(state, {
-    FILTERED: (filteredState) =>
-      FILTERED({
-        ...filteredState,
-        sleep: match(filteredState.sleep, {
-          ALLOW_SLEEP: () => sleepStates.PREVENT_SLEEP(),
-          PREVENT_SLEEP: () => sleepStates.ALLOW_SLEEP(),
-        }),
-      }),
-    UNFILTERED: (unfilteredState) =>
-      UNFILTERED({
-        ...unfilteredState,
-        sleep: match(unfilteredState.sleep, {
-          ALLOW_SLEEP: () => sleepStates.PREVENT_SLEEP(),
-          PREVENT_SLEEP: () => sleepStates.ALLOW_SLEEP(),
-        }),
-      }),
-  });
+type Action = ActionsUnion<typeof actions>;
 
-const GROCERY_INPUT_CHANGED = (
-  { sleep }: Pick<State, "sleep">,
-  { input }: { input: string }
-) =>
-  input
-    ? FILTERED({
-        sleep,
-        input,
-      })
-    : UNFILTERED({
-        sleep,
-      });
+const sleepStates = createStates({
+  ALLOW_SLEEP: () => ({}),
+  PREVENT_SLEEP: () => ({}),
+});
 
-const transitions: TTransitions<State, Action> = {
-  UNFILTERED: {
-    GROCERY_INPUT_CHANGED,
-    SHOP_GROCERY,
-    TOGGLE_NO_SLEEP,
-  },
-  FILTERED: {
-    GROCERY_INPUT_CHANGED,
-    SHOP_GROCERY,
-    TOGGLE_NO_SLEEP,
-    ADD_GROCERY: (state) =>
-      FILTERED({
-        ...state,
-        input: "",
-      }),
-  },
+type SleepState = StatesUnion<typeof sleepStates>;
+
+const filterStates = createStates({
+  FILTERED: (input: string) => ({ input }),
+  UNFILTERED: () => ({ input: "" }),
+});
+
+type FilterState = StatesUnion<typeof filterStates>;
+
+type BaseState = {
+  filter: FilterState;
+  sleep: SleepState;
 };
 
-const reducer = (state: State, action: Action) =>
-  transition(state, action, transitions);
+const states = createStates({
+  LIST: ({ sleep, filter }: Pick<BaseState, "sleep" | "filter">) => ({
+    sleep,
+    filter,
+    ...actions,
+  }),
+});
+
+type State = StatesUnion<typeof states>;
+
+const reducer = (prevState: State, action: Action) =>
+  transition(prevState, action, {
+    LIST: {
+      SHOP_GROCERY: (state) => states.LIST(state),
+      TOGGLE_NO_SLEEP: (state) => ({
+        ...state,
+        sleep: match(state.sleep, {
+          ALLOW_SLEEP: () => sleepStates.PREVENT_SLEEP(),
+          PREVENT_SLEEP: () => sleepStates.ALLOW_SLEEP(),
+        }),
+      }),
+      ADD_GROCERY: (state) =>
+        states.LIST({
+          ...state,
+          filter: filterStates.UNFILTERED(),
+        }),
+      GROCERY_INPUT_CHANGED: (state, { input }) =>
+        states.LIST({
+          ...state,
+          filter: input
+            ? filterStates.FILTERED(input)
+            : filterStates.UNFILTERED(),
+        }),
+    },
+  });
+
 export const useGroceriesShopping = ({
   initialState,
 }: {
@@ -131,36 +88,26 @@ export const useGroceriesShopping = ({
   const groceriesShoppingReducer = useReducer(
     reducer,
     initialState ||
-      UNFILTERED({
+      states.LIST({
         sleep: sleepStates.ALLOW_SLEEP(),
+        filter: filterStates.UNFILTERED(),
       })
   );
 
   useDevtools("GroceriesShopping", groceriesShoppingReducer);
 
-  const [state] = groceriesShoppingReducer;
+  const [state, dispatch] = groceriesShoppingReducer;
 
-  useTransitionEffect(
-    state,
-    "FILTERED",
-    "ADD_GROCERY",
-    "FILTERED",
-    (_, __, { input }) => {
-      storage.storeGrocery({
-        id: storage.createGroceryId(),
-        name: input,
-      });
-    }
-  );
+  useTransition(state, "LIST => ADD_GROCERY => LIST", (_, __, { filter }) => {
+    storage.storeGrocery({
+      id: storage.createGroceryId(),
+      name: filter.input,
+    });
+  });
 
-  useTransitionEffect(
-    state,
-    ["FILTERED", "UNFILTERED"],
-    "SHOP_GROCERY",
-    (_, { groceryId }) => {
-      storage.deleteGrocery(groceryId);
-    }
-  );
+  useTransition(state, "LIST => SHOP_GROCERY => LIST", (_, { groceryId }) => {
+    storage.deleteGrocery(groceryId);
+  });
 
-  return groceriesShoppingReducer;
+  return [state, actions(dispatch)] as const;
 };

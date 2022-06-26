@@ -5,6 +5,7 @@ import {
   ClipboardCheckIcon,
   ClockIcon,
   PlusIcon,
+  ShoppingCartIcon,
   TrashIcon,
   XIcon,
 } from "@heroicons/react/outline";
@@ -29,22 +30,26 @@ export const EditTodo = ({
 }) => {
   const t = useTranslations("AddTodoView");
   const [newItemTitle, setNewItemTitle] = React.useState("");
-  const [state, dispatch] = useEditTodo({
+  const [
+    { date, description, time, grocery, validation, checkList },
+    {
+      CHECKLIST_TOGGLED,
+      DATE_TOGGLED,
+      DESCRIPTION_CHANGED,
+      GROCERY_TOGGLED,
+      TIME_TOGGLED,
+      ADD_TODO,
+      CHECKLIST_ITEM_ADDED,
+      CHECKLIST_ITEM_REMOVED,
+      DATE_CHANGED,
+      GROCERY_NAME_CHANGED,
+      TIME_CHANGED,
+    },
+  ] = useEditTodo({
     todo,
     checkListItemsByTodoId,
     onExit: onBackClick,
   });
-
-  const {
-    CHECKLIST_TOGGLED,
-    DATE_TOGGLED,
-    DESCRIPTION_CHANGED,
-    TIME_TOGGLED,
-    date,
-    description,
-    time,
-    validation,
-  } = state;
 
   return (
     <div className="bg-white lg:min-w-0 lg:flex-1 min-h-screen">
@@ -57,22 +62,35 @@ export const EditTodo = ({
             <ChevronLeftIcon className="h-6 w-6" aria-hidden="true" />
           </button>
           <h1 className="flex-2 text-lg font-medium">{t("addTodo")}</h1>
-          <span className="flex-1" />
+          <div className="flex-1 flex">
+            <button
+              type="submit"
+              className="disabled:opacity-50 mx-autoinline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 ml-auto"
+              {...match(validation, {
+                INVALID: () => ({
+                  disabled: true,
+                }),
+                VALID: () => ({
+                  onClick: () => ADD_TODO(),
+                }),
+              })}
+            >
+              {t("save")}
+            </button>
+          </div>
         </div>
       </div>
       <div className="flex flex-col">
         <textarea
           rows={3}
-          onChange={(event) =>
-            dispatch(DESCRIPTION_CHANGED(event.target.value))
-          }
+          onChange={(event) => DESCRIPTION_CHANGED(event.target.value)}
           className="p-2 border-none block w-full focus:ring-blue-500 focus:border-blue-500 text-sm"
           placeholder="Description..."
           value={description}
         />
         <div className="px-4 border-t border-gray-200  text-gray-500 text-lg font-medium ">
           {match(date, {
-            ACTIVE: ({ date, DATE_CHANGED }) => (
+            ACTIVE: ({ date }) => (
               <div className="flex items-center  h-20">
                 <CalendarIcon className="w-6 h-6 mr-2" />
                 <input
@@ -80,13 +98,11 @@ export const EditTodo = ({
                   type="date"
                   value={format(date, "yyyy-MM-dd")}
                   onChange={(event) =>
-                    dispatch(
-                      DATE_CHANGED(new Date(event.target.value).getTime())
-                    )
+                    DATE_CHANGED(new Date(event.target.value).getTime())
                   }
                 />
                 <button
-                  onClick={() => dispatch(DATE_TOGGLED())}
+                  onClick={() => DATE_TOGGLED()}
                   className="ml-3 p-3 inline-flex items-center justify-center  text-sm font-medium rounded text-gray-500 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500"
                 >
                   <XIcon className="w-4 h-4" />
@@ -95,7 +111,7 @@ export const EditTodo = ({
             ),
             INACTIVE: () => (
               <button
-                onClick={() => dispatch(DATE_TOGGLED())}
+                onClick={() => DATE_TOGGLED()}
                 className="mx-auto inline-flex items-center  h-20 w-full"
               >
                 <CalendarIcon className="w-6 h-6 mr-2" /> {t("setDate")}
@@ -105,19 +121,17 @@ export const EditTodo = ({
         </div>
         <div className="px-4 border-t border-gray-200 text-gray-500 text-lg font-medium ">
           {match(time, {
-            ACTIVE: ({ time, TIME_CHANGED }) => (
+            ACTIVE: ({ time }) => (
               <div className="flex items-center  h-20">
                 <ClockIcon className="w-6 h-6 mr-2" />
                 <input
                   className="w-full flex-1 block  bg-white py-2 pr-3 border border-gray-300 rounded text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500 focus:placeholder-gray-500 sm:text-sm"
                   type="time"
                   value={time}
-                  onChange={(event) =>
-                    dispatch(TIME_CHANGED(event.target.value))
-                  }
+                  onChange={(event) => TIME_CHANGED(event.target.value)}
                 />
                 <button
-                  onClick={() => dispatch(TIME_TOGGLED())}
+                  onClick={() => TIME_TOGGLED()}
                   className="ml-3 p-3 inline-flex items-center justify-center  text-sm font-medium rounded text-gray-500 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500"
                 >
                   <XIcon className="w-4 h-4" />
@@ -126,7 +140,7 @@ export const EditTodo = ({
             ),
             INACTIVE: () => (
               <button
-                onClick={() => dispatch(TIME_TOGGLED())}
+                onClick={() => TIME_TOGGLED()}
                 className="mx-auto inline-flex items-center  h-20 w-full"
               >
                 <ClockIcon className="w-6 h-6 mr-2" /> {t("setTime")}
@@ -135,12 +149,8 @@ export const EditTodo = ({
           })}
         </div>
         <div className="px-4 border-t border-gray-200 text-gray-500 text-lg font-medium ">
-          {match(state.checkList, {
-            ACTIVE: ({
-              items,
-              CHECKLIST_ITEM_ADDED,
-              CHECKLIST_ITEM_REMOVED,
-            }) => (
+          {match(checkList, {
+            ACTIVE: ({ items }) => (
               <div className="flex flex-col">
                 <div className="flex items-center  h-20">
                   <ClipboardCheckIcon className="w-6 h-6 mr-2" />
@@ -162,7 +172,7 @@ export const EditTodo = ({
                       type="button"
                       className="bg-white inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-light-blue-500"
                       onClick={() => {
-                        dispatch(CHECKLIST_ITEM_ADDED(newItemTitle));
+                        CHECKLIST_ITEM_ADDED(newItemTitle);
                         setNewItemTitle("");
                       }}
                     >
@@ -174,7 +184,7 @@ export const EditTodo = ({
                     </button>
                   </span>
                   <button
-                    onClick={() => dispatch(CHECKLIST_TOGGLED())}
+                    onClick={() => CHECKLIST_TOGGLED()}
                     className="ml-3 p-3 inline-flex items-center justify-center  text-sm font-medium rounded text-gray-500 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500"
                   >
                     <XIcon className="w-4 h-4" />
@@ -195,9 +205,7 @@ export const EditTodo = ({
                         <label className="w-full">{title}</label>
                         <span
                           className="p-2 text-gray-300"
-                          onClick={() =>
-                            dispatch(CHECKLIST_ITEM_REMOVED(index))
-                          }
+                          onClick={() => CHECKLIST_ITEM_REMOVED(index)}
                         >
                           <TrashIcon className="w-6 h-6" />
                         </span>
@@ -209,7 +217,7 @@ export const EditTodo = ({
             ),
             INACTIVE: () => (
               <button
-                onClick={() => dispatch(CHECKLIST_TOGGLED())}
+                onClick={() => CHECKLIST_TOGGLED()}
                 className="mx-auto inline-flex items-center  h-20 w-full"
               >
                 <ClipboardCheckIcon className="w-6 h-6 mr-2" />{" "}
@@ -218,22 +226,36 @@ export const EditTodo = ({
             ),
           })}
         </div>
-        <div className="border-t border-gray-200 p-4 flex justify-center">
-          <button
-            type="submit"
-            className="disabled:opacity-50 mx-autoinline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-            {...match(validation, {
-              INVALID: () => ({
-                disabled: true,
-              }),
-              VALID: ({ ADD_TODO }) => ({
-                onClick: () => dispatch(ADD_TODO()),
-              }),
-            })}
-          >
-            {t("save")}
-          </button>
+        {/*
+        <div className="px-4 border-t border-gray-200  text-gray-500 text-lg font-medium ">
+          {match(grocery, {
+            ACTIVE: ({ name }) => (
+              <div className="flex items-center  h-20">
+                <ShoppingCartIcon className="w-6 h-6 mr-2" />
+                <input
+                  className="w-full flex-1 block  bg-white py-2 px-3 border border-gray-300 rounded text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500 focus:placeholder-gray-500 sm:text-sm"
+                  value={name}
+                  onChange={(event) => GROCERY_NAME_CHANGED(event.target.value)}
+                />
+                <button
+                  onClick={() => GROCERY_TOGGLED()}
+                  className="ml-3 p-3 inline-flex items-center justify-center  text-sm font-medium rounded text-gray-500 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500"
+                >
+                  <XIcon className="w-4 h-4" />
+                </button>
+              </div>
+            ),
+            INACTIVE: () => (
+              <button
+                onClick={() => GROCERY_TOGGLED()}
+                className="mx-auto inline-flex items-center  h-20 w-full"
+              >
+                <ShoppingCartIcon className="w-6 h-6 mr-2" /> {t("setGrocery")}
+              </button>
+            ),
+          })}
         </div>
+        */}
       </div>
     </div>
   );

@@ -9,10 +9,11 @@ import { Dinners } from "../Dinners";
 import { EditDinner } from "../EditDinner";
 import { PlanNextWeek } from "../PlanNextWeek";
 import { createContext, Dispatch, useContext } from "react";
+import { actions } from "./useDashboard/actions";
 
-type LoadedDashboard = [
+export type LoadedDashboard = [
   PickState<DashboardState, "LOADED">,
-  Dispatch<DashboardAction>
+  ReturnType<typeof actions>
 ];
 
 const loadedDashboardContext = createContext(
@@ -30,7 +31,7 @@ export const LoadedDashboardProvider: React.FC<{
 );
 
 export const Dashboard = () => {
-  const [dashboard, dispatch] = useDashboard({});
+  const [dashboard, actions] = useDashboard({});
 
   return (
     <div className="h-screen overflow-hidden bg-gray-100 flex flex-col">
@@ -38,12 +39,12 @@ export const Dashboard = () => {
         dashboard,
         {
           LOADED: (loadedDashboard) => {
-            const { viewStack, data, POP_VIEW } = loadedDashboard;
+            const { viewStack, data } = loadedDashboard;
             const view = viewStack[viewStack.length - 1];
 
             return (
               <LoadedDashboardProvider
-                loadedDashboard={[loadedDashboard, dispatch]}
+                loadedDashboard={[loadedDashboard, actions]}
               >
                 {match(view, {
                   DASHBOARD: () => <DashboardContent />,
@@ -53,23 +54,19 @@ export const Dashboard = () => {
                     <PlanNextWeek view={subView} />
                   ),
                   DINNERS: () => (
-                    <Dinners dashboard={[loadedDashboard, dispatch]} />
+                    <Dinners dashboard={[loadedDashboard, actions]} />
                   ),
                   EDIT_DINNER: ({ id }) => (
                     <EditDinner
                       initialDinner={id ? data.dinners[id] : undefined}
-                      onBackClick={() => {
-                        dispatch(POP_VIEW());
-                      }}
+                      onBackClick={() => actions.POP_VIEW()}
                     />
                   ),
                   EDIT_TODO: ({ id }) => (
                     <EditTodo
                       todo={id ? data.todos[id] : undefined}
                       checkListItemsByTodoId={data.checkListItemsByTodoId}
-                      onBackClick={() => {
-                        dispatch(POP_VIEW());
-                      }}
+                      onBackClick={() => actions.POP_VIEW()}
                     />
                   ),
                 })}

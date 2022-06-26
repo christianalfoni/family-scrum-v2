@@ -92,7 +92,18 @@ export const TodoItem = React.memo(
     onClick: () => void;
     children?: React.ReactNode;
   }) => {
-    const [state, dispatch] = useTodoItem({
+    const [
+      state,
+      {
+        ADD_CHECKLIST_ITEM,
+        ARCHIVE_TODO,
+        DELETE_CHECKLIST_ITEM,
+        SHOP_GROCERY,
+        SHOW_ADD_CHECKLIST_ITEM,
+        TOGGLE_CHECKLIST_ITEM,
+        TOGGLE_SHOW_CHECKLIST,
+      },
+    ] = useTodoItem({
       todo,
       user,
     });
@@ -106,11 +117,7 @@ export const TodoItem = React.memo(
 
     React.useEffect(() => {
       if (archiving) {
-        const id = setTimeout(() => {
-          dispatch({
-            type: "ARCHIVE_TODO",
-          });
-        }, 1500);
+        const id = setTimeout(() => ARCHIVE_TODO(), 1500);
 
         return () => clearTimeout(id);
       }
@@ -150,84 +157,71 @@ export const TodoItem = React.memo(
             }}
           />
         </div>
-        {match(state, {
-          TODO: () => null,
-          TODO_WITH_CHECKLIST: ({ checkList, TOGGLE_SHOW_CHECKLIST }) => (
-            <div className=" my-2 text-sm text-gray-500 border border-gray-200 p-2 rounded-md bg-gray-50">
-              <div
-                className="flex items-center"
-                onClick={() => dispatch(TOGGLE_SHOW_CHECKLIST())}
-              >
-                <ClipboardCheckIcon className="w-4 h-4 mr-1" />
-                {
-                  sortedCheckListItems.filter((item) => item.completed).length
-                } / {sortedCheckListItems.length}
-                {checkList.state === "COLLAPSED" ? (
-                  <ChevronUpIcon className="w-4 h-4 ml-auto" />
-                ) : (
-                  <ChevronDownIcon className="w-4 h-4 ml-auto" />
-                )}
-              </div>
-              {match(checkList, {
-                COLLAPSED: () => null,
-                EXPANDED: ({
-                  addCheckListItem,
-                  TOGGLE_CHECKLIST_ITEM,
-                  DELETE_CHECKLIST_ITEM,
-                }) => (
-                  <ul className="mt-2">
-                    {sortedCheckListItems.map((item) => (
-                      <li
-                        key={item.id}
-                        className="flex items-center text-lg py-1 px-1"
-                      >
-                        <input
-                          id={item.id}
-                          type="checkbox"
-                          className="rounded text-green-500 mr-2"
-                          checked={item.completed}
-                          onChange={() =>
-                            dispatch(TOGGLE_CHECKLIST_ITEM(item.id))
-                          }
-                        />
-                        <label htmlFor={item.id} className="w-full">
-                          {item.title}
-                        </label>
-                        <span
-                          className="p-2 text-gray-300"
-                          onClick={() =>
-                            dispatch(DELETE_CHECKLIST_ITEM(item.id))
-                          }
-                        >
-                          <TrashIcon className="w-6 h-6" />
-                        </span>
-                      </li>
-                    ))}
-                    <li>
-                      {match(addCheckListItem, {
-                        INACTIVE: ({ SHOW_ADD_CHECKLIST_ITEM }) => (
-                          <div
-                            className="p-2 text-gray-400 text-center text-lg"
-                            onClick={() => dispatch(SHOW_ADD_CHECKLIST_ITEM())}
-                          >
-                            {t("addNewItem")}
-                          </div>
-                        ),
-                        ACTIVE: ({ ADD_CHECKLIST_ITEM }) => (
-                          <AddCheckListItem
-                            onAdd={(title) =>
-                              dispatch(ADD_CHECKLIST_ITEM(title))
-                            }
-                          />
-                        ),
-                      })}
-                    </li>
-                  </ul>
-                ),
-              })}
+        {todo.checkList ? (
+          <div className=" my-2 text-sm text-gray-500 border border-gray-200 p-2 rounded-md bg-gray-50">
+            <div
+              className="flex items-center"
+              onClick={() => TOGGLE_SHOW_CHECKLIST()}
+            >
+              <ClipboardCheckIcon className="w-4 h-4 mr-1" />
+              {
+                sortedCheckListItems.filter((item) => item.completed).length
+              } / {sortedCheckListItems.length}
+              {state.checkList.state === "COLLAPSED" ? (
+                <ChevronUpIcon className="w-4 h-4 ml-auto" />
+              ) : (
+                <ChevronDownIcon className="w-4 h-4 ml-auto" />
+              )}
             </div>
-          ),
-        })}
+            {match(state.checkList, {
+              COLLAPSED: () => null,
+              EXPANDED: ({ addCheckListItem }) => (
+                <ul className="mt-2">
+                  {sortedCheckListItems.map((item) => (
+                    <li
+                      key={item.id}
+                      className="flex items-center text-lg py-1 px-1"
+                    >
+                      <input
+                        id={item.id}
+                        type="checkbox"
+                        className="rounded text-green-500 mr-2"
+                        checked={item.completed}
+                        onChange={() => TOGGLE_CHECKLIST_ITEM(item.id)}
+                      />
+                      <label htmlFor={item.id} className="w-full">
+                        {item.title}
+                      </label>
+                      <span
+                        className="p-2 text-gray-300"
+                        onClick={() => DELETE_CHECKLIST_ITEM(item.id)}
+                      >
+                        <TrashIcon className="w-6 h-6" />
+                      </span>
+                    </li>
+                  ))}
+                  <li>
+                    {match(addCheckListItem, {
+                      INACTIVE: () => (
+                        <div
+                          className="p-2 text-gray-400 text-center text-lg"
+                          onClick={() => SHOW_ADD_CHECKLIST_ITEM()}
+                        >
+                          {t("addNewItem")}
+                        </div>
+                      ),
+                      ACTIVE: () => (
+                        <AddCheckListItem
+                          onAdd={(title) => ADD_CHECKLIST_ITEM(title)}
+                        />
+                      ),
+                    })}
+                  </li>
+                </ul>
+              ),
+            })}
+          </div>
+        ) : null}
         {children}
       </li>
     );

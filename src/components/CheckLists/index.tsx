@@ -9,7 +9,7 @@ import { useLoadedDashboard } from "../Dashboard";
 
 export const CheckLists = () => {
   const t = useTranslations("CheckListsView");
-  const [{ user, data, POP_VIEW, PUSH_VIEW }, dispatch] = useLoadedDashboard();
+  const [{ user, data }, { POP_VIEW, PUSH_VIEW }] = useLoadedDashboard();
   const checkLists = selectors.checkLists(data.todos);
 
   return (
@@ -18,7 +18,7 @@ export const CheckLists = () => {
         <div className="flex items-center">
           <div className="flex-1">
             <button
-              onClick={() => dispatch(POP_VIEW())}
+              onClick={() => POP_VIEW()}
               className="bg-white p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500"
             >
               <ChevronLeftIcon className="h-6 w-6" aria-hidden="true" />
@@ -33,7 +33,7 @@ export const CheckLists = () => {
           <TodoItem
             key={todo.id}
             todo={todo}
-            onClick={() => dispatch(PUSH_VIEW(viewStates.EDIT_TODO(todo.id)))}
+            onClick={() => PUSH_VIEW(viewStates.EDIT_TODO(todo.id))}
             user={user}
             checkListItems={data.checkListItemsByTodoId[todo.id]}
           />

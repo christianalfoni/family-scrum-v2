@@ -57,6 +57,7 @@ export type TodoDTO = {
   date?: number;
   time?: string;
   checkList?: boolean;
+  grocery?: string;
 };
 
 // Each user has an array representing each day of the week,
@@ -235,7 +236,7 @@ export interface Storage {
   fetchWeeks(userId: string): void;
   storeGrocery(grocery: Pick<GroceryDTO, "id" | "name" | "dinnerId">): void;
   storeTodo(
-    todo: Pick<TodoDTO, "description" | "date" | "id" | "time">,
+    todo: Pick<TodoDTO, "description" | "date" | "id" | "time" | "grocery">,
     checkList?: Pick<CheckListItemDTO, "id" | "title">[]
   ): void;
   deleteGrocery(id: string): void;

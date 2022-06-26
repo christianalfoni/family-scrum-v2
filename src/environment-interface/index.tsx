@@ -1,5 +1,4 @@
-import React, { createContext, useContext } from "react";
-import { createEmitter, TEmit, TSubscribe } from "react-states";
+import { TSubscribe, createEnvironment } from "react-environment-interface";
 import { Authentication, AuthenticationEvent } from "./authentication";
 import { Capture, CaptureEvent } from "./capture";
 import { Storage, StorageEvent } from "./storage";
@@ -19,28 +18,10 @@ export type Environment = {
   version: Version;
   visibility: Visibility;
   capture: Capture;
+  subscribe: TSubscribe<EnvironmentEvent>;
 };
 
-type EnvironmentWithEmitter = Environment & {
-  emit: TEmit<EnvironmentEvent>
-  subscribe: TSubscribe<EnvironmentEvent>
-}
+const { EnvironmentProvider, useEnvironment } =
+  createEnvironment<Environment>();
 
-const environmentContext = createContext({} as EnvironmentWithEmitter)
-
-export const useEnvironment = ()  => useContext(environmentContext)
-
-export const EnvironmentProvider: React.FC<{ environment: EnvironmentWithEmitter}> = ({ environment, children }) => (
-  <environmentContext.Provider value={environment}>
-    {children}
-  </environmentContext.Provider>
-)
-
-export const createEnvironment = (constr: (emit: TEmit<EnvironmentEvent>) => Environment) => {
-  const emitter = createEmitter<EnvironmentEvent>()
-  
-  return {
-    ...emitter,
-    ...constr(emitter.emit)
-  }
-}
+export { EnvironmentProvider, useEnvironment };

@@ -1,7 +1,9 @@
 import React from "react";
 
 import { EnvironmentProvider } from "../environment-interface";
-import { environment } from "../environments/sandbox";
+import { createSandboxEnvironment } from "../environments/sandbox";
+
+const environment = createSandboxEnvironment();
 
 export default function SandboxEnvironment({
   children,

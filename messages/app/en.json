@@ -11,6 +11,7 @@
   "AddTodoView": {
     "addTodo": "Add todo",
     "setDate": "Set date",
+    "setGrocery": "Set grocery",
     "setTime": "Set time",
     "addCheckList": "Add checklist",
     "save": "Save",
