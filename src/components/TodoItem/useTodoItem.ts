@@ -47,9 +47,26 @@ const checkListStates = createStates({
 
 type CheckListState = StatesUnion<typeof checkListStates>;
 
+const groceryStates = createStates({
+  INACTIVE: () => ({}),
+  ACTIVE: (grocery: string) => ({ grocery }),
+  DISABLED: (grocery: string) => ({
+    grocery,
+  }),
+});
+
+type GroceryState = StatesUnion<typeof groceryStates>;
+
 const states = createStates({
-  TODO: (checkList: CheckListState) => ({
+  EDITING: ({
     checkList,
+    grocery,
+  }: {
+    checkList: CheckListState;
+    grocery: GroceryState;
+  }) => ({
+    checkList,
+    grocery,
   }),
 });
 
@@ -57,14 +74,15 @@ type State = StatesUnion<typeof states>;
 
 const reducer = (prevState: State, action: Action) =>
   transition(prevState, action, {
-    TODO: {
-      ARCHIVE_TODO: (state) => states.TODO(state.checkList),
+    EDITING: {
+      ARCHIVE_TODO: ({ checkList, grocery }) =>
+        states.EDITING({ checkList, grocery }),
       TOGGLE_CHECKLIST_ITEM: (state) =>
         match(state.checkList, {
           COLLAPSED: () => state,
-          EXPANDED: () => states.TODO(state.checkList),
+          EXPANDED: () => states.EDITING(state),
         }),
-      DELETE_CHECKLIST_ITEM: (state) => states.TODO(state.checkList),
+      DELETE_CHECKLIST_ITEM: states.EDITING,
       ADD_CHECKLIST_ITEM: (state) =>
         match(state.checkList, {
           COLLAPSED: () => state,
@@ -72,28 +90,47 @@ const reducer = (prevState: State, action: Action) =>
             match(addCheckListItem, {
               INACTIVE: () => state,
               ACTIVE: () =>
-                states.TODO(
-                  checkListStates.EXPANDED(addCheckListItemStates.INACTIVE())
-                ),
+                states.EDITING({
+                  checkList: checkListStates.EXPANDED(
+                    addCheckListItemStates.INACTIVE()
+                  ),
+                  grocery: state.grocery,
+                }),
             }),
         }),
-      TOGGLE_SHOW_CHECKLIST: (state) =>
-        match(state.checkList, {
+      TOGGLE_SHOW_CHECKLIST: ({ checkList, grocery }) =>
+        match(checkList, {
           COLLAPSED: () =>
-            states.TODO(
-              checkListStates.EXPANDED(addCheckListItemStates.INACTIVE())
-            ),
-          EXPANDED: () => states.TODO(checkListStates.COLLAPSED()),
+            states.EDITING({
+              checkList: checkListStates.EXPANDED(
+                addCheckListItemStates.INACTIVE()
+              ),
+              grocery,
+            }),
+          EXPANDED: () =>
+            states.EDITING({ checkList: checkListStates.COLLAPSED(), grocery }),
         }),
       SHOW_ADD_CHECKLIST_ITEM: (state) =>
         match(state.checkList, {
           COLLAPSED: () => state,
           EXPANDED: () =>
-            states.TODO(
-              checkListStates.EXPANDED(addCheckListItemStates.ACTIVE())
-            ),
+            states.EDITING({
+              checkList: checkListStates.EXPANDED(
+                addCheckListItemStates.ACTIVE()
+              ),
+              grocery: state.grocery,
+            }),
         }),
-      SHOP_GROCERY: (state) => states.TODO(state.checkList),
+      SHOP_GROCERY: (state) =>
+        match(state.grocery, {
+          INACTIVE: () => state,
+          ACTIVE: ({ grocery }) =>
+            states.EDITING({
+              checkList: state.checkList,
+              grocery: groceryStates.DISABLED(grocery),
+            }),
+          DISABLED: () => state,
+        }),
     },
   });
 
@@ -109,20 +146,24 @@ export const useTodoItem = ({
   const { storage } = useEnvironment();
   const todoItemReducer = useReducer(
     reducer,
-    initialState || states.TODO(checkListStates.COLLAPSED())
+    initialState ||
+      states.EDITING({
+        checkList: checkListStates.COLLAPSED(),
+        grocery: groceryStates.INACTIVE(),
+      })
   );
 
   useDevtools("TodoItem-" + todo.id, todoItemReducer);
 
   const [state, dispatch] = todoItemReducer;
 
-  useTransition(state, "TODO => ARCHIVE_TODO => TODO", () => {
+  useTransition(state, "EDITING => ARCHIVE_TODO => EDITING", () => {
     storage.archiveTodo(todo.id);
   });
 
   useTransition(
     state,
-    "TODO => TOGGLE_CHECKLIST_ITEM => TODO",
+    "EDITING => TOGGLE_CHECKLIST_ITEM => EDITING",
     (_, { itemId }) => {
       storage.toggleCheckListItem(user.id, itemId);
     }
@@ -130,26 +171,34 @@ export const useTodoItem = ({
 
   useTransition(
     state,
-    "TODO => DELETE_CHECKLIST_ITEM => TODO",
+    "EDITING => DELETE_CHECKLIST_ITEM => EDITING",
     (_, { itemId }) => {
       storage.deleteChecklistItem(itemId);
     }
   );
 
-  useTransition(state, "TODO => ADD_CHECKLIST_ITEM => TODO", (_, { title }) => {
-    storage.addChecklistItem({
-      id: storage.createCheckListItemId(),
-      todoId: todo.id,
-      title,
-    });
-  });
+  useTransition(
+    state,
+    "EDITING => ADD_CHECKLIST_ITEM => EDITING",
+    (_, { title }) => {
+      storage.addChecklistItem({
+        id: storage.createCheckListItemId(),
+        todoId: todo.id,
+        title,
+      });
+    }
+  );
 
-  useTransition(state, "TODO => SHOP_GROCERY => TODO", (_, { grocery }) => {
-    storage.storeGrocery({
-      id: storage.createGroceryId(),
-      name: grocery,
-    });
-  });
+  useTransition(
+    state,
+    "EDITING => SHOP_GROCERY => EDITING",
+    (_, { grocery }) => {
+      storage.storeGrocery({
+        id: storage.createGroceryId(),
+        name: grocery,
+      });
+    }
+  );
 
   return [state, actions(dispatch)] as const;
 };

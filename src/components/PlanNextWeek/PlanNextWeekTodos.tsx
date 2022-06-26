@@ -129,9 +129,8 @@ export const PlanNextWeekTodos = ({
         nextWeek,
         checkListItemsByTodoId,
       },
-      
     },
-    {PUSH_VIEW},
+    { PUSH_VIEW },
   ] = useLoadedDashboard();
   const t = useTranslations("PlanWeekView");
   const sortedTodos = selectors.todosByType(

@@ -121,7 +121,7 @@ export const TodoItem = React.memo(
 
         return () => clearTimeout(id);
       }
-    }, [archiving]);
+    }, [archiving, ARCHIVE_TODO]);
 
     return (
       <li key={todo.id} className="relative pl-4 pr-6 py-5 ">

@@ -82,7 +82,8 @@ export const usePlanNextWeek = ({
         active,
         weekdayIndex,
       });
-    }
+    },
+    [weekId]
   );
 
   useTransition(
@@ -94,7 +95,8 @@ export const usePlanNextWeek = ({
         dinnerId,
         weekdayIndex,
       });
-    }
+    },
+    [weekId]
   );
 
   return [state, actions(dispatch)] as const;

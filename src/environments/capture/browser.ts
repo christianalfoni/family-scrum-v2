@@ -21,9 +21,6 @@ export const createCapture = (emit: TEmit<CaptureEvent>): Capture => {
           .getUserMedia({ video: { facingMode: "environment" } })
           .then((stream) => {
             currentStream = video.srcObject = stream;
-            video.onloadedmetadata = function (e) {
-              video.play();
-            };
           })
           .catch((error) => {
             emit({

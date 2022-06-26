@@ -526,6 +526,8 @@ export const createStorage = (
 
       delete todos[id];
 
+      console.log("ARCHIVING!", id);
+
       emit({
         type: "STORAGE:TODOS_UPDATE",
         todos,
@@ -541,7 +543,9 @@ export const createStorage = (
         )
       )
         .then(() => {
+          console.log("DELETING", id);
           todoDocRef.delete().catch((error) => {
+            console.log("NOT GOT IT DELETED!", error);
             emit({
               type: "STORAGE:ARCHIVE_TODO_ERROR",
               id,
