@@ -2,7 +2,8 @@ import { Dispatch, useEffect, useReducer } from "react";
 import {
   createActions,
   createStates,
-  CreateUnion,
+  ActionsUnion,
+  StatesUnion,
   PickState,
   transition,
   useDevtools,
@@ -20,7 +21,7 @@ const actions = createActions({
   }),
 });
 
-type Action = CreateUnion<typeof actions>;
+type Action = ActionsUnion<typeof actions>;
 
 type BaseState = {
   ref: string;
@@ -35,16 +36,16 @@ const states = createStates({
   LOADED: ({ ref, src }: Pick<BaseState, "ref" | "src">) => ({
     ref,
     src,
-    START_CAPTURE: actions.START_CAPTURE,
+    
   }),
   NOT_FOUND: ({ ref }: Pick<BaseState, "ref">) => ({
     ref,
-    START_CAPTURE: actions.START_CAPTURE,
+    
   }),
   CAPTURE_STARTED: ({ ref, videoId }: Pick<BaseState, "ref" | "videoId">) => ({
     ref,
     videoId,
-    CAPTURE: actions.CAPTURE,
+    
   }),
   CAPTURING: ({ ref, videoId }: Pick<BaseState, "ref" | "videoId">) => ({
     ref,
@@ -53,11 +54,11 @@ const states = createStates({
   CAPTURED: ({ ref, src }: Pick<BaseState, "ref" | "src">) => ({
     ref,
     src,
-    START_CAPTURE: actions.START_CAPTURE,
+    
   }),
 });
 
-type State = CreateUnion<typeof states>;
+type State = StatesUnion<typeof states>;
 
 const START_CAPTURE = (
   state: PickState<State, "LOADED" | "NOT_FOUND" | "CAPTURED">,
@@ -108,9 +109,9 @@ export const useImage = ({
 }: {
   ref: string;
   initialState?: State;
-}): [State, Dispatch<Action>] => {
+}) => {
   const { storage, capture, subscribe } = useEnvironment();
-  const captureReducer = useReducer(
+  const imageReducer = useReducer(
     reducer,
     initialState || {
       state: "LOADING",
@@ -118,9 +119,9 @@ export const useImage = ({
     }
   );
 
-  useDevtools("Image", captureReducer);
+  useDevtools("Image", imageReducer);
 
-  const [state, dispatch] = captureReducer;
+  const [state, dispatch] = imageReducer;
 
   useEffect(() => subscribe(dispatch), []);
 
@@ -136,5 +137,5 @@ export const useImage = ({
     capture.capture(videoId, 100, 100);
   });
 
-  return captureReducer;
+  return [state, actions(dispatch)] as const;
 };

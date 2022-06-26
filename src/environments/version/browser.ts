@@ -1,6 +1,6 @@
 import { Version, VersionEvent } from "../../environment-interface/version";
 import gt from "semver/functions/gt";
-import { TEmit } from "react-states";
+import { TEmit } from "react-environment-interface";
 
 const STORAGE_KEY = "family-scrum.version";
 

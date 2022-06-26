@@ -24,7 +24,7 @@ export const EditDinner = ({
       { dinner, newIngredientName, newPreparationDescription, validation },
       actions,
     ],
-    image: [imageState, imageDispatch],
+    image: [imageState, { CAPTURE, START_CAPTURE }],
   } = useEditDinner({
     initialDinner,
     onExit: onBackClick,
@@ -55,11 +55,11 @@ export const EditDinner = ({
           imageState,
           {
             LOADING: () => <div className={imageWrapperClassName}>...</div>,
-            CAPTURE_STARTED: ({ CAPTURE }) => (
+            CAPTURE_STARTED: () => (
               <video
                 id={dinner.id}
                 className={imageWrapperClassName}
-                onClick={() => imageDispatch(CAPTURE(dinner.id))}
+                onClick={() => CAPTURE(dinner.id)}
               ></video>
             ),
             CAPTURING: () => (
@@ -67,16 +67,16 @@ export const EditDinner = ({
                 <div className={imageWrapperClassName}>...</div>,
               </video>
             ),
-            NOT_FOUND: ({ START_CAPTURE }) => (
+            NOT_FOUND: () => (
               <div
                 className={imageWrapperClassName}
-                onClick={() => imageDispatch(START_CAPTURE(dinner.id))}
+                onClick={() => START_CAPTURE(dinner.id)}
               >
                 <CameraIcon className="w-6 h-6 text-white" />
               </div>
             ),
           },
-          ({ START_CAPTURE, src }) => (
+          ({ src }) => (
             <div
               className={imageWrapperClassName}
               style={{
@@ -84,7 +84,7 @@ export const EditDinner = ({
                 backgroundSize: "cover",
                 backgroundPosition: "center center",
               }}
-              onClick={() => imageDispatch(START_CAPTURE(dinner.id))}
+              onClick={() => START_CAPTURE(dinner.id)}
             >
               <CameraIcon className="w-6 h-6 text-white" />
             </div>

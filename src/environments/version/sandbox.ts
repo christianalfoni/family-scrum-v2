@@ -1,4 +1,4 @@
-import { TEmit } from "react-states";
+import { TEmit } from "react-environment-interface";
 import gt from "semver/functions/gt";
 import { Version, VersionEvent } from "../../environment-interface/version";
 

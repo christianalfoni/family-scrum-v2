@@ -1,4 +1,4 @@
-import { TEmit } from "react-states";
+import { TEmit } from "react-environment-interface";
 import {
   GroceryDTO,
   Storage,
