@@ -1,5 +1,5 @@
 import firebase from "firebase/app";
-import { TEmit } from "react-states";
+import { TEmit } from "react-environment-interface";
 import {
   Authentication,
   AuthenticationEvent,
