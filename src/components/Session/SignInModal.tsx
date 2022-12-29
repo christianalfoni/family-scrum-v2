@@ -1,28 +1,21 @@
-import { match } from "react-states";
 import { useTranslations } from "next-intl";
 
 /* This example requires Tailwind CSS v2.0+ */
 import { Fragment } from "react";
 import { Dialog, Transition } from "@headlessui/react";
-import {
-  ExclamationCircleIcon,
-  LockClosedIcon,
-} from "@heroicons/react/outline";
-import { useSession } from ".";
+import { LockClosedIcon } from "@heroicons/react/outline";
+import { useBrowser, useCurrentUser, useSignIn } from "../../hooks";
 
 export const SignInModal = () => {
+  const isBrowser = useBrowser();
   const t = useTranslations("SignInModal");
-  const [session, { SIGN_IN }] = useSession();
+  const user = useCurrentUser();
+  const signIn = useSignIn();
+  const open = !user;
 
-  const open = match(
-    session,
-    {
-      ERROR: () => true,
-      SIGNED_OUT: () => true,
-      NO_FAMILY: () => true,
-    },
-    () => false
-  );
+  if (!isBrowser) {
+    return null;
+  }
 
   return (
     <Transition.Root show={open} as={Fragment}>
@@ -56,85 +49,36 @@ export const SignInModal = () => {
             leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
           >
             <div className="inline-block bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all  align-middle sm:max-w-sm sm:w-full sm:p-6">
-              {match(session, {
-                ERROR: ({ error }) => (
-                  <div>
-                    <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
-                      <ExclamationCircleIcon
-                        className="h-6 w-6 text-red-600"
-                        aria-hidden="true"
-                      />
-                    </div>
-                    <div className="mt-3 text-center sm:mt-5">
-                      <Dialog.Title
-                        as="h3"
-                        className="text-lg leading-6 font-medium text-gray-900"
-                      >
-                        {t("somethingWrong")}
-                      </Dialog.Title>
-                      <div className="mt-2">
-                        <p className="text-sm text-gray-500">{error}</p>
-                      </div>
-                    </div>
+              <div>
+                <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                  <LockClosedIcon
+                    className="h-6 w-6 text-red-600"
+                    aria-hidden="true"
+                  />
+                </div>
+                <div className="mt-3 text-center sm:mt-5">
+                  <Dialog.Title
+                    as="h3"
+                    className="text-lg leading-6 font-medium text-gray-900"
+                  >
+                    {t("signInRequired")}
+                  </Dialog.Title>
+                  <div className="mt-2">
+                    <p className="text-sm text-gray-500">
+                      {t("accessExplanation")}
+                    </p>
                   </div>
-                ),
-                NO_FAMILY: () => (
-                  <div className="mt-3 text-center sm:mt-5">
-                    <Dialog.Title
-                      as="h3"
-                      className="text-lg leading-6 font-medium text-gray-900"
-                    >
-                      {t("noFamily")}
-                    </Dialog.Title>
-                    <div className="mt-2">
-                      <p className="text-sm text-gray-500"></p>
-                      {/* This is considered a bug workaround: https://github.com/tailwindlabs/headlessui/issues/265 */}
-                      <button className="opacity-0" />
-                    </div>
-                  </div>
-                ),
-                SIGNED_OUT: () => (
-                  <>
-                    <div>
-                      <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
-                        <LockClosedIcon
-                          className="h-6 w-6 text-red-600"
-                          aria-hidden="true"
-                        />
-                      </div>
-                      <div className="mt-3 text-center sm:mt-5">
-                        <Dialog.Title
-                          as="h3"
-                          className="text-lg leading-6 font-medium text-gray-900"
-                        >
-                          {t("signInRequired")}
-                        </Dialog.Title>
-                        <div className="mt-2">
-                          <p className="text-sm text-gray-500">
-                            {t("accessExplanation")}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="mt-5 sm:mt-6">
-                      <button
-                        type="button"
-                        className="inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:text-sm"
-                        onClick={() => SIGN_IN()}
-                      >
-                        {t("loginWithGoogle")}
-                      </button>
-                    </div>
-                  </>
-                ),
-                // Cm
-                CREATING_FAMILY: () => null,
-                JOINING_FAMILY: () => null,
-                SIGNED_IN: () => null,
-                SIGNING_IN: () => null,
-                VERIFYING_AUTHENTICATION: () => null,
-                UPDATING_VERSION: () => null,
-              })}
+                </div>
+              </div>
+              <div className="mt-5 sm:mt-6">
+                <button
+                  type="button"
+                  className="inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:text-sm"
+                  onClick={() => signIn()}
+                >
+                  {t("loginWithGoogle")}
+                </button>
+              </div>
             </div>
           </Transition.Child>
         </div>

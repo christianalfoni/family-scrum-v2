@@ -1,27 +1,13 @@
-import { createContext, Dispatch, useContext } from "react";
-
-import {
-  SessionState,
-  actions,
-  useSession as useSessionReducer,
-} from "./useSession";
+import { Suspense } from "react";
 import { SignInModal } from "./SignInModal";
 import { UpdateModal } from "./UpdateModal";
 
-const context = createContext(
-  [] as unknown as readonly [SessionState, ReturnType<typeof actions>]
-);
-
-export const useSession = () => useContext(context);
-
 export const Session: React.FC = ({ children }) => {
-  const sessionReducer = useSessionReducer({});
-
   return (
-    <context.Provider value={sessionReducer}>
-      {children}
+    <Suspense fallback={<h3>Authenticating</h3>}>
+      {/*children*/}
       <SignInModal />
       <UpdateModal />
-    </context.Provider>
+    </Suspense>
   );
 };
