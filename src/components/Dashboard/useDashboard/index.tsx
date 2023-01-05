@@ -81,7 +81,6 @@ export type Props = {
 };
 
 export const useDashboard = ({ initialState }: Props) => {
-  const { storage, subscribe } = useEnvironment();
   const [session] = useSession();
 
   const dashboardReducer = useReducer(
@@ -96,8 +95,6 @@ export const useDashboard = ({ initialState }: Props) => {
         () => states.AWAITING_AUTHENTICATION()
       )
   );
-
-  useDevtools("Dashboard", dashboardReducer);
 
   const [state, dispatch] = dashboardReducer;
 

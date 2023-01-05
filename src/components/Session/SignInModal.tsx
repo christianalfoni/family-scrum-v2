@@ -9,9 +9,9 @@ import { useBrowser, useCurrentUser, useSignIn } from "../../hooks";
 export const SignInModal = () => {
   const isBrowser = useBrowser();
   const t = useTranslations("SignInModal");
-  const user = useCurrentUser();
+  const user = useCurrentUser().suspend().read();
   const signIn = useSignIn();
-  const open = !user;
+  const open = !user.data;
 
   if (!isBrowser) {
     return null;
