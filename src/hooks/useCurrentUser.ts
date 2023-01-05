@@ -4,8 +4,7 @@ import type * as auth from "firebase/auth";
 import { useFirebase } from "../useFirebase";
 import { getFirestore, doc, getDoc, Firestore } from "@firebase/firestore";
 
-import { useEffect } from "react";
-import { useCache, useSubscriptionCache } from "../useCache";
+import { useSubscriptionCache } from "../useCache";
 
 export type User = {
   id: string;

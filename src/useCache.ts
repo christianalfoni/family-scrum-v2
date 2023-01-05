@@ -16,6 +16,12 @@ type StaleState<T> = {
   data: T;
 };
 
+type WriteErrorState<T> = {
+  status: "write_error";
+  data: T;
+  error: unknown;
+};
+
 type OptimisticState<T> = {
   status: "optimistic";
   data: T;
@@ -24,10 +30,6 @@ type OptimisticState<T> = {
 type ErrorState = {
   status: "error";
   error: unknown;
-};
-
-type UninitializedState = {
-  status: "uninitialized";
 };
 
 type InitializingState = {
@@ -47,40 +49,33 @@ type RefreshingErrorState<T> = {
 };
 
 type CacheState<T> =
-  | FreshState<T>
-  | StaleState<T>
-  | OptimisticState<T>
-  | RefreshingState<T>
-  | RefreshingErrorState<T>
-  | ErrorState
-  | UninitializedState
-  | InitializingState;
-
-type InitializingCacheState<T> =
   | InitializingState
   | ErrorState
   | FreshState<T>
   | StaleState<T>
   | OptimisticState<T>
+  | WriteErrorState<T>
   | RefreshingState<T>
   | RefreshingErrorState<T>;
 
-type InitializedCacheState<T> =
+type SuspendCacheState<T> =
   | FreshState<T>
   | StaleState<T>
   | OptimisticState<T>
+  | WriteErrorState<T>
   | RefreshingState<T>
   | RefreshingErrorState<T>;
 
-type UnInitializedCacheState<T> =
-  | FreshState<T>
-  | StaleState<T>
-  | OptimisticState<T>
-  | ErrorState
-  | UninitializedState
+type SubscriptionCacheState<T> =
   | InitializingState
-  | RefreshingState<T>
-  | RefreshingErrorState<T>;
+  | FreshState<T>
+  | OptimisticState<T>
+  | WriteErrorState<T>;
+
+type SuspendSubscriptionCacheState<T> =
+  | FreshState<T>
+  | OptimisticState<T>
+  | WriteErrorState<T>;
 
 type Subscription<T> = (data: T) => void;
 
@@ -90,13 +85,24 @@ export class Cache {
     {
       state: CacheState<any>;
       subscribers: Set<Subscription<any>>;
-      subscription?: {
-        dispose: () => void;
-        subscriber: () => () => void;
-      };
-    }
+    } & (
+      | {
+          type: "subscription";
+          subscription: {
+            dispose: () => void;
+            subscriber: () => () => void;
+          };
+        }
+      | {
+          type: "resolver";
+          resolver: () => Promise<any>;
+        }
+    )
   > = {};
-  get<T>(key: string): CacheState<T> | undefined {
+  get(key: string) {
+    return this.entries[key];
+  }
+  getState<T>(key: string): CacheState<T> | undefined {
     return this.entries[key]?.state;
   }
   subscribe<T>(key: string, cb: Subscription<T>): () => void {
@@ -110,33 +116,58 @@ export class Cache {
 
     entry.subscribers.add(cb);
 
-    if (entry.subscription && entry.subscribers.size === 1) {
+    if (entry.type === "subscription" && entry.subscribers.size === 1) {
       entry.subscription.dispose = entry.subscription.subscriber();
     }
 
     return () => {
       entry.subscribers.delete(cb);
 
-      if (entry.subscription && !entry.subscribers.size) {
+      if (entry.type === "subscription" && !entry.subscribers.size) {
         entry.subscription.dispose();
       }
     };
   }
-  set<T>(key: string, state: CacheState<T>) {
-    const entry = this.entries[key];
 
-    if (entry) {
-      entry.state = state;
-      entry.subscribers.forEach((cb) => cb(state));
-    } else {
-      this.entries[key] = {
-        state,
-        subscribers: new Set(),
-      };
-    }
+  setResolver<T>(key: string, resolver: () => Promise<T>) {
+    const state: InitializingState = {
+      status: "initializing",
+      promise: resolver()
+        .then((data) => {
+          this.update(key, {
+            status: "fresh",
+            data,
+          });
+        })
+        .catch((error) => {
+          this.update(key, {
+            status: "error",
+            error,
+          });
+        }),
+    };
+
+    this.entries[key] = {
+      type: "resolver",
+      state,
+      subscribers: new Set(),
+      resolver,
+    };
 
     return state;
   }
+
+  update<T>(key: string, state: CacheState<T>) {
+    const entry = this.entries[key];
+
+    if (!entry) {
+      throw new Error("Can not update state on non existing entry");
+    }
+
+    entry.state = state;
+    entry.subscribers.forEach((cb) => cb(state));
+  }
+
   setSubscription<T>(
     key: string,
     subscriber: (
@@ -160,6 +191,7 @@ export class Cache {
     };
 
     this.entries[key] = {
+      type: "subscription",
       state,
       subscribers: new Set(),
       subscription: {
@@ -170,7 +202,7 @@ export class Cache {
               const currentState = this.get(key)!;
               const dataCallback = data as (data: T | void) => T;
 
-              this.set(key, {
+              this.update(key, {
                 status: "fresh",
                 data:
                   "data" in currentState
@@ -178,7 +210,7 @@ export class Cache {
                     : dataCallback(),
               });
             } else {
-              this.set(key, {
+              this.update(key, {
                 status: "fresh",
                 data,
               });
@@ -207,42 +239,36 @@ export const CacheProvider: React.FC<{ cache: Cache }> = ({
     children,
   });
 
-interface SetInitializedCache<T> {
-  (promisedData: Promise<T>): void;
-  (promisedData: Promise<T>, optimisticData: T): void;
-  (data: T): void;
-  (data: (current: T) => T): void;
+interface UseCacheValue<T, S extends CacheState<T> | SuspendCacheState<T>> {
+  write(optimisticData: T, promise: Promise<unknown>): void;
+  write(optimisticData: (current: T) => T, promise: Promise<unknown>): void;
+  read(): S;
+  suspend(): UseCacheValue<T, SuspendCacheState<T>>;
 }
 
-interface UseCacheValue<
+interface UseSubscriptionCacheValue<
   T,
-  S extends
-    | InitializedCacheState<T>
-    | UnInitializedCacheState<T>
-    | InitializingCacheState<T>
+  S extends SubscriptionCacheState<T> | SuspendSubscriptionCacheState<T>
 > {
-  write(promisedData: Promise<T>): void;
-  write(promisedData: Promise<T>, optimisticData: T): void;
-  write(data: T): void;
-  write(data: (current?: T) => T): void;
+  write(optimisticData: T, promise: Promise<unknown>): void;
+  write(optimisticData: (current: T) => T, promise: Promise<unknown>): void;
   read(): S;
-  suspend(): UseCacheValue<T, InitializedCacheState<T>>;
+  suspend(): UseSubscriptionCacheValue<T, SuspendSubscriptionCacheState<T>>;
 }
 
 function createCacheValue<
   T,
   S extends
-    | InitializedCacheState<T>
-    | UnInitializedCacheState<T>
-    | InitializingCacheState<T>
->(cache: Cache, key: string) {
+    | CacheState<T>
+    | SuspendCacheState<T>
+    | SubscriptionCacheState<T>
+    | SuspendSubscriptionCacheState<T>
+>(key: string, state: S, cache: Cache) {
   return {
     read() {
-      return cache.get(key)!;
+      return state;
     },
     suspend() {
-      const state = cache.get(key)!;
-
       if (state.status === "initializing") {
         throw state.promise;
       }
@@ -253,99 +279,37 @@ function createCacheValue<
 
       return this;
     },
-    write(...args: unknown[]) {
-      if (args.length === 2 && args[0] instanceof Promise) {
-        const promise = args[0];
-        const optimisticData = args[1];
-
-        cache.set(key, {
-          status: "optimistic",
-          data: optimisticData,
-        });
-
-        promise
-          .then((data) =>
-            cache.set(key, {
-              status: "fresh",
-              data,
-            })
-          )
-          .catch((error) => {
-            const state = cache.get(key)!;
-
-            cache.set(
-              key,
-              state.status === "uninitialized" ||
-                state.status === "error" ||
-                state.status === "initializing"
-                ? {
-                    status: "error",
-                    error,
-                  }
-                : {
-                    status: "refreshing_error",
-                    data: state.data,
-                    error,
-                  }
-            );
-          });
-      } else if (args.length === 1 && args[0] instanceof Promise) {
-        const promise = args[0];
-        const state = cache.get(key)!;
-
-        cache.set(
-          key,
-          state.status === "uninitialized" ||
-            state.status === "error" ||
-            state.status === "initializing"
-            ? {
-                status: "initializing",
-                promise,
-              }
-            : {
-                status: "refreshing",
-                data: state.data,
-              }
+    write(data: unknown, promise: Promise<unknown>) {
+      if (state.status === "error" || state.status === "initializing") {
+        throw new Error(
+          `You can not write to cache in an ${state.status} state`
         );
-        promise
-          .then((data) =>
-            cache.set(key, {
-              status: "fresh",
-              data,
-            })
-          )
-          .catch((error) =>
-            cache.set(
-              key,
-              state.status === "uninitialized" ||
-                state.status === "error" ||
-                state.status === "initializing"
-                ? {
-                    status: "error",
-                    error,
-                  }
-                : {
-                    status: "refreshing_error",
-                    data: state.data,
-                    error,
-                  }
-            )
-          );
-      } else if (args.length === 1 && typeof args[0] === "function") {
-        const state = cache.get(key)!;
-
-        cache.set(key, {
-          status: "fresh",
-          data: args[0]("data" in state ? state.data : undefined),
-        });
-      } else if (args.length === 1) {
-        cache.set(key, {
-          status: "fresh",
-          data: args[0],
-        });
       }
+
+      const prevData = state.data;
+      const optimisticData = typeof data === "function" ? data(state) : data;
+
+      cache.update(key, {
+        status: "optimistic",
+        data: optimisticData,
+      });
+
+      promise
+        .then(() =>
+          cache.update(key, {
+            status: "fresh",
+            data: optimisticData,
+          })
+        )
+        .catch((error) => {
+          cache.update(key, {
+            status: "refreshing_error",
+            data: prevData,
+            error,
+          });
+        });
     },
-  } as unknown as UseCacheValue<T, S>;
+  };
 }
 
 export function useSubscriptionCache<T>(
@@ -355,87 +319,47 @@ export function useSubscriptionCache<T>(
   ) => () => void
 ) {
   const cache = useContext(cacheContext);
-  const [, setState] = useState<CacheState<T>>(() => {
-    const existingState = cache.get<T>(key);
+  const [state, setState] = useState<SubscriptionCacheState<T>>(() => {
+    const existingState = cache.getState<T>(key);
 
     if (existingState) {
-      return existingState;
+      return existingState as SubscriptionCacheState<T>;
     }
 
-    return cache.setSubscription(key, subscriber);
+    return cache.setSubscription(key, subscriber) as SubscriptionCacheState<T>;
   });
 
   useEffect(() => cache.subscribe(key, setState), []);
 
-  return useMemo(() => createCacheValue(cache, key), []);
+  return useMemo(
+    () => createCacheValue(key, state, cache),
+    [state]
+  ) as UseSubscriptionCacheValue<T, SubscriptionCacheState<T>>;
 }
 
-export function useCache<T>(
-  key: string,
-  resolver: () => Promise<T>
-): UseCacheValue<T, InitializingCacheState<T>>;
-export function useCache<T>(
-  key: string,
-  data: T
-): UseCacheValue<T, InitializedCacheState<T>>;
-export function useCache<T>(
-  key: string
-): UseCacheValue<T, UnInitializedCacheState<T>>;
-export function useCache<T>(
-  key: string,
-  dataOrResolver?: (T & Exclude<T, Function>) | (() => Promise<T>)
-) {
+export function useCache<T>(key: string, resolver: () => Promise<T>) {
   const cache = useContext(cacheContext);
-  const [, setState] = useState<CacheState<T>>(() => {
-    const existingState = cache.get<T>(key);
+  const [state, setState] = useState<CacheState<T>>(() => {
+    const existingState = cache.getState<T>(key);
 
     if (existingState) {
       return existingState;
     }
 
-    if (typeof dataOrResolver === "function") {
-      const resolver = dataOrResolver as () => Promise<T>;
-
-      return cache.set(key, {
-        status: "initializing",
-        promise: resolver()
-          .then((data) => {
-            cache.set(key, {
-              status: "fresh",
-              data,
-            });
-          })
-          .catch((error) => {
-            cache.set(key, {
-              status: "error",
-              error,
-            });
-          }),
-      });
-    }
-
-    if (typeof dataOrResolver === "undefined") {
-      return cache.set(key, {
-        status: "uninitialized",
-      });
-    }
-
-    const data = dataOrResolver;
-
-    return cache.set(key, {
-      status: "fresh",
-      data,
-    });
+    return cache.setResolver(key, resolver);
   });
 
   useEffect(() => cache.subscribe(key, setState), []);
 
-  return useMemo(() => createCacheValue(cache, key), []);
+  return useMemo(
+    () => createCacheValue(key, state, cache),
+    [state]
+  ) as UseCacheValue<T, CacheState<T>>;
 }
 
-export function useSuspenseCaches<
-  T extends Array<UseCacheValue<any, any>> | []
->(cacheValues: T) {
+export function useSuspendCaches<T extends Array<UseCacheValue<any, any>> | []>(
+  cacheValues: T
+) {
   for (let cacheValue of cacheValues) {
     const state = cacheValue.read();
 
@@ -449,7 +373,7 @@ export function useSuspenseCaches<
 
   return cacheValues as {
     [U in keyof T]: T[U] extends UseCacheValue<infer V, any>
-      ? UseCacheValue<V, InitializedCacheState<V>>
+      ? UseCacheValue<V, SuspendCacheState<V>>
       : never;
   };
 }
