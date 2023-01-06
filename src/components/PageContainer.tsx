@@ -1,43 +1,31 @@
-import dynamic from "next/dynamic";
-import { DevtoolsProvider } from "react-states/devtools";
-import Head from "next/head";
 import { Session } from "./Session";
+import { firebaseContext } from "../useFirebase";
+import { initializeApp } from "@firebase/app";
+import { getAuth, useDeviceLanguage } from "firebase/auth";
+import { initializeFirestore } from "firebase/firestore";
 
-const DynamicEnvironment = dynamic(() =>
-  process.browser
-    ? process.env.SANDBOX
-      ? import("./SandboxEnvironment")
-      : import("./BrowserEnvironment")
-    : import("./NextEnvironment")
-);
+const app = initializeApp({
+  apiKey: "AIzaSyAxghfnwp44VyGkJazhRvjUwbKSSAHm0oo",
+  authDomain: "family-scrum-v2.firebaseapp.com",
+  projectId: "family-scrum-v2",
+  storageBucket: "family-scrum-v2.appspot.com",
+  messagingSenderId: "913074889172",
+  appId: "1:913074889172:web:a4b2ec5787fe31fe033641",
+  measurementId: "G-HHYZ9C0PEY",
+});
 
-type Props = {
-  children: React.ReactNode;
-};
+const auth = getAuth(app);
 
-export const PageContainer = ({ children }: Props) => {
+initializeFirestore(app, {
+  ignoreUndefinedProperties: true,
+});
+
+useDeviceLanguage(auth);
+
+export const PageContainer: React.FC = ({ children }) => {
   return (
-    <DynamicEnvironment>
-      <div>
-        <Head>
-          <meta name="apple-mobile-web-app-capable" content="yes" />
-          <meta
-            name="viewport"
-            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-          />
-          <link rel="apple-touch-icon" href="/family_128.jpeg" />
-          <link rel="apple-touch-icon" sizes="152x152" href="family_152.jpeg" />
-          <link rel="apple-touch-icon" sizes="180x180" href="family_180.jpeg" />
-          <link rel="apple-touch-icon" sizes="167x167" href="family_167.jpeg" />
-        </Head>
-        {process.env.NODE_ENV === "production" ? (
-          <Session>{children}</Session>
-        ) : (
-          <DevtoolsProvider>
-            <Session>{children}</Session>
-          </DevtoolsProvider>
-        )}
-      </div>
-    </DynamicEnvironment>
+    <firebaseContext.Provider value={app}>
+      <Session>{children}</Session>
+    </firebaseContext.Provider>
   );
 };

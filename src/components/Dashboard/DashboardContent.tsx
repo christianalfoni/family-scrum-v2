@@ -20,6 +20,12 @@ import { useEnvironment } from "../../environment-interface";
 import { useImage } from "../../useImage";
 import { viewStates } from "./useDashboard";
 import { useLoadedDashboard } from ".";
+import { useCacheSuspense } from "../../useCache";
+import { useDinners } from "../../hooks/useDinners";
+import { User } from "../../hooks";
+import { useGroceries } from "../../hooks/useGroceries";
+import { useFamily } from "../../hooks/useFamily";
+import { useTodos } from "../../hooks/useTodos";
 
 SwiperCore.use([Controller]);
 
@@ -187,16 +193,17 @@ export const DashboardSkeleton = () => {
   );
 };
 
-export const DashboardContent = () => {
+export const DashboardContent = ({ user }: { user: User }) => {
   const t = useTranslations("DashboardView");
   const tCommon = useTranslations("common");
   const intl = useIntl();
-  const [
-    {
-      data: { groceries, family, currentWeek, todos, dinners },
-    },
-    { PUSH_VIEW },
-  ] = useLoadedDashboard();
+  const [[dinners], [groceries], [family], [todos]] = useCacheSuspense([
+    useDinners(user),
+    useGroceries(user),
+    useFamily(user),
+    useTodos(user),
+  ]);
+
   const currentDayIndex = getDayIndex();
   const currentWeekDate = getFirstDateOfCurrentWeek();
   const [slideIndex, setSlideIndex] = useState(currentDayIndex);
