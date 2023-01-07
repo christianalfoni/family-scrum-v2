@@ -61,7 +61,6 @@ export const usePlanNextWeek = ({
   weekId: string;
   initialState?: State;
 }) => {
-  const { storage } = useEnvironment();
   const planNextWeekReducer = useReducer(
     reducer,
     initialState || PLANNING({ userId: user.id })

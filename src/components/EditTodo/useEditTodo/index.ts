@@ -1,10 +1,13 @@
 import { useReducer } from "react";
 import { match, transition, useDevtools, useTransition } from "react-states";
-import { useEnvironment } from "../../../environment-interface";
+
 import {
   CheckListItemsByTodoId,
   TodoDTO,
 } from "../../../environment-interface/storage";
+import { useCreateCheckListItemId } from "../../../hooks/useCheckListItems";
+import { User } from "../../../hooks/useCurrentUser";
+import { useCreateTodoId, useStoreTodo } from "../../../hooks/useTodos";
 import * as selectors from "../../../selectors";
 
 import { Action, actions } from "./actions";
@@ -118,13 +121,17 @@ export const useEditTodo = ({
   checkListItemsByTodoId,
   initialState,
   onExit,
+  user,
 }: {
+  user: User;
   todo?: TodoDTO;
   checkListItemsByTodoId: CheckListItemsByTodoId;
   initialState?: State;
   onExit: () => void;
 }) => {
-  const { storage } = useEnvironment();
+  const storeTodo = useStoreTodo(user);
+  const createTodoId = useCreateTodoId(user);
+  const createCheckListItemId = useCreateCheckListItemId(user);
   const todoReducer = useReducer(
     reducer,
     initialState ||
@@ -165,9 +172,9 @@ export const useEditTodo = ({
     state,
     "EDITING => ADD_TODO => EDITING",
     ({ description, checkList, date, time, grocery }) => {
-      storage.storeTodo(
+      storeTodo(
         {
-          id: todo ? todo.id : storage.createTodoId(),
+          id: todo ? todo.id : createTodoId(),
           description,
           date: match(date, {
             ACTIVE: ({ date }) => date,
@@ -185,7 +192,7 @@ export const useEditTodo = ({
         match(checkList, {
           ACTIVE: ({ items }) =>
             items.map(({ title, id }) => ({
-              id: id || storage.createCheckListItemId(),
+              id: id || createCheckListItemId(),
               title,
             })),
           INACTIVE: () => undefined,

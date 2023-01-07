@@ -1,12 +1,12 @@
 import { useReducer } from "react";
 import { transition, useDevtools, useEnter, useTransition } from "react-states";
 
-import { useEnvironment } from "../../../environment-interface";
 import { DinnerDTO } from "../../../environment-interface/storage";
 import { User } from "../../../hooks/useCurrentUser";
 import {
   getDinnerImageRef,
   useCreateDinnerId,
+  useStoreDinner,
 } from "../../../hooks/useDinners";
 import { useImage } from "../../../useImage";
 import { Action, actions } from "./actions";
@@ -133,6 +133,7 @@ export const useEditDinner = ({
   onExit: () => void;
 }) => {
   const createDinnerId = useCreateDinnerId(user);
+  const storeDinner = useStoreDinner(user);
   const dinnerReducer = useReducer(
     reducer,
     initialState ||
@@ -164,7 +165,7 @@ export const useEditDinner = ({
   const [imageState] = imageReducer;
 
   useTransition(state, "EDITING => SAVE => EDITING", ({ dinner, imageSrc }) => {
-    storage.storeDinner(dinner, imageSrc);
+    storeDinner(dinner, imageSrc);
     onExit();
   });
 

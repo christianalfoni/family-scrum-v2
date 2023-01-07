@@ -1,8 +1,10 @@
 import { doc, getFirestore, setDoc } from "firebase/firestore";
+import { getStorage, ref, uploadString } from "firebase/storage";
 import { DINNERS_COLLECTION, useFirebase } from "../useFirebase";
 import { useCollection } from "./useCollection";
 import { User } from "./useCurrentUser";
 import { getFamilyDocRef } from "./useFamily";
+import { useImages } from "./useImages";
 
 export type DinnerDTO = {
   id: string;
@@ -29,32 +31,33 @@ export const useCreateDinnerId = (user: User) => {
   return () => doc(getFamilyDocRef(firestore, user), DINNERS_COLLECTION).id;
 };
 
-export const useStoreDinner = (
-  user: User,
-  {
-    id,
-    description,
-    groceries,
-    instructions,
-    name,
-    preparationCheckList,
-  }: Pick<
-    DinnerDTO,
-    | "id"
-    | "description"
-    | "groceries"
-    | "instructions"
-    | "name"
-    | "preparationCheckList"
-  >,
-  imageSrc: string
-) => {
+export const useStoreDinner = (user: User) => {
   const dinnersCache = useDinners(user).suspend();
   const dinners = dinnersCache.read().data;
   const app = useFirebase();
   const firestore = getFirestore(app);
+  const storage = getStorage(app);
+  const imagesCache = useImages();
 
-  return () => {
+  return (
+    {
+      id,
+      description,
+      groceries,
+      instructions,
+      name,
+      preparationCheckList,
+    }: Pick<
+      DinnerDTO,
+      | "id"
+      | "description"
+      | "groceries"
+      | "instructions"
+      | "name"
+      | "preparationCheckList"
+    >,
+    imageSrc?: string
+  ) => {
     const dinner: DinnerDTO = dinners[id]
       ? {
           ...dinners[id],
@@ -94,25 +97,15 @@ export const useStoreDinner = (
     if (imageSrc) {
       const imageRef = getDinnerImageRef(id);
 
-      images[imageRef] = imageSrc;
+      const storageRef = ref(storage, imageRef + ".png");
 
-      app
-        .storage()
-        .ref(imageRef + ".png")
-        .putString(imageSrc, "data_url")
-        .then(() => {
-          emit({
-            type: "STORAGE:STORE_IMAGE_SUCCESS",
-            ref: imageRef,
-          });
-        })
-        .catch((error) => {
-          emit({
-            type: "STORAGE:STORE_IMAGE_ERROR",
-            error: error.message,
-            ref: imageRef,
-          });
-        });
+      imagesCache.write(
+        (current) => ({
+          ...current,
+          [imageRef]: imageSrc,
+        }),
+        uploadString(storageRef, imageSrc, "data_url")
+      );
     }
   };
 };

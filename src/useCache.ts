@@ -8,17 +8,17 @@ import React, {
 
 type FreshState<T> = {
   status: "fresh";
-  data: T;
+  readonly data: T;
 };
 
 type StaleState<T> = {
   status: "stale";
-  data: T;
+  readonly data: T;
 };
 
 type WriteErrorState<T> = {
   status: "write_error";
-  data: T;
+  readonly data: T;
   error: unknown;
 };
 
@@ -39,12 +39,12 @@ type InitializingState = {
 
 type RefreshingState<T> = {
   status: "refreshing";
-  data: T;
+  readonly data: T;
 };
 
 type RefreshingErrorState<T> = {
   status: "refreshing_error";
-  data: T;
+  readonly data: T;
   error: unknown;
 };
 
@@ -58,7 +58,14 @@ type CacheState<T> =
   | RefreshingState<T>
   | RefreshingErrorState<T>;
 
-type SuspendCacheState<T> =
+type InitializedCacheState<T> =
+  | FreshState<T>
+  | OptimisticState<T>
+  | WriteErrorState<T>;
+
+type AsyncCacheState<T> = CacheState<T>;
+
+type SuspendedCacheState<T> =
   | FreshState<T>
   | StaleState<T>
   | OptimisticState<T>
@@ -72,7 +79,7 @@ type SubscriptionCacheState<T> =
   | OptimisticState<T>
   | WriteErrorState<T>;
 
-type SuspendSubscriptionCacheState<T> =
+type SuspendedSubscriptionCacheState<T> =
   | FreshState<T>
   | OptimisticState<T>
   | WriteErrorState<T>;
@@ -87,6 +94,9 @@ export class Cache {
       subscribers: Set<Subscription<any>>;
     } & (
       | {
+          type: "initialized";
+        }
+      | {
           type: "subscription";
           subscription: {
             dispose?: () => void;
@@ -94,7 +104,7 @@ export class Cache {
           };
         }
       | {
-          type: "resolver";
+          type: "async";
           resolver: () => Promise<any>;
         }
     )
@@ -104,6 +114,16 @@ export class Cache {
   }
   getState<T>(key: string): CacheState<T> | undefined {
     return this.entries[key]?.state;
+  }
+  update<T>(key: string, state: CacheState<T>) {
+    const entry = this.entries[key];
+
+    if (!entry) {
+      throw new Error("Can not update state on non existing entry");
+    }
+
+    entry.state = state;
+    entry.subscribers.forEach((cb) => cb(state));
   }
   subscribe<T>(key: string, cb: Subscription<T>): () => void {
     const entry = this.entries[key];
@@ -133,7 +153,20 @@ export class Cache {
       }
     };
   }
+  set<T>(key: string, initialData: T) {
+    const state: FreshState<T> = {
+      status: "fresh",
+      data: initialData,
+    };
 
+    this.entries[key] = {
+      type: "initialized",
+      state,
+      subscribers: new Set(),
+    };
+
+    return state;
+  }
   setResolver<T>(key: string, resolver: () => Promise<T>) {
     const state: InitializingState = {
       status: "initializing",
@@ -153,24 +186,13 @@ export class Cache {
     };
 
     this.entries[key] = {
-      type: "resolver",
+      type: "async",
       state,
       subscribers: new Set(),
       resolver,
     };
 
     return state;
-  }
-
-  update<T>(key: string, state: CacheState<T>) {
-    const entry = this.entries[key];
-
-    if (!entry) {
-      throw new Error("Can not update state on non existing entry");
-    }
-
-    entry.state = state;
-    entry.subscribers.forEach((cb) => cb(state));
   }
 
   setSubscription<T>(
@@ -246,75 +268,135 @@ export const CacheProvider: React.FC<{ cache: Cache }> = ({
     children,
   });
 
-interface UseCacheValue<T, S extends CacheState<T> | SuspendCacheState<T>> {
-  write(optimisticData: T, promise: Promise<unknown>): void;
-  write(optimisticData: (current: T) => T, promise: Promise<unknown>): void;
-  read(): S;
-  suspend(): UseCacheValue<T, SuspendCacheState<T>>;
-}
-
-interface UseSubscriptionCacheValue<
+interface UseAsyncCacheValue<
   T,
-  S extends SubscriptionCacheState<T> | SuspendSubscriptionCacheState<T>
+  S extends CacheState<T> | SuspendedCacheState<T>
 > {
   write(optimisticData: T, promise: Promise<unknown>): void;
   write(optimisticData: (current: T) => T, promise: Promise<unknown>): void;
   read(): S;
-  suspend(): UseSubscriptionCacheValue<T, SuspendSubscriptionCacheState<T>>;
+  suspend(): UseAsyncCacheValue<T, SuspendedCacheState<T>>;
 }
 
-function createCacheValue<
+interface UseSubscriptionCacheValue<
   T,
-  S extends
-    | CacheState<T>
-    | SuspendCacheState<T>
-    | SubscriptionCacheState<T>
-    | SuspendSubscriptionCacheState<T>
->(key: string, state: S, cache: Cache) {
+  S extends SubscriptionCacheState<T> | SuspendedSubscriptionCacheState<T>
+> {
+  write(optimisticData: T, promise: Promise<unknown>): void;
+  write(optimisticData: (current: T) => T, promise: Promise<unknown>): void;
+  read(): S;
+  suspend(): UseSubscriptionCacheValue<T, SuspendedSubscriptionCacheState<T>>;
+}
+
+interface UseInitializedCacheValue<T, S extends InitializedCacheState<T>> {
+  write(data: T, promise?: Promise<unknown>): void;
+  write(data: (current: T) => T, promise?: Promise<unknown>): void;
+  read(): S;
+}
+
+function createSuspend(state: CacheState<unknown>) {
+  return function (this: any) {
+    if (state.status === "initializing") {
+      throw state.promise;
+    }
+    if (state.status === "error") {
+      throw state.error;
+    }
+
+    return this;
+  };
+}
+
+function createAsyncWrite(
+  key: string,
+  state: CacheState<unknown>,
+  cache: Cache
+) {
+  return function (data: unknown, promise: Promise<unknown>) {
+    if (state.status === "error" || state.status === "initializing") {
+      throw new Error(`You can not write to cache in an ${state.status} state`);
+    }
+
+    const prevData = state.data;
+    const optimisticData = typeof data === "function" ? data(state.data) : data;
+
+    cache.update(key, {
+      status: "optimistic",
+      data: optimisticData,
+    });
+
+    promise
+      .then(() =>
+        cache.update(key, {
+          status: "fresh",
+          data: optimisticData,
+        })
+      )
+      .catch((error) => {
+        cache.update(key, {
+          status: "refreshing_error",
+          data: prevData,
+          error,
+        });
+      });
+  };
+}
+
+function createAsyncCacheValue<T, S extends CacheState<T>>(
+  key: string,
+  state: S,
+  cache: Cache
+) {
   return {
     read() {
       return state;
     },
-    suspend() {
-      if (state.status === "initializing") {
-        throw state.promise;
-      }
+    suspend: createSuspend(state),
+    write: createAsyncWrite(key, state, cache),
+  };
+}
 
-      if (state.status === "error") {
-        throw state.error;
-      }
-
-      return this;
+function createCacheValue<T, S extends InitializedCacheState<T>>(
+  key: string,
+  state: S,
+  cache: Cache
+) {
+  return {
+    read() {
+      return state;
     },
-    write(data: unknown, promise: Promise<unknown>) {
-      if (state.status === "error" || state.status === "initializing") {
-        throw new Error(
-          `You can not write to cache in an ${state.status} state`
-        );
-      }
+    write(data: unknown, promise?: Promise<unknown>) {
+      if (promise) {
+        const prevData = state.data;
+        const optimisticData =
+          typeof data === "function" ? data(state.data) : data;
 
-      const prevData = state.data;
-      const optimisticData = typeof data === "function" ? data(state) : data;
+        cache.update(key, {
+          status: "optimistic",
+          data: optimisticData,
+        });
+
+        promise
+          .then(() =>
+            cache.update(key, {
+              status: "fresh",
+              data: optimisticData,
+            })
+          )
+          .catch((error) => {
+            cache.update(key, {
+              status: "refreshing_error",
+              data: prevData,
+              error,
+            });
+          });
+        return;
+      }
 
       cache.update(key, {
-        status: "optimistic",
-        data: optimisticData,
+        status: "fresh",
+        data: typeof data === "function" ? data(state.data) : data,
       });
-
-      promise
-        .then(() =>
-          cache.update(key, {
-            status: "fresh",
-            data: optimisticData,
-          })
-        )
-        .catch((error) => {
-          cache.update(key, {
-            status: "refreshing_error",
-            data: prevData,
-            error,
-          });
-        });
     },
   };
 }
@@ -339,12 +421,31 @@ export function useSubscriptionCache<T>(
   useEffect(() => cache.subscribe(key, setState), []);
 
   return useMemo(
-    () => createCacheValue(key, state, cache),
+    () => createAsyncCacheValue(key, state, cache),
     [state]
   ) as UseSubscriptionCacheValue<T, SubscriptionCacheState<T>>;
 }
 
-export function useCache<T>(key: string, resolver: () => Promise<T>) {
+export function useCache<T>(key: string, initialData: T) {
+  const cache = useContext(cacheContext);
+  const [state, setState] = useState<InitializedCacheState<T>>(() => {
+    const existingState = cache.getState<T>(key);
+
+    if (existingState) {
+      return existingState as InitializedCacheState<T>;
+    }
+
+    return cache.set(key, initialData);
+  });
+
+  useEffect(() => cache.subscribe(key, setState), []);
+
+  return useMemo(
+    () => createCacheValue(key, state, cache),
+    [state]
+  ) as UseInitializedCacheValue<T, InitializedCacheState<T>>;
+}
+export function useAsyncCache<T>(key: string, resolver: () => Promise<T>) {
   const cache = useContext(cacheContext);
   const [state, setState] = useState<CacheState<T>>(() => {
     const existingState = cache.getState<T>(key);
@@ -359,14 +460,14 @@ export function useCache<T>(key: string, resolver: () => Promise<T>) {
   useEffect(() => cache.subscribe(key, setState), []);
 
   return useMemo(
-    () => createCacheValue(key, state, cache),
+    () => createAsyncCacheValue(key, state, cache),
     [state]
-  ) as UseCacheValue<T, CacheState<T>>;
+  ) as UseAsyncCacheValue<T, AsyncCacheState<T>>;
 }
 
 export function useSuspendCaches<
   T extends
-    | Array<UseCacheValue<any, any> | UseSubscriptionCacheValue<any, any>>
+    | Array<UseAsyncCacheValue<any, any> | UseSubscriptionCacheValue<any, any>>
     | []
 >(cacheValues: T) {
   for (let cacheValue of cacheValues) {
@@ -381,10 +482,10 @@ export function useSuspendCaches<
   }
 
   return cacheValues as {
-    [U in keyof T]: T[U] extends UseCacheValue<infer V, any>
-      ? UseCacheValue<V, SuspendCacheState<V>>
+    [U in keyof T]: T[U] extends UseAsyncCacheValue<infer V, any>
+      ? UseAsyncCacheValue<V, SuspendedCacheState<V>>
       : T[U] extends UseSubscriptionCacheValue<infer V, any>
-      ? UseSubscriptionCacheValue<V, SuspendSubscriptionCacheState<V>>
+      ? UseSubscriptionCacheValue<V, SuspendedSubscriptionCacheState<V>>
       : never;
   };
 }

@@ -1,8 +1,10 @@
+import { doc, getFirestore } from "firebase/firestore";
 import { useMemo } from "react";
 
-import { CHECKLIST_ITEMS_COLLECTION } from "../useFirebase";
+import { CHECKLIST_ITEMS_COLLECTION, useFirebase } from "../useFirebase";
 import { useCollection } from "./useCollection";
 import { User } from "./useCurrentUser";
+import { getFamilyDocRef } from "./useFamily";
 
 export type CheckListItemDTO = {
   id: string;
@@ -36,6 +38,14 @@ export const createCheckListItemsByTodoId = (checkListItems: CheckListItems) =>
 
     return aggr;
   }, {});
+
+export const useCreateCheckListItemId = (user: User) => {
+  const app = useFirebase();
+  const firestore = getFirestore(app);
+
+  return () =>
+    doc(getFamilyDocRef(firestore, user), CHECKLIST_ITEMS_COLLECTION).id;
+};
 
 export const useCheckListItems = (user: User) =>
   useCollection<CheckListItems>(CHECKLIST_ITEMS_COLLECTION, user);

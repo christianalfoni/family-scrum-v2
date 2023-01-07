@@ -4,7 +4,9 @@ import { useTranslations } from "next-intl";
 import { Fragment } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { LockClosedIcon } from "@heroicons/react/outline";
-import { useBrowser, useCurrentUser, useSignIn } from "../../hooks";
+import { useBrowser } from "../../hooks/useBrowser";
+import { useCurrentUser } from "../../hooks/useCurrentUser";
+import { useSignIn } from "../../hooks/useSignIn";
 
 export const SignInModal = () => {
   const isBrowser = useBrowser();

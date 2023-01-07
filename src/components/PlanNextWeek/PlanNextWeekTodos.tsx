@@ -9,14 +9,11 @@ import {
   FamilyDTO,
   TodoDTO,
   WeekDTO,
-  WeekTodoActivity,
 } from "../../environment-interface/storage";
 
 import { TodoItem } from "../TodoItem";
 
-import { viewStates } from "../Dashboard/useDashboard";
 import { FamilyUserDTO } from "../../environment-interface/authentication";
-import { useLoadedDashboard } from "../Dashboard";
 
 const PlanTodoItem = React.memo(
   ({

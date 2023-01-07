@@ -18,7 +18,7 @@ import {
   useCheckListItems,
   useCheckListItemsByTodoId,
 } from "../../hooks/useCheckListItems";
-import { User } from "../../hooks";
+import { User } from "../../hooks/useCurrentUser";
 
 export const EditTodo = ({
   todo,
@@ -49,6 +49,7 @@ export const EditTodo = ({
       TIME_CHANGED,
     },
   ] = useEditTodo({
+    user,
     todo,
     checkListItemsByTodoId,
     onExit: onBackClick,

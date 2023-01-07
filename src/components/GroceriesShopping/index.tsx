@@ -14,7 +14,7 @@ import { useGroceriesShopping } from "./useGroceriesShopping";
 import * as selectors from "../../selectors";
 import { ViewAction } from "../Dashboard/useViewStack";
 import { useGroceries } from "../../hooks/useGroceries";
-import { User } from "../../hooks";
+import { User } from "../../hooks/useCurrentUser";
 
 export const GroceriesShopping = ({
   user,

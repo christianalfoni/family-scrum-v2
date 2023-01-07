@@ -11,11 +11,14 @@ import { match } from "react-states";
 import { DinnerDTO } from "../../environment-interface/storage";
 import { useEditDinner } from "./useEditDinner";
 import { useTranslations } from "next-intl";
+import { User } from "../../hooks/useCurrentUser";
 
 export const EditDinner = ({
+  user,
   onBackClick,
   initialDinner,
 }: {
+  user: User;
   initialDinner?: DinnerDTO;
   onBackClick: () => void;
 }) => {
@@ -26,6 +29,7 @@ export const EditDinner = ({
     ],
     image: [imageState, { CAPTURE, START_CAPTURE }],
   } = useEditDinner({
+    user,
     initialDinner,
     onExit: onBackClick,
   });

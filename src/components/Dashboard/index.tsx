@@ -60,6 +60,7 @@ const DashboardViews = ({ user }: { user: User }) => {
       case "EDIT_DINNER": {
         return (
           <EditDinner
+            user={user}
             initialDinner={view.id ? dinners[view.id] : undefined}
             onBackClick={() => dispatchViewStack({ type: "POP_VIEW" })}
           />

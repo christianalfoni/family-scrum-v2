@@ -3,7 +3,7 @@ import { firebaseContext } from "../useFirebase";
 import { FirebaseApp, initializeApp } from "@firebase/app";
 import { getAuth, useDeviceLanguage } from "firebase/auth";
 import { initializeFirestore } from "firebase/firestore";
-import { useBrowser } from "../hooks";
+import { useBrowser } from "../hooks/useBrowser";
 
 let app: FirebaseApp;
 

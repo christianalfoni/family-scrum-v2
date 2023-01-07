@@ -143,7 +143,6 @@ export const useTodoItem = ({
   todo: TodoDTO;
   initialState?: State;
 }) => {
-  const { storage } = useEnvironment();
   const todoItemReducer = useReducer(
     reducer,
     initialState ||

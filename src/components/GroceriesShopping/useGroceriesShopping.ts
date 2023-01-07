@@ -84,7 +84,6 @@ export const useGroceriesShopping = ({
 }: {
   initialState?: State;
 }) => {
-  const { storage } = useEnvironment();
   const groceriesShoppingReducer = useReducer(
     reducer,
     initialState ||
