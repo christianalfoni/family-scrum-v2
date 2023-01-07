@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { InitializingCache } from "../useCache";
+
 import { CHECKLIST_ITEMS_COLLECTION } from "../useFirebase";
 import { useCollection } from "./useCollection";
 import { User } from "./useCurrentUser";

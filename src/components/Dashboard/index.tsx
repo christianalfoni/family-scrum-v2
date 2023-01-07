@@ -9,44 +9,68 @@ import { PlanNextWeek } from "../PlanNextWeek";
 import { useViewStack } from "./useViewStack";
 import { Suspense } from "react";
 import { useDinners } from "../../hooks/useDinners";
-import { useCurrentUser, User } from "../../hooks";
-import { useCacheSuspense } from "../../useCache";
+
+import ErrorBoundary from "../ErrorBoundary";
+import { useSuspendCaches } from "../../useCache";
+import { useTodos } from "../../hooks/useTodos";
+import { useCurrentUser, User } from "../../hooks/useCurrentUser";
 
 const DashboardViews = ({ user }: { user: User }) => {
-  const [viewStack, dispatchView] = useViewStack();
+  const [viewStack, dispatchViewStack] = useViewStack();
   const view = viewStack[viewStack.length - 1];
+  const [dinnersCache, todosCache] = useSuspendCaches([
+    useDinners(user),
+    useTodos(user),
+  ]);
+  const dinners = dinnersCache.read().data;
+  const todos = todosCache.read().data;
 
   const renderView = () => {
     switch (view.name) {
       case "DASHBOARD": {
-        return <DashboardContent />;
+        return (
+          <DashboardContent user={user} dispatchViewStack={dispatchViewStack} />
+        );
       }
+
       case "GROCERIES_SHOPPING": {
-        return <GroceriesShopping />;
+        return (
+          <GroceriesShopping
+            user={user}
+            dispatchViewStack={dispatchViewStack}
+          />
+        );
       }
       case "CHECKLISTS": {
-        return <CheckLists />;
+        return <CheckLists user={user} dispatchViewStack={dispatchViewStack} />;
       }
       case "PLAN_NEXT_WEEK": {
-        return <PlanNextWeek view={view.subView} />;
+        return (
+          <PlanNextWeek
+            user={user}
+            dispatchViewStack={dispatchViewStack}
+            view={view.subView}
+          />
+        );
       }
+
       case "DINNERS": {
-        return <Dinners />;
+        return <Dinners user={user} dispatchViewStack={dispatchViewStack} />;
       }
       case "EDIT_DINNER": {
         return (
           <EditDinner
-            initialDinner={view.id ? data.dinners[id] : undefined}
-            onBackClick={() => dispatchView({ type: "POP_VIEW" })}
+            initialDinner={view.id ? dinners[view.id] : undefined}
+            onBackClick={() => dispatchViewStack({ type: "POP_VIEW" })}
           />
         );
       }
       case "EDIT_TODO": {
         return (
           <EditTodo
-            todo={view.id ? data.todos[view.id] : undefined}
-            checkListItemsByTodoId={data.checkListItemsByTodoId}
-            onBackClick={() => dispatchView({ type: "POP_VIEW" })}
+            user={user}
+            todo={view.id ? todos[view.id] : undefined}
+            onBackClick={() => dispatchViewStack({ type: "POP_VIEW" })}
           />
         );
       }
@@ -61,12 +85,16 @@ const DashboardViews = ({ user }: { user: User }) => {
 };
 
 const AuthenticatedDashboard = () => {
-  const [user] = useCacheSuspense(useCurrentUser());
+  const user = useCurrentUser().suspend().read();
 
   if (user.data) {
-    <Suspense fallback={<DashboardSkeleton />}>
-      <DashboardViews user={user.data} />
-    </Suspense>;
+    return (
+      <ErrorBoundary>
+        <Suspense fallback={<DashboardSkeleton />}>
+          <DashboardViews user={user.data} />
+        </Suspense>
+      </ErrorBoundary>
+    );
   }
 
   return <DashboardSkeleton />;

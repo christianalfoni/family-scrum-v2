@@ -89,7 +89,7 @@ export class Cache {
       | {
           type: "subscription";
           subscription: {
-            dispose: () => void;
+            dispose?: () => void;
             subscriber: () => () => void;
           };
         }
@@ -116,7 +116,11 @@ export class Cache {
 
     entry.subscribers.add(cb);
 
-    if (entry.type === "subscription" && entry.subscribers.size === 1) {
+    if (
+      entry.type === "subscription" &&
+      entry.subscribers.size === 1 &&
+      !entry.subscription.dispose
+    ) {
       entry.subscription.dispose = entry.subscription.subscriber();
     }
 
@@ -124,7 +128,8 @@ export class Cache {
       entry.subscribers.delete(cb);
 
       if (entry.type === "subscription" && !entry.subscribers.size) {
-        entry.subscription.dispose();
+        entry.subscription.dispose?.();
+        delete entry.subscription.dispose;
       }
     };
   }
@@ -190,37 +195,39 @@ export class Cache {
       promise,
     };
 
+    const wrappedSubscriber = () =>
+      subscriber((data) => {
+        if (typeof data === "function") {
+          const currentState = this.get(key)!;
+          const dataCallback = data as (data: T | void) => T;
+
+          this.update(key, {
+            status: "fresh",
+            data:
+              "data" in currentState
+                ? dataCallback(currentState.data as T)
+                : dataCallback(),
+          });
+        } else {
+          this.update(key, {
+            status: "fresh",
+            data,
+          });
+        }
+
+        if (_resolve) {
+          _resolve();
+          _resolve = undefined;
+        }
+      });
+
     this.entries[key] = {
       type: "subscription",
       state,
       subscribers: new Set(),
       subscription: {
-        dispose: () => {},
-        subscriber: () =>
-          subscriber((data) => {
-            if (typeof data === "function") {
-              const currentState = this.get(key)!;
-              const dataCallback = data as (data: T | void) => T;
-
-              this.update(key, {
-                status: "fresh",
-                data:
-                  "data" in currentState
-                    ? dataCallback(currentState.data as T)
-                    : dataCallback(),
-              });
-            } else {
-              this.update(key, {
-                status: "fresh",
-                data,
-              });
-            }
-
-            if (_resolve) {
-              _resolve();
-              _resolve = undefined;
-            }
-          }),
+        dispose: wrappedSubscriber(),
+        subscriber: wrappedSubscriber,
       },
     };
 
@@ -357,9 +364,11 @@ export function useCache<T>(key: string, resolver: () => Promise<T>) {
   ) as UseCacheValue<T, CacheState<T>>;
 }
 
-export function useSuspendCaches<T extends Array<UseCacheValue<any, any>> | []>(
-  cacheValues: T
-) {
+export function useSuspendCaches<
+  T extends
+    | Array<UseCacheValue<any, any> | UseSubscriptionCacheValue<any, any>>
+    | []
+>(cacheValues: T) {
   for (let cacheValue of cacheValues) {
     const state = cacheValue.read();
 
@@ -374,6 +383,8 @@ export function useSuspendCaches<T extends Array<UseCacheValue<any, any>> | []>(
   return cacheValues as {
     [U in keyof T]: T[U] extends UseCacheValue<infer V, any>
       ? UseCacheValue<V, SuspendCacheState<V>>
+      : T[U] extends UseSubscriptionCacheValue<infer V, any>
+      ? UseSubscriptionCacheValue<V, SuspendSubscriptionCacheState<V>>
       : never;
   };
 }

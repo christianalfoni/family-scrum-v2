@@ -19,18 +19,10 @@ const fetchVersion = async () => {
 const STORAGE_KEY = "family-scrum.version";
 
 const useNewVersion = () => {
-  const user = useCurrentUser();
-  const [version, setVersion] = useCache<string>("version");
-  const isBrowser = useBrowser();
-  const localVersion = isBrowser
-    ? localStorage.getItem(STORAGE_KEY)
-    : undefined;
+  const cache = useCache<string>("version", fetchVersion);
+  const localVersion = localStorage.getItem(STORAGE_KEY);
 
-  useEffect(() => {
-    if (user && version.status === "uninitialized") {
-      setVersion(fetchVersion());
-    }
-  }, [version, user]);
+  const version = cache.read();
 
   useEffect(() => {
     if (version.status === "fresh" && !localVersion) {

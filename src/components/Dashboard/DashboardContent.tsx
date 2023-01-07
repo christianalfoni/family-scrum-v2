@@ -13,19 +13,20 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import SwiperCore, { Controller } from "swiper";
 import { getDayIndex, getFirstDateOfCurrentWeek, weekdays } from "../../utils";
 import { addDays } from "date-fns";
-import { PickState } from "react-states";
+
 import * as selectors from "../../selectors";
 import { DinnerDTO } from "../../environment-interface/storage";
 import { useEnvironment } from "../../environment-interface";
 import { useImage } from "../../useImage";
-import { viewStates } from "./useDashboard";
-import { useLoadedDashboard } from ".";
-import { useCacheSuspense } from "../../useCache";
+
 import { useDinners } from "../../hooks/useDinners";
 import { User } from "../../hooks";
 import { useGroceries } from "../../hooks/useGroceries";
 import { useFamily } from "../../hooks/useFamily";
 import { useTodos } from "../../hooks/useTodos";
+import { useSuspendCaches } from "../../useCache";
+import { useWeeks } from "../../hooks/useWeeks";
+import { ViewAction } from "./useViewStack";
 
 SwiperCore.use([Controller]);
 
@@ -193,16 +194,29 @@ export const DashboardSkeleton = () => {
   );
 };
 
-export const DashboardContent = ({ user }: { user: User }) => {
+export const DashboardContent = ({
+  user,
+  dispatchViewStack,
+}: {
+  user: User;
+  dispatchViewStack: Dispatch<ViewAction>;
+}) => {
   const t = useTranslations("DashboardView");
   const tCommon = useTranslations("common");
   const intl = useIntl();
-  const [[dinners], [groceries], [family], [todos]] = useCacheSuspense([
-    useDinners(user),
-    useGroceries(user),
-    useFamily(user),
-    useTodos(user),
-  ]);
+  const [dinnersCache, groceriesCache, familyCache, todosCache, weeksCache] =
+    useSuspendCaches([
+      useDinners(user),
+      useGroceries(user),
+      useFamily(user),
+      useTodos(user),
+      useWeeks(user),
+    ]);
+  const currentWeek = weeksCache.read().data.currentWeek;
+  const todos = todosCache.read().data;
+  const groceries = groceriesCache.read().data;
+  const dinners = dinnersCache.read().data;
+  const family = familyCache.read().data;
 
   const currentDayIndex = getDayIndex();
   const currentWeekDate = getFirstDateOfCurrentWeek();
@@ -221,7 +235,12 @@ export const DashboardContent = ({ user }: { user: User }) => {
         <MenuCard
           Icon={ShoppingCartIcon}
           onClick={() => {
-            PUSH_VIEW(viewStates.GROCERIES_SHOPPING());
+            dispatchViewStack({
+              type: "PUSH_VIEW",
+              view: {
+                name: "GROCERIES_SHOPPING",
+              },
+            });
           }}
           color="bg-red-500"
         >
@@ -231,7 +250,12 @@ export const DashboardContent = ({ user }: { user: User }) => {
           disabled={!checkLists.length}
           Icon={ClipboardCheckIcon}
           onClick={() => {
-            PUSH_VIEW(viewStates.CHECKLISTS());
+            dispatchViewStack({
+              type: "PUSH_VIEW",
+              view: {
+                name: "CHECKLISTS",
+              },
+            });
           }}
           color="bg-blue-500"
         >
@@ -240,7 +264,13 @@ export const DashboardContent = ({ user }: { user: User }) => {
         <MenuCard
           Icon={ChatAlt2Icon}
           onClick={() => {
-            PUSH_VIEW(viewStates.PLAN_NEXT_WEEK("DINNERS"));
+            dispatchViewStack({
+              type: "PUSH_VIEW",
+              view: {
+                name: "PLAN_NEXT_WEEK",
+                subView: "DINNERS",
+              },
+            });
           }}
           color="bg-green-500"
         >
@@ -249,7 +279,12 @@ export const DashboardContent = ({ user }: { user: User }) => {
         <MenuCard
           Icon={HeartIcon}
           onClick={() => {
-            PUSH_VIEW(viewStates.DINNERS());
+            dispatchViewStack({
+              type: "PUSH_VIEW",
+              view: {
+                name: "DINNERS",
+              },
+            });
           }}
           color="bg-purple-500"
         >
@@ -349,14 +384,19 @@ export const DashboardContent = ({ user }: { user: User }) => {
                 index === slideIndex ? "font-bold" : ""
               } flex items-center mx-2 w-6 h-6 text-center text-xs`}
             >
-              {(tCommon(weekdays[index]) as string).substr(0, 2)}
+              {(tCommon(weekdays[index]) as string).substring(0, 2)}
             </div>
           ))}
         </div>
         <button
           type="button"
           onClick={() => {
-            PUSH_VIEW(viewStates.EDIT_TODO());
+            dispatchViewStack({
+              type: "PUSH_VIEW",
+              view: {
+                name: "EDIT_TODO",
+              },
+            });
           }}
           className="z-50 fixed right-6 bottom-14 h-14 w-14 rounded-full inline-flex items-center justify-center px-3 py-2 border border-gray-300 shadow-lg text-sm font-medium  text-gray-500 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
         >

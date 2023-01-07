@@ -36,6 +36,7 @@ export const useCurrentUser = () => {
 
   return useSubscriptionCache<User | null>("user", (setCache) =>
     onAuthStateChanged(auth, async (user) => {
+      console.log("WTF?", user);
       user ? setCache(await getUserDoc(firestore, user)) : setCache(null);
     })
   );
