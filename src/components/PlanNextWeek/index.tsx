@@ -128,7 +128,11 @@ export const PlanNextWeek = ({
           }
         />
       ) : (
-        <PlanNextWeekTodos toggleWeekday={(params) => TOGGLE_WEEKDAY(params)} />
+        <PlanNextWeekTodos
+          user={user}
+          dispatchViewStack={dispatchViewStack}
+          toggleWeekday={(params) => TOGGLE_WEEKDAY(params)}
+        />
       )}
     </div>
   );

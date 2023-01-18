@@ -8,7 +8,7 @@ import {
   useCreateDinnerId,
   useStoreDinner,
 } from "../../../hooks/useDinners";
-import { useImage } from "../../../useImage";
+import { useImage } from "../../../hooks/useImage";
 import { Action, actions } from "./actions";
 import { State, states } from "./state";
 
@@ -158,23 +158,10 @@ export const useEditDinner = ({
   const [state, dispatch] = dinnerReducer;
   const actionsDispatch = actions(dispatch);
 
-  const imageReducer = useImage({
-    ref: getDinnerImageRef(state.dinner.id),
-  });
-
-  const [imageState] = imageReducer;
-
   useTransition(state, "EDITING => SAVE => EDITING", ({ dinner, imageSrc }) => {
     storeDinner(dinner, imageSrc);
     onExit();
   });
 
-  useEnter(imageState, "CAPTURED", ({ src }) => {
-    actionsDispatch.ADD_IMAGE_SOURCE(src);
-  });
-
-  return {
-    dinner: [state, actionsDispatch] as const,
-    image: imageReducer,
-  };
+  return [state, actionsDispatch] as const;
 };

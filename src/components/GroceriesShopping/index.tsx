@@ -29,7 +29,9 @@ export const GroceriesShopping = ({
   const [
     { filter, sleep },
     { GROCERY_INPUT_CHANGED, SHOP_GROCERY, TOGGLE_NO_SLEEP, ADD_GROCERY },
-  ] = useGroceriesShopping({});
+  ] = useGroceriesShopping({
+    user,
+  });
   const groceriesToShop = selectors.groceriesToShop(groceries.data);
   const [initialGroceriesLength] = React.useState(groceriesToShop.length);
   const videoRef = React.useRef<HTMLVideoElement>(null);

@@ -88,7 +88,7 @@ const DashboardViews = ({ user }: { user: User }) => {
 const AuthenticatedDashboard = () => {
   const user = useCurrentUser().suspend().read();
 
-  if (user.data) {
+  if (user.data && user.data.familyId) {
     return (
       <ErrorBoundary>
         <Suspense fallback={<DashboardSkeleton />}>

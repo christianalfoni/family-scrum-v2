@@ -12,6 +12,10 @@ import { DinnerDTO } from "../../environment-interface/storage";
 import { useEditDinner } from "./useEditDinner";
 import { useTranslations } from "next-intl";
 import { User } from "../../hooks/useCurrentUser";
+import { useImage } from "../../hooks/useImage";
+import { getDinnerImageRef } from "../../hooks/useDinners";
+import { useCamera } from "../../hooks/useCamera";
+import { CacheState } from "../../useCache";
 
 export const EditDinner = ({
   user,
@@ -22,21 +26,77 @@ export const EditDinner = ({
   initialDinner?: DinnerDTO;
   onBackClick: () => void;
 }) => {
-  const {
-    dinner: [
-      { dinner, newIngredientName, newPreparationDescription, validation },
-      actions,
-    ],
-    image: [imageState, { CAPTURE, START_CAPTURE }],
-  } = useEditDinner({
+  const [
+    { dinner, newIngredientName, newPreparationDescription, validation },
+    actions,
+  ] = useEditDinner({
     user,
     initialDinner,
     onExit: onBackClick,
   });
+  const image = useImage(getDinnerImageRef(dinner.id)).read();
+  const [cameraState, cameraActions] = useCamera();
+
   const t = useTranslations("DinnerView");
 
   const imageWrapperClassName =
     "flex h-40 bg-gray-500 items-center justify-center w-full text-gray-300";
+
+  function renderImage() {
+    if (image.status === "initializing" || cameraState.state === "STARTING") {
+      return <div className={imageWrapperClassName}>...</div>;
+    }
+
+    if (cameraState.state === "STARTED") {
+      return (
+        <video
+          autoPlay
+          playsInline
+          id={dinner.id}
+          className={imageWrapperClassName}
+          onClick={() => cameraActions.capture(dinner.id, 100, 100)}
+        ></video>
+      );
+    }
+
+    if (cameraState.state === "CAPTURED") {
+      return (
+        <video
+          autoPlay
+          playsInline
+          id={dinner.id}
+          className={imageWrapperClassName}
+        >
+          <div className={imageWrapperClassName}>...</div>,
+        </video>
+      );
+    }
+
+    if (image.status === "error") {
+      return (
+        <div
+          className={imageWrapperClassName}
+          onClick={() => cameraActions.startCamera(dinner.id)}
+        >
+          <CameraIcon className="w-6 h-6 text-white" />
+        </div>
+      );
+    }
+
+    return (
+      <div
+        className={imageWrapperClassName}
+        style={{
+          backgroundImage: `url(${image.data})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center center",
+        }}
+        onClick={() => cameraActions.startCamera(dinner.id)}
+      >
+        <CameraIcon className="w-6 h-6 text-white" />
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white flex flex-col h-screen">
@@ -71,52 +131,7 @@ export const EditDinner = ({
         </div>
       </div>
       <div className="h-full overflow-y-scroll">
-        {match(
-          imageState,
-          {
-            LOADING: () => <div className={imageWrapperClassName}>...</div>,
-            CAPTURE_STARTED: () => (
-              <video
-                autoPlay
-                playsInline
-                id={dinner.id}
-                className={imageWrapperClassName}
-                onClick={() => CAPTURE(dinner.id)}
-              ></video>
-            ),
-            CAPTURING: () => (
-              <video
-                autoPlay
-                playsInline
-                id={dinner.id}
-                className={imageWrapperClassName}
-              >
-                <div className={imageWrapperClassName}>...</div>,
-              </video>
-            ),
-            NOT_FOUND: () => (
-              <div
-                className={imageWrapperClassName}
-                onClick={() => START_CAPTURE(dinner.id)}
-              >
-                <CameraIcon className="w-6 h-6 text-white" />
-              </div>
-            ),
-          },
-          ({ src }) => (
-            <div
-              className={imageWrapperClassName}
-              style={{
-                backgroundImage: `url(${src})`,
-                backgroundSize: "cover",
-                backgroundPosition: "center center",
-              }}
-              onClick={() => START_CAPTURE(dinner.id)}
-            >
-              <CameraIcon className="w-6 h-6 text-white" />
-            </div>
-          )
-        )}
+        {renderImage()}
 
         <div className="p-4 flex flex-col">
           <div className="col-span-12 sm:col-span-6">

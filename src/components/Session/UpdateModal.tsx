@@ -5,7 +5,7 @@ import { Fragment, useEffect } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 
 import { CheckCircleIcon } from "@heroicons/react/outline";
-import { useAsyncCache } from "../../useCache";
+import { useCache } from "../../useCache";
 
 import { gt } from "semver";
 
@@ -19,7 +19,7 @@ const fetchVersion = async () => {
 const STORAGE_KEY = "family-scrum.version";
 
 const useNewVersion = () => {
-  const cache = useAsyncCache<string>("version", fetchVersion);
+  const cache = useCache<string>("version", fetchVersion);
   const localVersion = localStorage.getItem(STORAGE_KEY);
 
   const version = cache.read();

@@ -1,8 +1,18 @@
-import { collection, getFirestore, doc, onSnapshot } from "firebase/firestore";
+import {
+  collection,
+  getFirestore,
+  doc,
+  onSnapshot,
+  runTransaction,
+  FieldValue,
+  serverTimestamp,
+  setDoc,
+} from "firebase/firestore";
 import { useSubscriptionCache } from "../useCache";
 import { FAMILY_DATA_COLLECTION, useFirebase } from "../useFirebase";
 import { getPreviousWeekId, getCurrentWeekId, getNextWeekId } from "../utils";
 import { User } from "./useCurrentUser";
+import { getFamilyDocRef } from "./useFamily";
 
 // Each user has an array representing each day of the week,
 // which holds a boolean if the todo is active or not
@@ -143,4 +153,119 @@ export const useWeeks = (user: User) => {
       };
     }
   );
+};
+export const useSetWeekTaskActivity = (user: User) => {
+  const app = useFirebase();
+  const firestore = getFirestore(app);
+  const weeksCache = useWeeks(user).suspend();
+
+  return ({
+    todoId,
+    userId,
+    weekdayIndex,
+    active,
+  }: {
+    todoId: string;
+    userId: string;
+    weekdayIndex: number;
+    active: boolean;
+  }) => {
+    const weeks = weeksCache.read().data;
+    const weekId = weeks.currentWeek.id;
+    const todoDocRef = doc(
+      getFamilyDocRef(firestore, user),
+      WEEKS_COLLECTION,
+      weekId,
+      WEEKS_TODOS_COLLECTION,
+      todoId
+    );
+
+    const weekTodoActivity: WeekTodoActivity = weeks.currentWeek.todos[
+      todoId
+    ]?.[userId] ?? [false, false, false, false, false, false, false];
+
+    weeksCache.write(
+      (current) => ({
+        ...current,
+        currentWeek: {
+          ...weeks.currentWeek,
+          todos: {
+            ...weeks.currentWeek.todos,
+            [todoId]: {
+              ...weeks.currentWeek.todos[todoId],
+              [userId]: [
+                ...weekTodoActivity.slice(0, weekdayIndex),
+                active,
+                ...weekTodoActivity.slice(weekdayIndex + 1),
+              ] as WeekTodoActivity,
+            },
+          },
+        },
+      }),
+      runTransaction(firestore, (transaction) =>
+        transaction.get(todoDocRef).then((todoDoc) => {
+          const data = todoDoc.data();
+          const weekTodoActivity: WeekTodoActivity = data?.activityByUserId[
+            userId
+          ] ?? [false, false, false, false, false, false, false];
+
+          const update = {
+            modified: serverTimestamp(),
+            activityByUserId: {
+              ...data?.activityByUserId,
+              [userId]: [
+                ...weekTodoActivity.slice(0, weekdayIndex),
+                active,
+                ...weekTodoActivity.slice(weekdayIndex + 1),
+              ],
+            },
+          };
+
+          transaction.set(todoDocRef, update);
+        })
+      )
+    );
+  };
+};
+
+export const useSetWeekDinner = (user: User) => {
+  const app = useFirebase();
+  const firestore = getFirestore(app);
+  const weeksCache = useWeeks(user).suspend();
+
+  return ({
+    dinnerId,
+    weekdayIndex,
+  }: {
+    dinnerId: string | null;
+    weekdayIndex: number;
+  }) => {
+    const weeks = weeksCache.read().data;
+    const weekId = weeks.currentWeek.id;
+    const weekRef = doc(
+      getFamilyDocRef(firestore, user),
+      WEEKS_COLLECTION,
+      weekId
+    );
+
+    const week = weeks.currentWeek;
+    const updatedWeek: WeekDTO = {
+      ...week,
+      dinners: [
+        ...week.dinners.slice(0, weekdayIndex),
+        dinnerId,
+        ...week.dinners.slice(weekdayIndex + 1),
+      ] as WeekDinnersDTO,
+    };
+
+    const { dinners } = updatedWeek;
+
+    weeksCache.write(
+      (current) => ({
+        ...current,
+        [weekId]: updatedWeek,
+      }),
+      setDoc(weekRef, { dinners }, { merge: true })
+    );
+  };
 };

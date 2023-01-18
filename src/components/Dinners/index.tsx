@@ -2,12 +2,11 @@ import React, { Dispatch } from "react";
 import { ChevronLeftIcon, PlusIcon } from "@heroicons/react/outline";
 import * as selectors from "../../selectors";
 import { DinnerDTO } from "../../environment-interface/storage";
-import { useImage } from "../../useImage";
-import { useEnvironment } from "../../environment-interface";
 import { useTranslations } from "next-intl";
 import { ViewAction } from "../Dashboard/useViewStack";
-import { useDinners } from "../../hooks/useDinners";
+import { getDinnerImageRef, useDinners } from "../../hooks/useDinners";
 import { User } from "../../hooks/useCurrentUser";
+import { useImage } from "../../hooks/useImage";
 
 const Dinner = ({
   dinner,
@@ -16,10 +15,7 @@ const Dinner = ({
   dinner: DinnerDTO;
   onClick: (id: string) => void;
 }) => {
-  const { storage } = useEnvironment();
-  const [imageState] = useImage({
-    ref: storage.getDinnerImageRef(dinner.id),
-  });
+  const imageCache = useImage(getDinnerImageRef(dinner.id)).read();
 
   return (
     <li
@@ -30,8 +26,8 @@ const Dinner = ({
     >
       <div className="flex items-center py-4 px-8 space-x-3 h-24">
         <div className="flex-shrink-0 h-16 w-16">
-          {imageState.state === "LOADED" ? (
-            <img className="h-16 w-16 rounded" src={imageState.src} alt="" />
+          {imageCache.status === "fresh" ? (
+            <img className="h-16 w-16 rounded" src={imageCache.data} alt="" />
           ) : null}
         </div>
         <div className="min-w-0 flex-1">

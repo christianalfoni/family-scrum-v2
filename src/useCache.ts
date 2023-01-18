@@ -48,7 +48,7 @@ type RefreshingErrorState<T> = {
   error: unknown;
 };
 
-type CacheState<T> =
+export type CacheState<T> =
   | InitializingState
   | ErrorState
   | FreshState<T>
@@ -58,14 +58,7 @@ type CacheState<T> =
   | RefreshingState<T>
   | RefreshingErrorState<T>;
 
-type InitializedCacheState<T> =
-  | FreshState<T>
-  | OptimisticState<T>
-  | WriteErrorState<T>;
-
-type AsyncCacheState<T> = CacheState<T>;
-
-type SuspendedCacheState<T> =
+export type SuspendedCacheState<T> =
   | FreshState<T>
   | StaleState<T>
   | OptimisticState<T>
@@ -73,13 +66,13 @@ type SuspendedCacheState<T> =
   | RefreshingState<T>
   | RefreshingErrorState<T>;
 
-type SubscriptionCacheState<T> =
+export type SubscriptionCacheState<T> =
   | InitializingState
   | FreshState<T>
   | OptimisticState<T>
   | WriteErrorState<T>;
 
-type SuspendedSubscriptionCacheState<T> =
+export type SuspendedSubscriptionCacheState<T> =
   | FreshState<T>
   | OptimisticState<T>
   | WriteErrorState<T>;
@@ -268,14 +261,11 @@ export const CacheProvider: React.FC<{ cache: Cache }> = ({
     children,
   });
 
-interface UseAsyncCacheValue<
-  T,
-  S extends CacheState<T> | SuspendedCacheState<T>
-> {
+interface UseCacheValue<T, S extends CacheState<T> | SuspendedCacheState<T>> {
   write(optimisticData: T, promise: Promise<unknown>): void;
   write(optimisticData: (current: T) => T, promise: Promise<unknown>): void;
   read(): S;
-  suspend(): UseAsyncCacheValue<T, SuspendedCacheState<T>>;
+  suspend(): UseCacheValue<T, SuspendedCacheState<T>>;
 }
 
 interface UseSubscriptionCacheValue<
@@ -286,12 +276,6 @@ interface UseSubscriptionCacheValue<
   write(optimisticData: (current: T) => T, promise: Promise<unknown>): void;
   read(): S;
   suspend(): UseSubscriptionCacheValue<T, SuspendedSubscriptionCacheState<T>>;
-}
-
-interface UseInitializedCacheValue<T, S extends InitializedCacheState<T>> {
-  write(data: T, promise?: Promise<unknown>): void;
-  write(data: (current: T) => T, promise?: Promise<unknown>): void;
-  read(): S;
 }
 
 function createSuspend(state: CacheState<unknown>) {
@@ -307,11 +291,7 @@ function createSuspend(state: CacheState<unknown>) {
   };
 }
 
-function createAsyncWrite(
-  key: string,
-  state: CacheState<unknown>,
-  cache: Cache
-) {
+function createWrite(key: string, state: CacheState<unknown>, cache: Cache) {
   return function (data: unknown, promise: Promise<unknown>) {
     if (state.status === "error" || state.status === "initializing") {
       throw new Error(`You can not write to cache in an ${state.status} state`);
@@ -342,7 +322,7 @@ function createAsyncWrite(
   };
 }
 
-function createAsyncCacheValue<T, S extends CacheState<T>>(
+function createCacheValue<T, S extends CacheState<T>>(
   key: string,
   state: S,
   cache: Cache
@@ -352,52 +332,7 @@ function createAsyncCacheValue<T, S extends CacheState<T>>(
       return state;
     },
     suspend: createSuspend(state),
-    write: createAsyncWrite(key, state, cache),
-  };
-}
-
-function createCacheValue<T, S extends InitializedCacheState<T>>(
-  key: string,
-  state: S,
-  cache: Cache
-) {
-  return {
-    read() {
-      return state;
-    },
-    write(data: unknown, promise?: Promise<unknown>) {
-      if (promise) {
-        const prevData = state.data;
-        const optimisticData =
-          typeof data === "function" ? data(state.data) : data;
-
-        cache.update(key, {
-          status: "optimistic",
-          data: optimisticData,
-        });
-
-        promise
-          .then(() =>
-            cache.update(key, {
-              status: "fresh",
-              data: optimisticData,
-            })
-          )
-          .catch((error) => {
-            cache.update(key, {
-              status: "refreshing_error",
-              data: prevData,
-              error,
-            });
-          });
-        return;
-      }
-
-      cache.update(key, {
-        status: "fresh",
-        data: typeof data === "function" ? data(state.data) : data,
-      });
-    },
+    write: createWrite(key, state, cache),
   };
 }
 
@@ -421,31 +356,12 @@ export function useSubscriptionCache<T>(
   useEffect(() => cache.subscribe(key, setState), []);
 
   return useMemo(
-    () => createAsyncCacheValue(key, state, cache),
+    () => createCacheValue(key, state, cache),
     [state]
   ) as UseSubscriptionCacheValue<T, SubscriptionCacheState<T>>;
 }
 
-export function useCache<T>(key: string, initialData: T) {
-  const cache = useContext(cacheContext);
-  const [state, setState] = useState<InitializedCacheState<T>>(() => {
-    const existingState = cache.getState<T>(key);
-
-    if (existingState) {
-      return existingState as InitializedCacheState<T>;
-    }
-
-    return cache.set(key, initialData);
-  });
-
-  useEffect(() => cache.subscribe(key, setState), []);
-
-  return useMemo(
-    () => createCacheValue(key, state, cache),
-    [state]
-  ) as UseInitializedCacheValue<T, InitializedCacheState<T>>;
-}
-export function useAsyncCache<T>(key: string, resolver: () => Promise<T>) {
+export function useCache<T>(key: string, resolver: () => Promise<T>) {
   const cache = useContext(cacheContext);
   const [state, setState] = useState<CacheState<T>>(() => {
     const existingState = cache.getState<T>(key);
@@ -460,14 +376,14 @@ export function useAsyncCache<T>(key: string, resolver: () => Promise<T>) {
   useEffect(() => cache.subscribe(key, setState), []);
 
   return useMemo(
-    () => createAsyncCacheValue(key, state, cache),
+    () => createCacheValue(key, state, cache),
     [state]
-  ) as UseAsyncCacheValue<T, AsyncCacheState<T>>;
+  ) as UseCacheValue<T, CacheState<T>>;
 }
 
 export function useSuspendCaches<
   T extends
-    | Array<UseAsyncCacheValue<any, any> | UseSubscriptionCacheValue<any, any>>
+    | Array<UseCacheValue<any, any> | UseSubscriptionCacheValue<any, any>>
     | []
 >(cacheValues: T) {
   for (let cacheValue of cacheValues) {
@@ -482,8 +398,8 @@ export function useSuspendCaches<
   }
 
   return cacheValues as {
-    [U in keyof T]: T[U] extends UseAsyncCacheValue<infer V, any>
-      ? UseAsyncCacheValue<V, SuspendedCacheState<V>>
+    [U in keyof T]: T[U] extends UseCacheValue<infer V, any>
+      ? UseCacheValue<V, SuspendedCacheState<V>>
       : T[U] extends UseSubscriptionCacheValue<infer V, any>
       ? UseSubscriptionCacheValue<V, SuspendedSubscriptionCacheState<V>>
       : never;

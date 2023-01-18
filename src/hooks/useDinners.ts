@@ -4,7 +4,6 @@ import { DINNERS_COLLECTION, useFirebase } from "../useFirebase";
 import { useCollection } from "./useCollection";
 import { User } from "./useCurrentUser";
 import { getFamilyDocRef } from "./useFamily";
-import { useImages } from "./useImages";
 
 export type DinnerDTO = {
   id: string;
@@ -37,7 +36,6 @@ export const useStoreDinner = (user: User) => {
   const app = useFirebase();
   const firestore = getFirestore(app);
   const storage = getStorage(app);
-  const imagesCache = useImages();
 
   return (
     {
@@ -86,26 +84,22 @@ export const useStoreDinner = (user: User) => {
       id
     );
 
-    dinnersCache.write(
-      (current) => ({
-        ...current,
-        [id]: dinner,
-      }),
-      setDoc(dinnerDocRef, data)
-    );
+    let imagePromise: Promise<unknown> = Promise.resolve();
 
     if (imageSrc) {
       const imageRef = getDinnerImageRef(id);
 
       const storageRef = ref(storage, imageRef + ".png");
 
-      imagesCache.write(
-        (current) => ({
-          ...current,
-          [imageRef]: imageSrc,
-        }),
-        uploadString(storageRef, imageSrc, "data_url")
-      );
+      imagePromise = uploadString(storageRef, imageSrc, "data_url");
     }
+
+    dinnersCache.write(
+      (current) => ({
+        ...current,
+        [id]: dinner,
+      }),
+      Promise.all([setDoc(dinnerDocRef, data), imagePromise])
+    );
   };
 };

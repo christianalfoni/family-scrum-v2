@@ -17,9 +17,8 @@ import { addDays } from "date-fns";
 import * as selectors from "../../selectors";
 import { DinnerDTO } from "../../environment-interface/storage";
 import { useEnvironment } from "../../environment-interface";
-import { useImage } from "../../useImage";
 
-import { useDinners } from "../../hooks/useDinners";
+import { getDinnerImageRef, useDinners } from "../../hooks/useDinners";
 import { useGroceries } from "../../hooks/useGroceries";
 import { useFamily } from "../../hooks/useFamily";
 import { useTodos } from "../../hooks/useTodos";
@@ -27,13 +26,13 @@ import { useSuspendCaches } from "../../useCache";
 import { useWeeks } from "../../hooks/useWeeks";
 import { ViewAction } from "./useViewStack";
 import { User } from "../../hooks/useCurrentUser";
+import { useImage } from "../../hooks/useImage";
 
 SwiperCore.use([Controller]);
 
 const WeekdayDinner = ({ dinner }: { dinner: DinnerDTO }) => {
-  const { storage } = useEnvironment();
   const [imageState] = useImage({
-    ref: storage.getDinnerImageRef(dinner.id),
+    ref: getDinnerImageRef(dinner.id),
   });
 
   return (

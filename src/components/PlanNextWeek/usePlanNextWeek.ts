@@ -9,8 +9,12 @@ import {
   useTransition,
 } from "react-states";
 
-import { useEnvironment } from "../../environment-interface";
 import { FamilyUserDTO } from "../../environment-interface/authentication";
+import {
+  useSetWeekDinner,
+  useSetWeekTaskActivity,
+  Weeks,
+} from "../../hooks/useWeeks";
 
 const actions = createActions({
   TOGGLE_WEEKDAY: (params: {
@@ -61,6 +65,8 @@ export const usePlanNextWeek = ({
   weekId: string;
   initialState?: State;
 }) => {
+  const setWeekTaskActivity = useSetWeekTaskActivity(user);
+  const setWeekDinner = useSetWeekDinner(user);
   const planNextWeekReducer = useReducer(
     reducer,
     initialState || PLANNING({ userId: user.id })
@@ -74,8 +80,7 @@ export const usePlanNextWeek = ({
     state,
     "PLANNING => TOGGLE_WEEKDAY => PLANNING",
     ({ userId }, { todoId, weekdayIndex, active }) => {
-      storage.setWeekTaskActivity({
-        weekId,
+      setWeekTaskActivity({
         todoId,
         userId,
         active,
@@ -89,8 +94,7 @@ export const usePlanNextWeek = ({
     state,
     "PLANNING => CHANGE_WEEKDAY_DINNER => PLANNING",
     (_, { weekdayIndex, dinnerId }) => {
-      storage.setWeekDinner({
-        weekId,
+      setWeekDinner({
         dinnerId,
         weekdayIndex,
       });
