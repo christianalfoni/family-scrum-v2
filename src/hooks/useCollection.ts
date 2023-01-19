@@ -1,16 +1,14 @@
 import {
   getFirestore,
-  getDocs,
   collection,
-  Firestore,
   onSnapshot,
-  CollectionReference,
   QuerySnapshot,
 } from "@firebase/firestore";
 
 import { useSubscriptionCache } from "../useCache";
-import { FAMILY_DATA_COLLECTION, useFirebase } from "../useFirebase";
+import { useFirebase } from "../useFirebase";
 import { User } from "./useCurrentUser";
+import { getFamilyDocRef } from "./useFamily";
 
 export type Collection = Record<string, Record<string, unknown>>;
 
@@ -67,29 +65,16 @@ export const updateCollectionRecord = <T extends Collection>(
   return updatedData;
 };
 
-const getCollectionRef = (
-  firestore: Firestore,
-  familyId: string,
-  collectionName: string
-) => {
-  return collection(
-    firestore,
-    FAMILY_DATA_COLLECTION,
-    familyId,
-    collectionName
-  );
-};
-
 export function useCollection<T extends Collection>(
-  collection: string,
+  collectionName: string,
   user: User
 ) {
   const app = useFirebase();
   const firestore = getFirestore(app);
 
-  return useSubscriptionCache<T>(collection, (setCache) =>
+  return useSubscriptionCache<T>(collectionName, (setCache) =>
     onSnapshot(
-      getCollectionRef(firestore, user.familyId, collection),
+      collection(getFamilyDocRef(firestore, user), collectionName),
       (groceriesRef) =>
         setCache((current) => updateCollectionRecord(groceriesRef, current))
     )

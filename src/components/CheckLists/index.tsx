@@ -4,13 +4,26 @@ import { ChevronLeftIcon } from "@heroicons/react/outline";
 
 import { TodoItem } from "../TodoItem";
 import * as selectors from "../../selectors";
-import { viewStates } from "../Dashboard/useDashboard";
-import { useLoadedDashboard } from "../Dashboard";
+import { ViewAction } from "../Dashboard/useViewStack";
+import { useTodos } from "../../hooks/useTodos";
+import { User } from "../../hooks/useCurrentUser";
+import {
+  useCheckListItems,
+  useCheckListItemsByTodoId,
+} from "../../hooks/useCheckListItems";
 
-export const CheckLists = () => {
+export const CheckLists = ({
+  user,
+  dispatchViewStack,
+}: {
+  user: User;
+  dispatchViewStack: React.Dispatch<ViewAction>;
+}) => {
   const t = useTranslations("CheckListsView");
-  const [{ user, data }, { POP_VIEW, PUSH_VIEW }] = useLoadedDashboard();
-  const checkLists = selectors.checkLists(data.todos);
+  const todos = useTodos(user).suspend().read();
+  const checkLists = selectors.checkLists(todos.data);
+  const checkListItems = useCheckListItems(user).suspend().read().data;
+  const checkListItemsByTodoId = useCheckListItemsByTodoId(checkListItems);
 
   return (
     <div className="bg-white flex flex-col h-screen">
@@ -18,7 +31,11 @@ export const CheckLists = () => {
         <div className="flex items-center">
           <div className="flex-1">
             <button
-              onClick={() => POP_VIEW()}
+              onClick={() =>
+                dispatchViewStack({
+                  type: "POP_VIEW",
+                })
+              }
               className="bg-white p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500"
             >
               <ChevronLeftIcon className="h-6 w-6" aria-hidden="true" />
@@ -33,9 +50,17 @@ export const CheckLists = () => {
           <TodoItem
             key={todo.id}
             todo={todo}
-            onClick={() => PUSH_VIEW(viewStates.EDIT_TODO(todo.id))}
+            onClick={() =>
+              dispatchViewStack({
+                type: "PUSH_VIEW",
+                view: {
+                  name: "EDIT_TODO",
+                  id: todo.id,
+                },
+              })
+            }
             user={user}
-            checkListItems={data.checkListItemsByTodoId[todo.id]}
+            checkListItems={checkListItemsByTodoId[todo.id]}
           />
         ))}
       </ul>

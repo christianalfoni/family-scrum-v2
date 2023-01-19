@@ -5,20 +5,19 @@ import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/outline";
 import * as selectors from "../../selectors";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { weekdays } from "../../utils";
-import { DinnerDTO, WeekDinnersDTO } from "../../environment-interface/storage";
-import { useEnvironment } from "../../environment-interface";
-import { useImage } from "../../useImage";
+
+import { getDinnerImageRef } from "../../hooks/useDinners";
+import { useImage } from "../../hooks/useImage";
+import { DinnerDTO, WeekDinnersDTO } from "../../types";
 
 const DinnerSlide = ({ dinner }: { dinner: DinnerDTO }) => {
-  const { storage } = useEnvironment();
-  const [imageState] = useImage({
-    ref: storage.getDinnerImageRef(dinner.id),
-  });
+  const image = useImage(getDinnerImageRef(dinner.id)).read();
+
   return (
     <div className="flex items-center py-4 px-8 space-x-3 h-24">
       <div className="flex-shrink-0 h-16 w-16">
-        {imageState.state === "LOADED" ? (
-          <img className="h-16 w-16 rounded" src={imageState.src} alt="" />
+        {"data" in image ? (
+          <img className="h-16 w-16 rounded" src={image.data} alt="" />
         ) : null}
       </div>
       <div className="min-w-0 flex-1">

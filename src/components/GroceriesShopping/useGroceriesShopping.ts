@@ -9,7 +9,13 @@ import {
   useDevtools,
   useTransition,
 } from "react-states";
-import { useEnvironment } from "../../environment-interface";
+
+import { User } from "../../hooks/useCurrentUser";
+import {
+  useCreateGroceryId,
+  useDeleteGrocery,
+  useStoreGrocery,
+} from "../../hooks/useGroceries";
 
 const actions = createActions({
   ADD_GROCERY: () => ({}),
@@ -80,11 +86,15 @@ const reducer = (prevState: State, action: Action) =>
   });
 
 export const useGroceriesShopping = ({
+  user,
   initialState,
 }: {
+  user: User;
   initialState?: State;
 }) => {
-  const { storage } = useEnvironment();
+  const storeGrocery = useStoreGrocery(user);
+  const createGroceryId = useCreateGroceryId(user);
+  const deleteGrocery = useDeleteGrocery(user);
   const groceriesShoppingReducer = useReducer(
     reducer,
     initialState ||
@@ -99,14 +109,14 @@ export const useGroceriesShopping = ({
   const [state, dispatch] = groceriesShoppingReducer;
 
   useTransition(state, "LIST => ADD_GROCERY => LIST", (_, __, { filter }) => {
-    storage.storeGrocery({
-      id: storage.createGroceryId(),
+    storeGrocery({
+      id: createGroceryId(),
       name: filter.input,
     });
   });
 
   useTransition(state, "LIST => SHOP_GROCERY => LIST", (_, { groceryId }) => {
-    storage.deleteGrocery(groceryId);
+    deleteGrocery(groceryId);
   });
 
   return [state, actions(dispatch)] as const;

@@ -1,12 +1,13 @@
 import React, { Dispatch } from "react";
 import { ChevronLeftIcon, PlusIcon } from "@heroicons/react/outline";
 import * as selectors from "../../selectors";
-import { DinnerDTO } from "../../environment-interface/storage";
-import { useImage } from "../../useImage";
-import { useEnvironment } from "../../environment-interface";
-import { viewStates } from "../Dashboard/useDashboard";
+
 import { useTranslations } from "next-intl";
-import { LoadedDashboard } from "../Dashboard";
+import { ViewAction } from "../Dashboard/useViewStack";
+import { getDinnerImageRef, useDinners } from "../../hooks/useDinners";
+import { User } from "../../hooks/useCurrentUser";
+import { useImage } from "../../hooks/useImage";
+import { DinnerDTO } from "../../types";
 
 const Dinner = ({
   dinner,
@@ -15,10 +16,7 @@ const Dinner = ({
   dinner: DinnerDTO;
   onClick: (id: string) => void;
 }) => {
-  const { storage } = useEnvironment();
-  const [imageState] = useImage({
-    ref: storage.getDinnerImageRef(dinner.id),
-  });
+  const imageCache = useImage(getDinnerImageRef(dinner.id)).read();
 
   return (
     <li
@@ -29,8 +27,8 @@ const Dinner = ({
     >
       <div className="flex items-center py-4 px-8 space-x-3 h-24">
         <div className="flex-shrink-0 h-16 w-16">
-          {imageState.state === "LOADED" ? (
-            <img className="h-16 w-16 rounded" src={imageState.src} alt="" />
+          {imageCache.status === "fresh" ? (
+            <img className="h-16 w-16 rounded" src={imageCache.data} alt="" />
           ) : null}
         </div>
         <div className="min-w-0 flex-1">
@@ -42,9 +40,15 @@ const Dinner = ({
   );
 };
 
-export const Dinners = ({ dashboard }: { dashboard: LoadedDashboard }) => {
-  const [{ data }, { POP_VIEW, PUSH_VIEW }] = dashboard;
-  const sortedDinners = selectors.sortedDinners(data.dinners);
+export const Dinners = ({
+  user,
+  dispatchViewStack,
+}: {
+  user: User;
+  dispatchViewStack: Dispatch<ViewAction>;
+}) => {
+  const dinners = useDinners(user).suspend().read().data;
+  const sortedDinners = selectors.sortedDinners(dinners);
   const t = useTranslations("DinnersView");
 
   return (
@@ -53,7 +57,11 @@ export const Dinners = ({ dashboard }: { dashboard: LoadedDashboard }) => {
         <div className="flex items-center">
           <div className="flex-1">
             <button
-              onClick={() => POP_VIEW()}
+              onClick={() =>
+                dispatchViewStack({
+                  type: "POP_VIEW",
+                })
+              }
               className=" bg-white p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500"
             >
               <ChevronLeftIcon className="h-6 w-6" aria-hidden="true" />
@@ -63,7 +71,14 @@ export const Dinners = ({ dashboard }: { dashboard: LoadedDashboard }) => {
           <div className="flex-1 flex">
             <button
               className="ml-auto"
-              onClick={() => PUSH_VIEW(viewStates.EDIT_DINNER())}
+              onClick={() =>
+                dispatchViewStack({
+                  type: "PUSH_VIEW",
+                  view: {
+                    name: "EDIT_DINNER",
+                  },
+                })
+              }
             >
               <PlusIcon className="w-6 h-6" />
             </button>
@@ -76,14 +91,29 @@ export const Dinners = ({ dashboard }: { dashboard: LoadedDashboard }) => {
             <Dinner
               key={dinner.id}
               dinner={dinner}
-              onClick={(id) => PUSH_VIEW(viewStates.EDIT_DINNER(id))}
+              onClick={(id) =>
+                dispatchViewStack({
+                  type: "PUSH_VIEW",
+                  view: {
+                    name: "EDIT_DINNER",
+                    id,
+                  },
+                })
+              }
             />
           ))}
         </ul>
       ) : (
         <div className="flex items-center justify-center h-full">
           <a
-            onClick={() => PUSH_VIEW(viewStates.EDIT_DINNER())}
+            onClick={() =>
+              dispatchViewStack({
+                type: "PUSH_VIEW",
+                view: {
+                  name: "EDIT_DINNER",
+                },
+              })
+            }
             className="ml-6 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
           >
             New Dinner

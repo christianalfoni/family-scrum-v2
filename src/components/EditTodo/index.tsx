@@ -13,23 +13,27 @@ import { useTranslations } from "next-intl";
 import { match } from "react-states";
 import { format } from "date-fns";
 import { useEditTodo } from "./useEditTodo";
+
 import {
-  CheckListItemsByTodoId,
-  TodoDTO,
-} from "../../environment-interface/storage";
+  useCheckListItems,
+  useCheckListItemsByTodoId,
+} from "../../hooks/useCheckListItems";
+import { User } from "../../hooks/useCurrentUser";
+import { TodoDTO } from "../../types";
 
 export const EditTodo = ({
   todo,
+  user,
   onBackClick,
-  checkListItemsByTodoId,
 }: {
+  user: User;
   todo?: TodoDTO;
-
-  checkListItemsByTodoId: CheckListItemsByTodoId;
   onBackClick: () => void;
 }) => {
   const t = useTranslations("AddTodoView");
   const [newItemTitle, setNewItemTitle] = React.useState("");
+  const checkListItems = useCheckListItems(user).suspend().read().data;
+  const checkListItemsByTodoId = useCheckListItemsByTodoId(checkListItems);
   const [
     { date, description, time, grocery, validation, checkList },
     {
@@ -46,6 +50,7 @@ export const EditTodo = ({
       TIME_CHANGED,
     },
   ] = useEditTodo({
+    user,
     todo,
     checkListItemsByTodoId,
     onExit: onBackClick,

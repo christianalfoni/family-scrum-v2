@@ -5,7 +5,8 @@
     "deploy:functions": "firebase deploy --only functions",
     "dev:sandbox": "SANDBOX=true next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@headlessui/react": "^1.7.7",

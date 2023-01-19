@@ -8,21 +8,31 @@ import {
 } from "@heroicons/react/outline";
 import { LightBulbIcon as SolidLightBulbIcon } from "@heroicons/react/solid";
 import { useTranslations } from "next-intl";
-import { match, PickState } from "react-states";
+import { match } from "react-states";
 import { mp4 } from "../../video";
 import { useGroceriesShopping } from "./useGroceriesShopping";
 import * as selectors from "../../selectors";
-import { useLoadedDashboard } from "../Dashboard";
+import { ViewAction } from "../Dashboard/useViewStack";
+import { useGroceries } from "../../hooks/useGroceries";
+import { User } from "../../hooks/useCurrentUser";
 
-export const GroceriesShopping = () => {
+export const GroceriesShopping = ({
+  user,
+  dispatchViewStack,
+}: {
+  user: User;
+  dispatchViewStack: Dispatch<ViewAction>;
+}) => {
   const t = useTranslations("GroceriesShoppingView");
   const [now] = React.useState(Date.now());
-  const [{ data }, { POP_VIEW }] = useLoadedDashboard();
+  const groceries = useGroceries(user).suspend().read();
   const [
     { filter, sleep },
     { GROCERY_INPUT_CHANGED, SHOP_GROCERY, TOGGLE_NO_SLEEP, ADD_GROCERY },
-  ] = useGroceriesShopping({});
-  const groceriesToShop = selectors.groceriesToShop(data.groceries);
+  ] = useGroceriesShopping({
+    user,
+  });
+  const groceriesToShop = selectors.groceriesToShop(groceries.data);
   const [initialGroceriesLength] = React.useState(groceriesToShop.length);
   const videoRef = React.useRef<HTMLVideoElement>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
@@ -56,7 +66,11 @@ export const GroceriesShopping = () => {
         <div className="flex items-center">
           <div className="flex-1">
             <button
-              onClick={() => POP_VIEW()}
+              onClick={() =>
+                dispatchViewStack({
+                  type: "POP_VIEW",
+                })
+              }
               className=" bg-white p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500"
             >
               <ChevronLeftIcon className="h-6 w-6" aria-hidden="true" />

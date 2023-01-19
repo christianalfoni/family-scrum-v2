@@ -8,17 +8,17 @@ import React, {
 
 type FreshState<T> = {
   status: "fresh";
-  data: T;
+  readonly data: T;
 };
 
 type StaleState<T> = {
   status: "stale";
-  data: T;
+  readonly data: T;
 };
 
 type WriteErrorState<T> = {
   status: "write_error";
-  data: T;
+  readonly data: T;
   error: unknown;
 };
 
@@ -39,16 +39,16 @@ type InitializingState = {
 
 type RefreshingState<T> = {
   status: "refreshing";
-  data: T;
+  readonly data: T;
 };
 
 type RefreshingErrorState<T> = {
   status: "refreshing_error";
-  data: T;
+  readonly data: T;
   error: unknown;
 };
 
-type CacheState<T> =
+export type CacheState<T> =
   | InitializingState
   | ErrorState
   | FreshState<T>
@@ -58,7 +58,7 @@ type CacheState<T> =
   | RefreshingState<T>
   | RefreshingErrorState<T>;
 
-type SuspendCacheState<T> =
+export type SuspendedCacheState<T> =
   | FreshState<T>
   | StaleState<T>
   | OptimisticState<T>
@@ -66,13 +66,13 @@ type SuspendCacheState<T> =
   | RefreshingState<T>
   | RefreshingErrorState<T>;
 
-type SubscriptionCacheState<T> =
+export type SubscriptionCacheState<T> =
   | InitializingState
   | FreshState<T>
   | OptimisticState<T>
   | WriteErrorState<T>;
 
-type SuspendSubscriptionCacheState<T> =
+export type SuspendedSubscriptionCacheState<T> =
   | FreshState<T>
   | OptimisticState<T>
   | WriteErrorState<T>;
@@ -87,14 +87,17 @@ export class Cache {
       subscribers: Set<Subscription<any>>;
     } & (
       | {
+          type: "initialized";
+        }
+      | {
           type: "subscription";
           subscription: {
-            dispose: () => void;
+            dispose?: () => void;
             subscriber: () => () => void;
           };
         }
       | {
-          type: "resolver";
+          type: "async";
           resolver: () => Promise<any>;
         }
     )
@@ -104,6 +107,16 @@ export class Cache {
   }
   getState<T>(key: string): CacheState<T> | undefined {
     return this.entries[key]?.state;
+  }
+  update<T>(key: string, state: CacheState<T>) {
+    const entry = this.entries[key];
+
+    if (!entry) {
+      throw new Error("Can not update state on non existing entry");
+    }
+
+    entry.state = state;
+    entry.subscribers.forEach((cb) => cb(state));
   }
   subscribe<T>(key: string, cb: Subscription<T>): () => void {
     const entry = this.entries[key];
@@ -116,7 +129,11 @@ export class Cache {
 
     entry.subscribers.add(cb);
 
-    if (entry.type === "subscription" && entry.subscribers.size === 1) {
+    if (
+      entry.type === "subscription" &&
+      entry.subscribers.size === 1 &&
+      !entry.subscription.dispose
+    ) {
       entry.subscription.dispose = entry.subscription.subscriber();
     }
 
@@ -124,11 +141,25 @@ export class Cache {
       entry.subscribers.delete(cb);
 
       if (entry.type === "subscription" && !entry.subscribers.size) {
-        entry.subscription.dispose();
+        entry.subscription.dispose?.();
+        delete entry.subscription.dispose;
       }
     };
   }
+  set<T>(key: string, initialData: T) {
+    const state: FreshState<T> = {
+      status: "fresh",
+      data: initialData,
+    };
 
+    this.entries[key] = {
+      type: "initialized",
+      state,
+      subscribers: new Set(),
+    };
+
+    return state;
+  }
   setResolver<T>(key: string, resolver: () => Promise<T>) {
     const state: InitializingState = {
       status: "initializing",
@@ -148,24 +179,13 @@ export class Cache {
     };
 
     this.entries[key] = {
-      type: "resolver",
+      type: "async",
       state,
       subscribers: new Set(),
       resolver,
     };
 
     return state;
-  }
-
-  update<T>(key: string, state: CacheState<T>) {
-    const entry = this.entries[key];
-
-    if (!entry) {
-      throw new Error("Can not update state on non existing entry");
-    }
-
-    entry.state = state;
-    entry.subscribers.forEach((cb) => cb(state));
   }
 
   setSubscription<T>(
@@ -190,37 +210,39 @@ export class Cache {
       promise,
     };
 
+    const wrappedSubscriber = () =>
+      subscriber((data) => {
+        if (typeof data === "function") {
+          const currentState = this.get(key)!;
+          const dataCallback = data as (data: T | void) => T;
+
+          this.update(key, {
+            status: "fresh",
+            data:
+              "data" in currentState
+                ? dataCallback(currentState.data as T)
+                : dataCallback(),
+          });
+        } else {
+          this.update(key, {
+            status: "fresh",
+            data,
+          });
+        }
+
+        if (_resolve) {
+          _resolve();
+          _resolve = undefined;
+        }
+      });
+
     this.entries[key] = {
       type: "subscription",
       state,
       subscribers: new Set(),
       subscription: {
-        dispose: () => {},
-        subscriber: () =>
-          subscriber((data) => {
-            if (typeof data === "function") {
-              const currentState = this.get(key)!;
-              const dataCallback = data as (data: T | void) => T;
-
-              this.update(key, {
-                status: "fresh",
-                data:
-                  "data" in currentState
-                    ? dataCallback(currentState.data as T)
-                    : dataCallback(),
-              });
-            } else {
-              this.update(key, {
-                status: "fresh",
-                data,
-              });
-            }
-
-            if (_resolve) {
-              _resolve();
-              _resolve = undefined;
-            }
-          }),
+        dispose: wrappedSubscriber(),
+        subscriber: wrappedSubscriber,
       },
     };
 
@@ -239,76 +261,78 @@ export const CacheProvider: React.FC<{ cache: Cache }> = ({
     children,
   });
 
-interface UseCacheValue<T, S extends CacheState<T> | SuspendCacheState<T>> {
+interface UseCacheValue<T, S extends CacheState<T> | SuspendedCacheState<T>> {
   write(optimisticData: T, promise: Promise<unknown>): void;
   write(optimisticData: (current: T) => T, promise: Promise<unknown>): void;
   read(): S;
-  suspend(): UseCacheValue<T, SuspendCacheState<T>>;
+  suspend(): UseCacheValue<T, SuspendedCacheState<T>>;
 }
 
 interface UseSubscriptionCacheValue<
   T,
-  S extends SubscriptionCacheState<T> | SuspendSubscriptionCacheState<T>
+  S extends SubscriptionCacheState<T> | SuspendedSubscriptionCacheState<T>
 > {
   write(optimisticData: T, promise: Promise<unknown>): void;
   write(optimisticData: (current: T) => T, promise: Promise<unknown>): void;
   read(): S;
-  suspend(): UseSubscriptionCacheValue<T, SuspendSubscriptionCacheState<T>>;
+  suspend(): UseSubscriptionCacheValue<T, SuspendedSubscriptionCacheState<T>>;
 }
 
-function createCacheValue<
-  T,
-  S extends
-    | CacheState<T>
-    | SuspendCacheState<T>
-    | SubscriptionCacheState<T>
-    | SuspendSubscriptionCacheState<T>
->(key: string, state: S, cache: Cache) {
+function createSuspend(state: CacheState<unknown>) {
+  return function (this: any) {
+    if (state.status === "initializing") {
+      throw state.promise;
+    }
+    if (state.status === "error") {
+      throw state.error;
+    }
+
+    return this;
+  };
+}
+
+function createWrite(key: string, state: CacheState<unknown>, cache: Cache) {
+  return function (data: unknown, promise: Promise<unknown>) {
+    if (state.status === "error" || state.status === "initializing") {
+      throw new Error(`You can not write to cache in an ${state.status} state`);
+    }
+
+    const prevData = state.data;
+    const optimisticData = typeof data === "function" ? data(state.data) : data;
+
+    cache.update(key, {
+      status: "optimistic",
+      data: optimisticData,
+    });
+
+    promise
+      .then(() =>
+        cache.update(key, {
+          status: "fresh",
+          data: optimisticData,
+        })
+      )
+      .catch((error) => {
+        cache.update(key, {
+          status: "refreshing_error",
+          data: prevData,
+          error,
+        });
+      });
+  };
+}
+
+function createCacheValue<T, S extends CacheState<T>>(
+  key: string,
+  state: S,
+  cache: Cache
+) {
   return {
     read() {
       return state;
     },
-    suspend() {
-      if (state.status === "initializing") {
-        throw state.promise;
-      }
-
-      if (state.status === "error") {
-        throw state.error;
-      }
-
-      return this;
-    },
-    write(data: unknown, promise: Promise<unknown>) {
-      if (state.status === "error" || state.status === "initializing") {
-        throw new Error(
-          `You can not write to cache in an ${state.status} state`
-        );
-      }
-
-      const prevData = state.data;
-      const optimisticData = typeof data === "function" ? data(state) : data;
-
-      cache.update(key, {
-        status: "optimistic",
-        data: optimisticData,
-      });
-
-      promise
-        .then(() =>
-          cache.update(key, {
-            status: "fresh",
-            data: optimisticData,
-          })
-        )
-        .catch((error) => {
-          cache.update(key, {
-            status: "refreshing_error",
-            data: prevData,
-            error,
-          });
-        });
-    },
+    suspend: createSuspend(state),
+    write: createWrite(key, state, cache),
   };
 }
 
@@ -357,9 +381,11 @@ export function useCache<T>(key: string, resolver: () => Promise<T>) {
   ) as UseCacheValue<T, CacheState<T>>;
 }
 
-export function useSuspendCaches<T extends Array<UseCacheValue<any, any>> | []>(
-  cacheValues: T
-) {
+export function useSuspendCaches<
+  T extends
+    | Array<UseCacheValue<any, any> | UseSubscriptionCacheValue<any, any>>
+    | []
+>(cacheValues: T) {
   for (let cacheValue of cacheValues) {
     const state = cacheValue.read();
 
@@ -373,7 +399,9 @@ export function useSuspendCaches<T extends Array<UseCacheValue<any, any>> | []>(
 
   return cacheValues as {
     [U in keyof T]: T[U] extends UseCacheValue<infer V, any>
-      ? UseCacheValue<V, SuspendCacheState<V>>
+      ? UseCacheValue<V, SuspendedCacheState<V>>
+      : T[U] extends UseSubscriptionCacheValue<infer V, any>
+      ? UseSubscriptionCacheValue<V, SuspendedSubscriptionCacheState<V>>
       : never;
   };
 }

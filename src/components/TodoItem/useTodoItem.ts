@@ -9,9 +9,15 @@ import {
   useDevtools,
   useTransition,
 } from "react-states";
-import { useEnvironment } from "../../environment-interface";
-import { FamilyUserDTO } from "../../environment-interface/authentication";
-import { TodoDTO } from "../../environment-interface/storage";
+
+import {
+  useAddCheckListItem,
+  useDeleteCheckListItem,
+  useToggleCheckListItem,
+} from "../../hooks/useCheckListItems";
+import { useCreateGroceryId, useStoreGrocery } from "../../hooks/useGroceries";
+import { useArchiveTodo } from "../../hooks/useTodos";
+import { FamilyUserDTO, TodoDTO } from "../../types";
 
 const actions = createActions({
   ARCHIVE_TODO: () => ({}),
@@ -143,7 +149,12 @@ export const useTodoItem = ({
   todo: TodoDTO;
   initialState?: State;
 }) => {
-  const { storage } = useEnvironment();
+  const archiveTodo = useArchiveTodo(user);
+  const toggleCheckListItem = useToggleCheckListItem(user);
+  const deleteChecklistItem = useDeleteCheckListItem(user);
+  const addCheckListItem = useAddCheckListItem(user);
+  const storeGrocery = useStoreGrocery(user);
+  const createGroceryId = useCreateGroceryId(user);
   const todoItemReducer = useReducer(
     reducer,
     initialState ||
@@ -158,14 +169,14 @@ export const useTodoItem = ({
   const [state, dispatch] = todoItemReducer;
 
   useTransition(state, "EDITING => ARCHIVE_TODO => EDITING", () => {
-    storage.archiveTodo(todo.id);
+    archiveTodo(todo.id);
   });
 
   useTransition(
     state,
     "EDITING => TOGGLE_CHECKLIST_ITEM => EDITING",
     (_, { itemId }) => {
-      storage.toggleCheckListItem(user.id, itemId);
+      toggleCheckListItem(itemId);
     }
   );
 
@@ -173,7 +184,7 @@ export const useTodoItem = ({
     state,
     "EDITING => DELETE_CHECKLIST_ITEM => EDITING",
     (_, { itemId }) => {
-      storage.deleteChecklistItem(itemId);
+      deleteChecklistItem(itemId);
     }
   );
 
@@ -181,11 +192,7 @@ export const useTodoItem = ({
     state,
     "EDITING => ADD_CHECKLIST_ITEM => EDITING",
     (_, { title }) => {
-      storage.addChecklistItem({
-        id: storage.createCheckListItemId(),
-        todoId: todo.id,
-        title,
-      });
+      addCheckListItem(todo.id, title);
     }
   );
 
@@ -193,8 +200,8 @@ export const useTodoItem = ({
     state,
     "EDITING => SHOP_GROCERY => EDITING",
     (_, { grocery }) => {
-      storage.storeGrocery({
-        id: storage.createGroceryId(),
+      storeGrocery({
+        id: createGroceryId(),
         name: grocery,
       });
     }

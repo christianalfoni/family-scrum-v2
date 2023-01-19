@@ -4,19 +4,26 @@ import { useTranslations } from "next-intl";
 import { CalendarIcon, CheckCircleIcon } from "@heroicons/react/outline";
 
 import { weekdays } from "../../utils";
-import {
-  CheckListItemDTO,
-  FamilyDTO,
-  TodoDTO,
-  WeekDTO,
-  WeekTodoActivity,
-} from "../../environment-interface/storage";
 
 import { TodoItem } from "../TodoItem";
 
-import { viewStates } from "../Dashboard/useDashboard";
-import { FamilyUserDTO } from "../../environment-interface/authentication";
-import { useLoadedDashboard } from "../Dashboard";
+import { User } from "../../hooks/useCurrentUser";
+import { useSuspendCaches } from "../../useCache";
+import { useFamily } from "../../hooks/useFamily";
+import { useTodos } from "../../hooks/useTodos";
+import { useWeeks } from "../../hooks/useWeeks";
+import {
+  useCheckListItems,
+  useCheckListItemsByTodoId,
+} from "../../hooks/useCheckListItems";
+import { ViewAction } from "../Dashboard/useViewStack";
+import {
+  CheckListItemDTO,
+  FamilyDTO,
+  FamilyUserDTO,
+  TodoDTO,
+  WeekDTO,
+} from "../../types";
 
 const PlanTodoItem = React.memo(
   ({
@@ -109,8 +116,12 @@ const PlanTodoItem = React.memo(
 );
 
 export const PlanNextWeekTodos = ({
+  user,
+  dispatchViewStack,
   toggleWeekday,
 }: {
+  user: User;
+  dispatchViewStack: React.Dispatch<ViewAction>;
   toggleWeekday: (params: {
     active: boolean;
     todoId: string;
@@ -118,20 +129,18 @@ export const PlanNextWeekTodos = ({
     weekdayIndex: number;
   }) => void;
 }) => {
-  const [
-    {
-      user,
-      data: {
-        family,
-        todos,
-        currentWeek,
-        previousWeek,
-        nextWeek,
-        checkListItemsByTodoId,
-      },
-    },
-    { PUSH_VIEW },
-  ] = useLoadedDashboard();
+  const [familyCache, todosCache, weeksCache, checkListItemsCache] =
+    useSuspendCaches([
+      useFamily(user),
+      useTodos(user),
+      useWeeks(user),
+      useCheckListItems(user),
+    ]);
+  const family = familyCache.read().data;
+  const todos = todosCache.read().data;
+  const checkListItems = checkListItemsCache.read().data;
+  const { currentWeek, nextWeek, previousWeek } = weeksCache.read().data;
+  const checkListItemsByTodoId = useCheckListItemsByTodoId(checkListItems);
   const t = useTranslations("PlanWeekView");
   const sortedTodos = selectors.todosByType(
     todos,
@@ -150,7 +159,14 @@ export const PlanNextWeekTodos = ({
     [family]
   );
   const onTodoClick = React.useCallback(
-    (id: string) => PUSH_VIEW(viewStates.EDIT_TODO(id)),
+    (id: string) =>
+      dispatchViewStack({
+        type: "PUSH_VIEW",
+        view: {
+          name: "EDIT_TODO",
+          id,
+        },
+      }),
     []
   );
 

@@ -1,13 +1,14 @@
 import levenshtein from "fast-levenshtein";
 import { differenceInDays, getDay, isThisWeek } from "date-fns";
+
+import { getDateFromWeekId, isWithinWeek, mod } from "./utils";
 import {
   CheckListItemDTO,
   DinnerDTO,
   GroceryDTO,
   TodoDTO,
   WeekDTO,
-} from "./environment-interface/storage";
-import { getDateFromWeekId, isWithinWeek, mod } from "./utils";
+} from "./types";
 
 export type WeekdayTodos = {
   [todoId: string]: string[];

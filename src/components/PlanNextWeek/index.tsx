@@ -6,18 +6,36 @@ import {
 } from "@heroicons/react/outline";
 import { useTranslations } from "next-intl";
 
-import { viewStates } from "../Dashboard/useDashboard";
 import { usePlanNextWeek } from "./usePlanNextWeek";
 import { PlanNextWeekDinners } from "./PlanNextWeekDinners";
 import { PlanNextWeekTodos } from "./PlanNextWeekTodos";
-import { useLoadedDashboard } from "../Dashboard";
+import { Dispatch } from "react";
+import { ViewAction } from "../Dashboard/useViewStack";
 
-export const PlanNextWeek = ({ view }: { view: "DINNERS" | "TODOS" }) => {
-  const [{ user, data }, { POP_VIEW, REPLACE_VIEW, PUSH_VIEW }] =
-    useLoadedDashboard();
+import { useWeeks } from "../../hooks/useWeeks";
+import { useDinners } from "../../hooks/useDinners";
+import { User } from "../../hooks/useCurrentUser";
+import { useSuspendCaches } from "../../useCache";
+
+export const PlanNextWeek = ({
+  user,
+  dispatchViewStack,
+  view,
+}: {
+  user: User;
+  dispatchViewStack: Dispatch<ViewAction>;
+  view: "DINNERS" | "TODOS";
+}) => {
+  const [weeksCache, dinnersCache] = useSuspendCaches([
+    useWeeks(user),
+    useDinners(user),
+  ]);
+  const weeks = weeksCache.read();
+  const dinners = dinnersCache.read();
+
   const [, { CHANGE_WEEKDAY_DINNER, TOGGLE_WEEKDAY }] = usePlanNextWeek({
     user,
-    weekId: data.nextWeek.id,
+    weekId: weeks.data.nextWeek.id,
   });
   const t = useTranslations("PlanWeekView");
 
@@ -27,7 +45,11 @@ export const PlanNextWeek = ({ view }: { view: "DINNERS" | "TODOS" }) => {
         <div className="flex items-center">
           <div className="flex-1">
             <button
-              onClick={() => POP_VIEW()}
+              onClick={() =>
+                dispatchViewStack({
+                  type: "POP_VIEW",
+                })
+              }
               className="bg-white p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500"
             >
               <ChevronLeftIcon className="h-6 w-6" aria-hidden="true" />
@@ -36,7 +58,15 @@ export const PlanNextWeek = ({ view }: { view: "DINNERS" | "TODOS" }) => {
           <div className="flex shadow-sm flex-2">
             <button
               type="button"
-              onClick={() => REPLACE_VIEW(viewStates.PLAN_NEXT_WEEK("DINNERS"))}
+              onClick={() =>
+                dispatchViewStack({
+                  type: "REPLACE_VIEW",
+                  view: {
+                    name: "PLAN_NEXT_WEEK",
+                    subView: "DINNERS",
+                  },
+                })
+              }
               className="flex-1 relative inline-flex items-center px-4 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-900 hover:bg-gray-50 focus:z-10 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600"
             >
               <HeartIcon
@@ -49,7 +79,15 @@ export const PlanNextWeek = ({ view }: { view: "DINNERS" | "TODOS" }) => {
             </button>
             <button
               type="button"
-              onClick={() => REPLACE_VIEW(viewStates.PLAN_NEXT_WEEK("TODOS"))}
+              onClick={() =>
+                dispatchViewStack({
+                  type: "REPLACE_VIEW",
+                  view: {
+                    name: "PLAN_NEXT_WEEK",
+                    subView: "TODOS",
+                  },
+                })
+              }
               className="flex-1 inline-flex -ml-px relative items-center px-4 py-2 rounded-r-md border border-gray-300 bg-gray-50 text-sm font-medium text-gray-900 hover:bg-gray-50 focus:z-10 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600"
             >
               <CheckCircleIcon
@@ -65,11 +103,15 @@ export const PlanNextWeek = ({ view }: { view: "DINNERS" | "TODOS" }) => {
             <button
               className="ml-auto"
               onClick={() =>
-                PUSH_VIEW(
-                  view === "DINNERS"
-                    ? viewStates.EDIT_DINNER()
-                    : viewStates.EDIT_TODO()
-                )
+                dispatchViewStack({
+                  type: "PUSH_VIEW",
+                  view:
+                    view === "DINNERS"
+                      ? {
+                          name: "EDIT_DINNER",
+                        }
+                      : { name: "EDIT_TODO" },
+                })
               }
             >
               <PlusIcon className="w-6 h-6" />
@@ -79,14 +121,18 @@ export const PlanNextWeek = ({ view }: { view: "DINNERS" | "TODOS" }) => {
       </div>
       {view === "DINNERS" ? (
         <PlanNextWeekDinners
-          dinners={data.dinners}
-          weekDinners={data.nextWeek.dinners}
+          dinners={dinners.data}
+          weekDinners={weeks.data.nextWeek.dinners}
           onChangeDinner={(weekdayIndex, dinnerId) =>
             CHANGE_WEEKDAY_DINNER({ dinnerId, weekdayIndex })
           }
         />
       ) : (
-        <PlanNextWeekTodos toggleWeekday={(params) => TOGGLE_WEEKDAY(params)} />
+        <PlanNextWeekTodos
+          user={user}
+          dispatchViewStack={dispatchViewStack}
+          toggleWeekday={(params) => TOGGLE_WEEKDAY(params)}
+        />
       )}
     </div>
   );
