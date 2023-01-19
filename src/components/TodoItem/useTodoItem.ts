@@ -10,8 +10,6 @@ import {
   useTransition,
 } from "react-states";
 
-import { FamilyUserDTO } from "../../environment-interface/authentication";
-import { TodoDTO } from "../../environment-interface/storage";
 import {
   useAddCheckListItem,
   useDeleteCheckListItem,
@@ -19,6 +17,7 @@ import {
 } from "../../hooks/useCheckListItems";
 import { useCreateGroceryId, useStoreGrocery } from "../../hooks/useGroceries";
 import { useArchiveTodo } from "../../hooks/useTodos";
+import { FamilyUserDTO, TodoDTO } from "../../types";
 
 const actions = createActions({
   ARCHIVE_TODO: () => ({}),

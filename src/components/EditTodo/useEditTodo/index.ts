@@ -1,14 +1,11 @@
 import { useReducer } from "react";
 import { match, transition, useDevtools, useTransition } from "react-states";
 
-import {
-  CheckListItemsByTodoId,
-  TodoDTO,
-} from "../../../environment-interface/storage";
 import { useCreateCheckListItemId } from "../../../hooks/useCheckListItems";
 import { User } from "../../../hooks/useCurrentUser";
 import { useCreateTodoId, useStoreTodo } from "../../../hooks/useTodos";
 import * as selectors from "../../../selectors";
+import { CheckListItemsByTodoId, TodoDTO } from "../../../types";
 
 import { Action, actions } from "./actions";
 import {

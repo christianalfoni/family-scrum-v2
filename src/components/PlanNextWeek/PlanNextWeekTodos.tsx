@@ -4,16 +4,9 @@ import { useTranslations } from "next-intl";
 import { CalendarIcon, CheckCircleIcon } from "@heroicons/react/outline";
 
 import { weekdays } from "../../utils";
-import {
-  CheckListItemDTO,
-  FamilyDTO,
-  TodoDTO,
-  WeekDTO,
-} from "../../environment-interface/storage";
 
 import { TodoItem } from "../TodoItem";
 
-import { FamilyUserDTO } from "../../environment-interface/authentication";
 import { User } from "../../hooks/useCurrentUser";
 import { useSuspendCaches } from "../../useCache";
 import { useFamily } from "../../hooks/useFamily";
@@ -24,6 +17,13 @@ import {
   useCheckListItemsByTodoId,
 } from "../../hooks/useCheckListItems";
 import { ViewAction } from "../Dashboard/useViewStack";
+import {
+  CheckListItemDTO,
+  FamilyDTO,
+  FamilyUserDTO,
+  TodoDTO,
+  WeekDTO,
+} from "../../types";
 
 const PlanTodoItem = React.memo(
   ({

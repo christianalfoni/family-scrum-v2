@@ -1,14 +1,10 @@
 import { useReducer } from "react";
-import { transition, useDevtools, useEnter, useTransition } from "react-states";
+import { transition, useDevtools, useTransition } from "react-states";
 
-import { DinnerDTO } from "../../../environment-interface/storage";
 import { User } from "../../../hooks/useCurrentUser";
-import {
-  getDinnerImageRef,
-  useCreateDinnerId,
-  useStoreDinner,
-} from "../../../hooks/useDinners";
-import { useImage } from "../../../hooks/useImage";
+import { useCreateDinnerId, useStoreDinner } from "../../../hooks/useDinners";
+import { DinnerDTO } from "../../../types";
+
 import { Action, actions } from "./actions";
 import { State, states } from "./state";
 

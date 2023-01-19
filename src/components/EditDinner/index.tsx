@@ -8,14 +8,14 @@ import {
   TrashIcon,
 } from "@heroicons/react/outline";
 import { match } from "react-states";
-import { DinnerDTO } from "../../environment-interface/storage";
+
 import { useEditDinner } from "./useEditDinner";
 import { useTranslations } from "next-intl";
 import { User } from "../../hooks/useCurrentUser";
 import { useImage } from "../../hooks/useImage";
 import { getDinnerImageRef } from "../../hooks/useDinners";
 import { useCamera } from "../../hooks/useCamera";
-import { CacheState } from "../../useCache";
+import { DinnerDTO } from "../../types";
 
 export const EditDinner = ({
   user,

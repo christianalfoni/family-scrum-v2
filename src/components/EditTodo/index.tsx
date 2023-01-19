@@ -13,12 +13,13 @@ import { useTranslations } from "next-intl";
 import { match } from "react-states";
 import { format } from "date-fns";
 import { useEditTodo } from "./useEditTodo";
-import { TodoDTO } from "../../environment-interface/storage";
+
 import {
   useCheckListItems,
   useCheckListItemsByTodoId,
 } from "../../hooks/useCheckListItems";
 import { User } from "../../hooks/useCurrentUser";
+import { TodoDTO } from "../../types";
 
 export const EditTodo = ({
   todo,

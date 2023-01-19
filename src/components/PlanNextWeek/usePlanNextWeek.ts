@@ -9,12 +9,8 @@ import {
   useTransition,
 } from "react-states";
 
-import { FamilyUserDTO } from "../../environment-interface/authentication";
-import {
-  useSetWeekDinner,
-  useSetWeekTaskActivity,
-  Weeks,
-} from "../../hooks/useWeeks";
+import { useSetWeekDinner, useSetWeekTaskActivity } from "../../hooks/useWeeks";
+import { FamilyUserDTO } from "../../types";
 
 const actions = createActions({
   TOGGLE_WEEKDAY: (params: {

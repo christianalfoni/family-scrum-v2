@@ -1,5 +1,6 @@
 import { createStates, StatesUnion } from "react-states";
-import { DinnerDTO } from "../../../environment-interface/storage";
+import { DinnerDTO } from "../../../types";
+
 import { actions } from "./actions";
 
 const validationStates = createStates({

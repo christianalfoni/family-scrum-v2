@@ -1,12 +1,13 @@
 import React, { Dispatch } from "react";
 import { ChevronLeftIcon, PlusIcon } from "@heroicons/react/outline";
 import * as selectors from "../../selectors";
-import { DinnerDTO } from "../../environment-interface/storage";
+
 import { useTranslations } from "next-intl";
 import { ViewAction } from "../Dashboard/useViewStack";
 import { getDinnerImageRef, useDinners } from "../../hooks/useDinners";
 import { User } from "../../hooks/useCurrentUser";
 import { useImage } from "../../hooks/useImage";
+import { DinnerDTO } from "../../types";
 
 const Dinner = ({
   dinner,

@@ -15,7 +15,6 @@ import { getDayIndex, getFirstDateOfCurrentWeek, weekdays } from "../../utils";
 import { addDays } from "date-fns";
 
 import * as selectors from "../../selectors";
-import { DinnerDTO } from "../../environment-interface/storage";
 
 import { getDinnerImageRef, useDinners } from "../../hooks/useDinners";
 import { useGroceries } from "../../hooks/useGroceries";
@@ -26,6 +25,7 @@ import { useWeeks } from "../../hooks/useWeeks";
 import { ViewAction } from "./useViewStack";
 import { User } from "../../hooks/useCurrentUser";
 import { useImage } from "../../hooks/useImage";
+import { DinnerDTO } from "../../types";
 
 SwiperCore.use([Controller]);
 

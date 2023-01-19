@@ -5,9 +5,10 @@ import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/outline";
 import * as selectors from "../../selectors";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { weekdays } from "../../utils";
-import { DinnerDTO, WeekDinnersDTO } from "../../environment-interface/storage";
+
 import { getDinnerImageRef } from "../../hooks/useDinners";
 import { useImage } from "../../hooks/useImage";
+import { DinnerDTO, WeekDinnersDTO } from "../../types";
 
 const DinnerSlide = ({ dinner }: { dinner: DinnerDTO }) => {
   const image = useImage(getDinnerImageRef(dinner.id)).read();

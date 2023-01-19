@@ -11,11 +11,12 @@ import {
   PlusIcon,
 } from "@heroicons/react/outline";
 import { getDayName } from "../../utils";
-import { CheckListItemDTO, TodoDTO } from "../../environment-interface/storage";
+
 import { useTodoItem } from "./useTodoItem";
 import * as selectors from "../../selectors";
-import { FamilyUserDTO } from "../../environment-interface/authentication";
+
 import { match } from "react-states";
+import { CheckListItemDTO, FamilyUserDTO, TodoDTO } from "../../types";
 
 const Confirmed = () => (
   <div className="absolute z-10 top-0 left-0 bottom-0 right-0 flex items-center justify-center bg-white">
@@ -98,7 +99,6 @@ export const TodoItem = React.memo(
         ADD_CHECKLIST_ITEM,
         ARCHIVE_TODO,
         DELETE_CHECKLIST_ITEM,
-        SHOP_GROCERY,
         SHOW_ADD_CHECKLIST_ITEM,
         TOGGLE_CHECKLIST_ITEM,
         TOGGLE_SHOW_CHECKLIST,
