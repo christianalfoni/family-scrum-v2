@@ -4,7 +4,6 @@ import {
   getFirestore,
   setDoc,
   deleteDoc,
-  addDoc,
 } from "firebase/firestore";
 import { GROCERIES_COLLECTION, useFirebase } from "../useFirebase";
 import { useCollection } from "./useCollection";

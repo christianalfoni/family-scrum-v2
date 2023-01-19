@@ -1,4 +1,10 @@
-import { collection, doc, getFirestore, setDoc } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  getFirestore,
+  setDoc,
+  deleteDoc,
+} from "firebase/firestore";
 import {
   CHECKLIST_ITEMS_COLLECTION,
   TODOS_COLLECTION,
@@ -128,5 +134,43 @@ export const useStoreTodo = (user: User) => {
         )
       );
     }
+  };
+};
+
+export const useArchiveTodo = (user: User) => {
+  const app = useFirebase();
+  const firestore = getFirestore(app);
+  const familyDocRef = getFamilyDocRef(firestore, user);
+  const todosCollection = collection(familyDocRef, TODOS_COLLECTION);
+  const checkListItemsCollection = collection(
+    familyDocRef,
+    CHECKLIST_ITEMS_COLLECTION
+  );
+  const todosCache = useTodos(user).suspend();
+  const checkListItemsCache = useCheckListItems(user).suspend();
+
+  return (id: string) => {
+    const checkListItems = checkListItemsCache.read();
+
+    const checkListItemsToDelete = Object.values(checkListItems.data).filter(
+      (checkListItem) => checkListItem.todoId === id
+    );
+
+    todosCache.write(
+      (current) => {
+        const newTodos = {
+          ...current,
+        };
+
+        delete newTodos[id];
+
+        return newTodos;
+      },
+      Promise.all(
+        checkListItemsToDelete.map((checkListItem) =>
+          deleteDoc(doc(checkListItemsCollection, checkListItem.id))
+        )
+      ).then(() => deleteDoc(doc(todosCollection, id)))
+    );
   };
 };

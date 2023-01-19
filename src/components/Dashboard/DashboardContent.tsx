@@ -16,7 +16,6 @@ import { addDays } from "date-fns";
 
 import * as selectors from "../../selectors";
 import { DinnerDTO } from "../../environment-interface/storage";
-import { useEnvironment } from "../../environment-interface";
 
 import { getDinnerImageRef, useDinners } from "../../hooks/useDinners";
 import { useGroceries } from "../../hooks/useGroceries";
@@ -31,16 +30,14 @@ import { useImage } from "../../hooks/useImage";
 SwiperCore.use([Controller]);
 
 const WeekdayDinner = ({ dinner }: { dinner: DinnerDTO }) => {
-  const [imageState] = useImage({
-    ref: getDinnerImageRef(dinner.id),
-  });
+  const imageState = useImage(getDinnerImageRef(dinner.id)).read();
 
   return (
     <li key="DINNER">
       <div className="flex items-center space-x-3 h-20">
         <div className="flex-shrink-0 h-16 w-16">
-          {imageState.state === "LOADED" ? (
-            <img className="h-16 w-16 rounded" src={imageState.src} alt="" />
+          {"data" in imageState ? (
+            <img className="h-16 w-16 rounded" src={imageState.data} alt="" />
           ) : null}
         </div>
         <div className="min-w-0 flex-1">
