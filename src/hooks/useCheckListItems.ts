@@ -8,7 +8,7 @@ import {
 } from "firebase/firestore";
 import { useMemo } from "react";
 
-import { CHECKLIST_ITEMS_COLLECTION, useFirebase } from "../useFirebase";
+import { CHECKLIST_ITEMS_COLLECTION, useFirebase } from "./useFirebase";
 import { useCollection } from "./useCollection";
 import { User } from "./useCurrentUser";
 import { getFamilyDocRef } from "./useFamily";

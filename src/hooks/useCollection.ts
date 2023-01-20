@@ -6,7 +6,7 @@ import {
 } from "@firebase/firestore";
 
 import { useSubscriptionCache } from "../useCache";
-import { useFirebase } from "../useFirebase";
+import { useFirebase } from "./useFirebase";
 import { User } from "./useCurrentUser";
 import { getFamilyDocRef } from "./useFamily";
 

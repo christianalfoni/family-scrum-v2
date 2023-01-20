@@ -9,7 +9,7 @@ import {
   CHECKLIST_ITEMS_COLLECTION,
   TODOS_COLLECTION,
   useFirebase,
-} from "../useFirebase";
+} from "./useFirebase";
 import { CheckListItemDTO, useCheckListItems } from "./useCheckListItems";
 import { useCollection } from "./useCollection";
 import { User } from "./useCurrentUser";

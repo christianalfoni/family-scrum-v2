@@ -1,5 +1,5 @@
 import { Session } from "./Session";
-import { firebaseContext } from "../useFirebase";
+import { firebaseContext } from "../hooks/useFirebase";
 import { FirebaseApp, initializeApp } from "@firebase/app";
 import { getAuth, useDeviceLanguage } from "firebase/auth";
 import { initializeFirestore } from "firebase/firestore";
@@ -10,7 +10,7 @@ let app: FirebaseApp;
 if (typeof window !== undefined) {
   app = initializeApp({
     apiKey: "AIzaSyAxghfnwp44VyGkJazhRvjUwbKSSAHm0oo",
-    authDomain: "family-scrum-v2.firebaseapp.com",
+    authDomain: "family-scrum-v2.vercel.app",
     projectId: "family-scrum-v2",
     storageBucket: "family-scrum-v2.appspot.com",
     messagingSenderId: "913074889172",

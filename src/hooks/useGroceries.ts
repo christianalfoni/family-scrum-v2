@@ -5,7 +5,7 @@ import {
   setDoc,
   deleteDoc,
 } from "firebase/firestore";
-import { GROCERIES_COLLECTION, useFirebase } from "../useFirebase";
+import { GROCERIES_COLLECTION, useFirebase } from "./useFirebase";
 import { useCollection } from "./useCollection";
 import { User } from "./useCurrentUser";
 import { getFamilyDocRef } from "./useFamily";
