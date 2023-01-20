@@ -1,7 +1,7 @@
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import type * as auth from "firebase/auth";
 
-import { useFirebase } from "../useFirebase";
+import { useFirebase } from "./useFirebase";
 import { getFirestore, doc, getDoc, Firestore } from "@firebase/firestore";
 
 import { useSubscriptionCache } from "../useCache";

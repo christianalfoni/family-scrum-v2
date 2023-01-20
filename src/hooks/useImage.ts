@@ -1,6 +1,6 @@
 import { getStorage, getDownloadURL, ref } from "firebase/storage";
 import { useCache } from "../useCache";
-import { useFirebase } from "../useFirebase";
+import { useFirebase } from "./useFirebase";
 
 export const useImage = (imageRef: string) => {
   const app = useFirebase();

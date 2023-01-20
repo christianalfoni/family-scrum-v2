@@ -1,6 +1,6 @@
 import { getFirestore, doc, onSnapshot, Firestore } from "@firebase/firestore";
 import { useSubscriptionCache } from "../useCache";
-import { FAMILY_DATA_COLLECTION, useFirebase } from "../useFirebase";
+import { FAMILY_DATA_COLLECTION, useFirebase } from "./useFirebase";
 import { User } from "./useCurrentUser";
 
 export type FamilyDTO = {

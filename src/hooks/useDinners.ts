@@ -1,6 +1,6 @@
 import { doc, getFirestore, setDoc } from "firebase/firestore";
 import { getStorage, ref, uploadString } from "firebase/storage";
-import { DINNERS_COLLECTION, useFirebase } from "../useFirebase";
+import { DINNERS_COLLECTION, useFirebase } from "./useFirebase";
 import { useCollection } from "./useCollection";
 import { User } from "./useCurrentUser";
 import { getFamilyDocRef } from "./useFamily";
