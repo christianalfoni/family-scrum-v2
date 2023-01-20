@@ -7,4 +7,12 @@ module.exports = {
     locales: ["en", "no"],
     defaultLocale: "en",
   },
+  async rewrites() {
+    return [
+      {
+        source: "/__/auth",
+        destination: "https://family-scrum-v2..firebaseapp.com",
+      },
+    ];
+  },
 };
