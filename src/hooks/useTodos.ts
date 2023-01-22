@@ -35,7 +35,8 @@ export const useCreateTodoId = (user: User) => {
   const app = useFirebase();
   const firestore = getFirestore(app);
 
-  return () => doc(getFamilyDocRef(firestore, user), TODOS_COLLECTION).id;
+  return () =>
+    doc(collection(getFamilyDocRef(firestore, user), TODOS_COLLECTION)).id;
 };
 
 export const useStoreTodo = (user: User) => {
