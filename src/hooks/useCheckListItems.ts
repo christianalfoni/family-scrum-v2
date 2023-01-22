@@ -1,4 +1,5 @@
 import {
+  collection,
   deleteDoc,
   doc,
   getFirestore,
@@ -51,7 +52,9 @@ export const useCreateCheckListItemId = (user: User) => {
   const firestore = getFirestore(app);
 
   return () =>
-    doc(getFamilyDocRef(firestore, user), CHECKLIST_ITEMS_COLLECTION).id;
+    doc(
+      collection(getFamilyDocRef(firestore, user), CHECKLIST_ITEMS_COLLECTION)
+    ).id;
 };
 
 export const useCheckListItems = (user: User) =>

@@ -1,4 +1,4 @@
-import { doc, getFirestore, setDoc } from "firebase/firestore";
+import { collection, doc, getFirestore, setDoc } from "firebase/firestore";
 import { getStorage, ref, uploadString } from "firebase/storage";
 import { DINNERS_COLLECTION, useFirebase } from "./useFirebase";
 import { useCollection } from "./useCollection";
@@ -27,7 +27,8 @@ export const useCreateDinnerId = (user: User) => {
   const app = useFirebase();
   const firestore = getFirestore(app);
 
-  return () => doc(getFamilyDocRef(firestore, user), DINNERS_COLLECTION).id;
+  return () =>
+    doc(collection(getFamilyDocRef(firestore, user), DINNERS_COLLECTION)).id;
 };
 
 export const useStoreDinner = (user: User) => {
