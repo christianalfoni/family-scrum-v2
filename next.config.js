@@ -10,8 +10,8 @@ module.exports = {
   async rewrites() {
     return [
       {
-        source: "/__/auth",
-        destination: "https://family-scrum-v2..firebaseapp.com",
+        source: "/__/auth/:path*",
+        destination: "https://family-scrum-v2.firebaseapp.com/__/auth/:path*",
       },
     ];
   },
