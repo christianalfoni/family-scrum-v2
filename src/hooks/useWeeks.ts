@@ -153,7 +153,7 @@ export const useWeeks = (user: User) => {
     }
   );
 };
-export const useSetWeekTaskActivity = (user: User) => {
+export const useSetNextWeekTaskActivity = (user: User) => {
   const app = useFirebase();
   const firestore = getFirestore(app);
   const weeksCache = useWeeks(user).suspend();
@@ -170,7 +170,7 @@ export const useSetWeekTaskActivity = (user: User) => {
     active: boolean;
   }) => {
     const weeks = weeksCache.read().data;
-    const weekId = weeks.currentWeek.id;
+    const weekId = weeks.nextWeek.id;
     const todoDocRef = doc(
       getFamilyDocRef(firestore, user),
       WEEKS_COLLECTION,
@@ -179,19 +179,19 @@ export const useSetWeekTaskActivity = (user: User) => {
       todoId
     );
 
-    const weekTodoActivity: WeekTodoActivity = weeks.currentWeek.todos[
-      todoId
-    ]?.[userId] ?? [false, false, false, false, false, false, false];
+    const weekTodoActivity: WeekTodoActivity = weeks.nextWeek.todos[todoId]?.[
+      userId
+    ] ?? [false, false, false, false, false, false, false];
 
     weeksCache.write(
       (current) => ({
         ...current,
-        currentWeek: {
-          ...weeks.currentWeek,
+        nextWeek: {
+          ...weeks.nextWeek,
           todos: {
-            ...weeks.currentWeek.todos,
+            ...weeks.nextWeek.todos,
             [todoId]: {
-              ...weeks.currentWeek.todos[todoId],
+              ...weeks.nextWeek.todos[todoId],
               [userId]: [
                 ...weekTodoActivity.slice(0, weekdayIndex),
                 active,
