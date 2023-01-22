@@ -24,11 +24,6 @@ const useNewVersion = () => {
 
   const version = cache.read();
 
-  console.log({
-    localVersion,
-    version,
-  });
-
   useEffect(() => {
     if (version.status === "fresh") {
       localStorage.setItem(STORAGE_KEY, version.data);

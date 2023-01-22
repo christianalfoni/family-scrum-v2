@@ -14,6 +14,9 @@ import ErrorBoundary from "../ErrorBoundary";
 import { useSuspendCaches } from "../../useCache";
 import { useTodos } from "../../hooks/useTodos";
 import { useCurrentUser, User } from "../../hooks/useCurrentUser";
+import { useWeeks } from "../../hooks/useWeeks";
+import { useCheckListItems } from "../../hooks/useCheckListItems";
+import { useFamily } from "../../hooks/useFamily";
 
 const DashboardViews = ({ user }: { user: User }) => {
   const [viewStack, dispatchViewStack] = useViewStack();
@@ -21,6 +24,10 @@ const DashboardViews = ({ user }: { user: User }) => {
   const [dinnersCache, todosCache] = useSuspendCaches([
     useDinners(user),
     useTodos(user),
+    // preload
+    useWeeks(user),
+    useCheckListItems(user),
+    useFamily(user),
   ]);
   const dinners = dinnersCache.read().data;
   const todos = todosCache.read().data;

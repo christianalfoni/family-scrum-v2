@@ -9,7 +9,10 @@ import {
   useTransition,
 } from "react-states";
 
-import { useSetWeekDinner, useSetWeekTaskActivity } from "../../hooks/useWeeks";
+import {
+  useSetWeekDinner,
+  useSetNextWeekTaskActivity,
+} from "../../hooks/useWeeks";
 import { FamilyUserDTO } from "../../types";
 
 const actions = createActions({
@@ -61,7 +64,7 @@ export const usePlanNextWeek = ({
   weekId: string;
   initialState?: State;
 }) => {
-  const setWeekTaskActivity = useSetWeekTaskActivity(user);
+  const setWeekTaskActivity = useSetNextWeekTaskActivity(user);
   const setWeekDinner = useSetWeekDinner(user);
   const planNextWeekReducer = useReducer(
     reducer,
