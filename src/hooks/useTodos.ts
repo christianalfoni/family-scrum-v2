@@ -96,39 +96,39 @@ export const useStoreTodo = (user: User) => {
         (item) =>
           !checkListItems[item.id] || checkListItems[id].title === item.title
       );
+      const newCheckListItems = changedCheckListItems.reduce<{
+        [itemId: string]: CheckListItemDTO;
+      }>(
+        (aggr, item, index) => {
+          const checkListItem: CheckListItemDTO = aggr[item.id]
+            ? {
+                ...aggr[item.id],
+                modified: Date.now(),
+                title: checkList[index].title,
+              }
+            : {
+                id: item.id,
+                completed: false,
+                created: Date.now(),
+                modified: Date.now(),
+                title: checkList[index].title,
+                todoId: id,
+              };
+
+          aggr[item.id] = checkListItem;
+
+          return aggr;
+        },
+        {
+          ...checkListItems,
+        }
+      );
 
       checkListItemsCache.write(
-        (current) =>
-          changedCheckListItems.reduce<{
-            [itemId: string]: CheckListItemDTO;
-          }>(
-            (aggr, item, index) => {
-              const checkListItem: CheckListItemDTO = aggr[item.id]
-                ? {
-                    ...aggr[item.id],
-                    modified: Date.now(),
-                    title: checkList[index].title,
-                  }
-                : {
-                    id: item.id,
-                    completed: false,
-                    created: Date.now(),
-                    modified: Date.now(),
-                    title: checkList[index].title,
-                    todoId: id,
-                  };
-
-              aggr[item.id] = checkListItem;
-
-              return aggr;
-            },
-            {
-              ...current,
-            }
-          ),
+        newCheckListItems,
         Promise.all(
           changedCheckListItems.map((item) => {
-            const { id, ...data } = checkListItems[item.id];
+            const { id, ...data } = newCheckListItems[item.id];
 
             return setDoc(doc(checkListItemsCollection, id), data);
           })

@@ -213,14 +213,14 @@ export class Cache {
     const wrappedSubscriber = () =>
       subscriber((data) => {
         if (typeof data === "function") {
-          const currentState = this.get(key)!;
+          const item = this.get(key)!;
           const dataCallback = data as (data: T | void) => T;
 
           this.update(key, {
             status: "fresh",
             data:
-              "data" in currentState
-                ? dataCallback(currentState.data as T)
+              "data" in item.state
+                ? dataCallback(item.state.data as T)
                 : dataCallback(),
           });
         } else {

@@ -32,6 +32,7 @@ export const GroceriesShopping = ({
   ] = useGroceriesShopping({
     user,
   });
+  console.log(groceries);
   const groceriesToShop = selectors.groceriesToShop(groceries.data);
   const [initialGroceriesLength] = React.useState(groceriesToShop.length);
   const videoRef = React.useRef<HTMLVideoElement>(null);
