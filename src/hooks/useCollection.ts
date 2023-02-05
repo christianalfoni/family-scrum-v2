@@ -17,6 +17,7 @@ export const updateCollectionRecord = <T extends Collection>(
   current?: T
 ): T => {
   let updatedData: T = current || ({} as T);
+
   snapshot.docChanges().forEach((docChange) => {
     const id = docChange.doc.id;
 

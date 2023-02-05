@@ -240,7 +240,7 @@ export const useSetWeekDinner = (user: User) => {
     weekdayIndex: number;
   }) => {
     const weeks = weeksCache.read().data;
-    const weekId = weeks.currentWeek.id;
+    const weekId = weeks.nextWeek.id;
     const weekRef = doc(
       getFamilyDocRef(firestore, user),
       WEEKS_COLLECTION,
