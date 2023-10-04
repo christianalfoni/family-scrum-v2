@@ -4,28 +4,20 @@ import { useTranslations } from "next-intl";
 import { Fragment } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { LockClosedIcon } from "@heroicons/react/outline";
-import { useBrowser } from "../../hooks/useBrowser";
-import { useCurrentUser } from "../../hooks/useCurrentUser";
-import { useSignIn } from "../../hooks/useSignIn";
+import { useStore } from "impact-app";
+import { SessionStore } from "../stores/SessionStore";
 
 export const SignInModal = () => {
-  const isBrowser = useBrowser();
+  const sessionStore = useStore(SessionStore);
   const t = useTranslations("SignInModal");
-  const user = useCurrentUser().suspend().read();
-  const signIn = useSignIn();
-  const open = !user.data;
-
-  if (!isBrowser) {
-    return null;
-  }
 
   return (
-    <Transition.Root show={open} as={Fragment}>
+    <Transition.Root show as={Fragment}>
       <Dialog
         as="div"
         static
         className="fixed z-10 inset-0 overflow-y-auto"
-        open={open}
+        open
         onClose={() => {}}
       >
         <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
@@ -76,7 +68,7 @@ export const SignInModal = () => {
                 <button
                   type="button"
                   className="inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:text-sm"
-                  onClick={() => signIn()}
+                  onClick={() => sessionStore.signIn()}
                 >
                   {t("loginWithGoogle")}
                 </button>

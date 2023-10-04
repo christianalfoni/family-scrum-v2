@@ -1,14 +1,15 @@
-import React from "react";
-import { PageContainer } from "../components/PageContainer";
-import { Dashboard } from "../components/Dashboard";
+import React, { lazy } from "react";
+
 import { GetStaticPropsContext } from "next";
+import { useBrowser } from "../hooks/useBrowser";
+import { DashboardSkeleton } from "../components/Dashboard/DashboardContent";
+
+const LazyPageContainer = lazy(() => import("../components/PageContainer"));
 
 function AppPage() {
-  return (
-    <PageContainer>
-      <Dashboard />
-    </PageContainer>
-  );
+  const isBrowser = useBrowser();
+
+  return isBrowser ? <LazyPageContainer /> : <DashboardSkeleton />;
 }
 
 export function getStaticProps({ locale }: GetStaticPropsContext) {
