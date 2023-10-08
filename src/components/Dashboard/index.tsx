@@ -1,75 +1,42 @@
 import { GroceriesShopping } from "../GroceriesShopping";
-import { DashboardContent, DashboardSkeleton } from "./DashboardContent";
+import { DashboardContent } from "./DashboardContent";
 import { CheckLists } from "../CheckLists";
 import { EditTodo } from "../EditTodo";
 import { Dinners } from "../Dinners";
 import { EditDinner } from "../EditDinner";
 import { PlanNextWeek } from "../PlanNextWeek";
+import { User } from "../../hooks/useCurrentUser";
+import { observe, useStore } from "impact-app";
+import { ViewStackStore } from "../../stores/ViewStackStore";
 
-import { useViewStack } from "./useViewStack";
-import { Suspense } from "react";
-import { useDinners } from "../../hooks/useDinners";
-
-import ErrorBoundary from "../ErrorBoundary";
-import { useSuspendCaches } from "../../useCache";
-import { useTodos } from "../../hooks/useTodos";
-import { useCurrentUser, User } from "../../hooks/useCurrentUser";
-import { useWeeks } from "../../hooks/useWeeks";
-import { useCheckListItems } from "../../hooks/useCheckListItems";
-import { useFamily } from "../../hooks/useFamily";
-
-const DashboardViews = ({ user }: { user: User }) => {
-  const [viewStack, dispatchViewStack] = useViewStack();
-  const view = viewStack[viewStack.length - 1];
-  const [dinnersCache, todosCache] = useSuspendCaches([
-    useDinners(user),
-    useTodos(user),
-    // preload
-    useWeeks(user),
-    useCheckListItems(user),
-    useFamily(user),
-  ]);
-  const dinners = dinnersCache.read().data;
-  const todos = todosCache.read().data;
+export const Dashboard = observe(({ user }: { user: User }) => {
+  const viewStackStore = useStore(ViewStackStore);
+  const view = viewStackStore.current;
 
   const renderView = () => {
     switch (view.name) {
       case "DASHBOARD": {
-        return (
-          <DashboardContent user={user} dispatchViewStack={dispatchViewStack} />
-        );
+        return <DashboardContent />;
       }
 
       case "GROCERIES_SHOPPING": {
-        return (
-          <GroceriesShopping
-            user={user}
-            dispatchViewStack={dispatchViewStack}
-          />
-        );
+        return <GroceriesShopping user={user} />;
       }
       case "CHECKLISTS": {
-        return <CheckLists user={user} dispatchViewStack={dispatchViewStack} />;
+        return <CheckLists user={user} />;
       }
       case "PLAN_NEXT_WEEK": {
-        return (
-          <PlanNextWeek
-            user={user}
-            dispatchViewStack={dispatchViewStack}
-            view={view.subView}
-          />
-        );
+        return <PlanNextWeek user={user} view={view.subView} />;
       }
 
       case "DINNERS": {
-        return <Dinners user={user} dispatchViewStack={dispatchViewStack} />;
+        return <Dinners user={user} />;
       }
       case "EDIT_DINNER": {
         return (
           <EditDinner
             user={user}
             initialDinner={view.id ? dinners[view.id] : undefined}
-            onBackClick={() => dispatchViewStack({ type: "POP_VIEW" })}
           />
         );
       }
@@ -90,28 +57,4 @@ const DashboardViews = ({ user }: { user: User }) => {
       {renderView()}
     </div>
   );
-};
-
-const AuthenticatedDashboard = () => {
-  const user = useCurrentUser().suspend().read();
-
-  if (user.data && user.data.familyId) {
-    return (
-      <ErrorBoundary>
-        <Suspense fallback={<DashboardSkeleton />}>
-          <DashboardViews user={user.data} />
-        </Suspense>
-      </ErrorBoundary>
-    );
-  }
-
-  return <DashboardSkeleton />;
-};
-
-export const Dashboard = () => {
-  return (
-    <Suspense fallback={<DashboardSkeleton />}>
-      <AuthenticatedDashboard />
-    </Suspense>
-  );
-};
+});

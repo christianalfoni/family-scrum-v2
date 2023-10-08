@@ -26,6 +26,8 @@ import { ViewAction } from "./useViewStack";
 import { User } from "../../hooks/useCurrentUser";
 import { useImage } from "../../hooks/useImage";
 import { DinnerDTO } from "../../types";
+import { useStore } from "impact-app";
+import { ViewStackStore } from "../../stores/ViewStackStore";
 
 SwiperCore.use([Controller]);
 
@@ -190,16 +192,12 @@ export const DashboardSkeleton = () => {
   );
 };
 
-export const DashboardContent = ({
-  user,
-  dispatchViewStack,
-}: {
-  user: User;
-  dispatchViewStack: Dispatch<ViewAction>;
-}) => {
+export const DashboardContent = () => {
+  const viewStackStore = useStore(ViewStackStore);
   const t = useTranslations("DashboardView");
   const tCommon = useTranslations("common");
   const intl = useIntl();
+  /*
   const [dinnersCache, groceriesCache, familyCache, todosCache, weeksCache] =
     useSuspendCaches([
       useDinners(user),
@@ -220,10 +218,11 @@ export const DashboardContent = ({
   const todosByWeekday = selectors.todosByWeekday(currentWeek);
   const eventsByWeekday = selectors.eventsByWeekday(todos);
   const [controlledSwiper, setControlledSwiper] = useState<SwiperCore | null>(
-    null
+    null,
   );
   const shopCount = selectors.shopCount(groceries);
   const checkLists = selectors.checkLists(todos);
+  */
 
   return (
     <>
@@ -231,17 +230,15 @@ export const DashboardContent = ({
         <MenuCard
           Icon={ShoppingCartIcon}
           onClick={() => {
-            dispatchViewStack({
-              type: "PUSH_VIEW",
-              view: {
-                name: "GROCERIES_SHOPPING",
-              },
+            viewStackStore.push({
+              name: "GROCERIES_SHOPPING",
             });
           }}
           color="bg-red-500"
         >
-          {t("goShopping")} ( {shopCount} )
+          {t("goShopping")} ( {0} )
         </MenuCard>
+        {/*
         <MenuCard
           disabled={!checkLists.length}
           Icon={ClipboardCheckIcon}
@@ -286,7 +283,9 @@ export const DashboardContent = ({
         >
           {t("dinners")}
         </MenuCard>
+        */}
       </ul>
+      {/*
       <div className="h-2/4">
         <Swiper
           className="w-full h-full"
@@ -399,6 +398,7 @@ export const DashboardContent = ({
           <PlusIcon className="w-8 h-8" />
         </button>
       </div>
+        */}
     </>
   );
 };

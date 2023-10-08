@@ -1,13 +1,6 @@
-import {
-  GoogleAuthProvider,
-  onAuthStateChanged,
-  signInWithRedirect,
-  User,
-} from "firebase/auth";
+import { User } from "firebase/auth";
 import { signal, useCleanup, useStore } from "impact-app";
 import { FirebaseStore, UserDTO } from "./FirebaseStore";
-
-const provider = new GoogleAuthProvider();
 
 type SessionState =
   | {
@@ -23,24 +16,24 @@ type SessionState =
     };
 
 export function SessionStore() {
-  const { auth, getUser } = useStore(FirebaseStore);
+  const { signIn, getUser, onAuthChanged } = useStore(FirebaseStore);
 
   const state = signal<SessionState>({
     status: "AUTHENTICATING",
   });
 
-  useCleanup(onAuthStateChanged(auth, handleAuthStateChanged));
+  useCleanup(onAuthChanged(handleAuthStateChanged));
 
-  async function handleAuthStateChanged(user: User | null) {
-    if (user) {
+  async function handleAuthStateChanged(maybeUser: User | null) {
+    if (maybeUser) {
       try {
-        const userDoc = await getUser(user.uid);
+        const user = await getUser(maybeUser.uid);
 
         // We might be unauthenticated during fetching the user doc, use RXJS to see how that could be solved?
         if (state.value.status === "AUTHENTICATING") {
           state.value = {
             status: "AUTHENTICATED",
-            user: userDoc,
+            user: user,
           };
         }
       } catch (e) {
@@ -60,8 +53,6 @@ export function SessionStore() {
     get state() {
       return state.value;
     },
-    signIn() {
-      signInWithRedirect(auth, provider);
-    },
+    signIn,
   };
 }
