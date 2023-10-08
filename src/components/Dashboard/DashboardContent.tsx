@@ -22,12 +22,12 @@ import { useFamily } from "../../hooks/useFamily";
 import { useTodos } from "../../hooks/useTodos";
 import { useSuspendCaches } from "../../useCache";
 import { useWeeks } from "../../hooks/useWeeks";
-import { ViewAction } from "./useViewStack";
 import { User } from "../../hooks/useCurrentUser";
 import { useImage } from "../../hooks/useImage";
 import { DinnerDTO } from "../../types";
 import { useStore } from "impact-app";
 import { ViewStackStore } from "../../stores/ViewStackStore";
+import { GroceriesStore } from "../../stores/GroceriesStore";
 
 SwiperCore.use([Controller]);
 
@@ -194,9 +194,12 @@ export const DashboardSkeleton = () => {
 
 export const DashboardContent = () => {
   const viewStackStore = useStore(ViewStackStore);
+  const groceriesStore = useStore(GroceriesStore);
   const t = useTranslations("DashboardView");
   const tCommon = useTranslations("common");
   const intl = useIntl();
+
+  const groceriesQuery = groceriesStore.groceries.fetch();
   /*
   const [dinnersCache, groceriesCache, familyCache, todosCache, weeksCache] =
     useSuspendCaches([
@@ -236,7 +239,11 @@ export const DashboardContent = () => {
           }}
           color="bg-red-500"
         >
-          {t("goShopping")} ( {0} )
+          {t("goShopping")} (
+          {groceriesQuery.status === "fulfilled"
+            ? groceriesQuery.value.length
+            : 0}
+          )
         </MenuCard>
         {/*
         <MenuCard

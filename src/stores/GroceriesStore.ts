@@ -6,7 +6,7 @@ export function GroceriesStore(user: UserDTO) {
 
   const groceriesQuery = query(() => firebaseStore.getGroceries(user));
 
-  useCleanup(firebaseStore.onGroceriesChange(handleGroceriesChange));
+  useCleanup(firebaseStore.onGroceriesChange(user, handleGroceriesChange));
 
   function handleGroceriesChange(groceries: GroceryDTO[]) {
     groceriesQuery.setValue(groceries);

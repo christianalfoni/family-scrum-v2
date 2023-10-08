@@ -19,7 +19,7 @@ export const groceriesConverter = {
     });
 
     return {
-      id: data.id,
+      id: snapshot.id,
       name: data.name,
       dinnerId: data.dinnerId,
       created: data.created.toMillis?.() ?? data.created,

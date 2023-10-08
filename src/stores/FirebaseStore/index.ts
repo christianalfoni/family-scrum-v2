@@ -18,6 +18,8 @@ import {
 import { groceriesConverter } from "./converters";
 import { GroceryDTO, UserDTO } from "./types";
 
+export * from "./types";
+
 export enum Collection {
   USER_DATA = "userData",
   FAMILY_DATA = "familyData",

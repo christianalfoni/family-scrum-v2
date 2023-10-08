@@ -4,8 +4,12 @@ import { DashboardSkeleton } from "./Dashboard/DashboardContent";
 import { SignInModal } from "./SignInModal";
 import { Dashboard } from "./Dashboard";
 import { UserStore } from "../stores/UserStore";
+import { GroceriesStore } from "../stores/GroceriesStore";
 
-const DashboardStoresProvider = createStoresProvider({ UserStore });
+const DashboardStoresProvider = createStoresProvider({
+  UserStore,
+  GroceriesStore,
+});
 
 const PageContainer: React.FC = observe(() => {
   const sessionStore = useStore(SessionStore);
@@ -24,7 +28,10 @@ const PageContainer: React.FC = observe(() => {
   }
 
   return (
-    <DashboardStoresProvider UserStore={sessionStore.state.user}>
+    <DashboardStoresProvider
+      UserStore={sessionStore.state.user}
+      GroceriesStore={sessionStore.state.user}
+    >
       <Dashboard />
     </DashboardStoresProvider>
   );
