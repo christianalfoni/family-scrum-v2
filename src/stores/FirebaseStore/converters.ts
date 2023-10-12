@@ -7,7 +7,12 @@ import { GroceryDTO } from "./types";
 
 export const groceriesConverter = {
   toFirestore(grocery: GroceryDTO): DocumentData {
-    return { name: grocery.name, dinnerId: grocery.dinnerId };
+    return {
+      name: grocery.name,
+      dinnerId: grocery.dinnerId,
+      created: grocery.created,
+      modified: grocery.modified,
+    };
   },
   fromFirestore(
     snapshot: QueryDocumentSnapshot,

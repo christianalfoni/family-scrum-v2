@@ -3,20 +3,24 @@ import {
   GoogleAuthProvider,
   getAuth,
   onAuthStateChanged,
+  signInWithPopup,
   signInWithRedirect,
   useDeviceLanguage,
 } from "firebase/auth";
 import {
   collection,
+  deleteDoc,
   doc,
   getDoc,
   getDocs,
   getFirestore,
   initializeFirestore,
   onSnapshot,
+  setDoc,
 } from "firebase/firestore";
 import { groceriesConverter } from "./converters";
 import { GroceryDTO, UserDTO } from "./types";
+import { useStore } from "impact-app";
 
 export * from "./types";
 
@@ -41,14 +45,15 @@ export function FirebaseStore() {
     measurementId: "G-HHYZ9C0PEY",
   });
 
+  const auth = getAuth(app);
+
+  useDeviceLanguage(auth);
+
   initializeFirestore(app, {
     ignoreUndefinedProperties: true,
   });
 
-  const auth = getAuth(app);
   const firestore = getFirestore(app);
-
-  useDeviceLanguage(auth);
 
   const getUserDocRef = (userUid: string) =>
     doc(firestore, Collection.USER_DATA, userUid);
@@ -63,7 +68,11 @@ export function FirebaseStore() {
     // Authentication
     onAuthChanged: onAuthStateChanged.bind(null, auth),
     signIn() {
-      signInWithRedirect(auth, provider);
+      if (process.env.NODE_ENV === "development") {
+        signInWithPopup(auth, provider);
+      } else {
+        signInWithRedirect(auth, provider);
+      }
     },
 
     // Snaphot updates
@@ -89,12 +98,31 @@ export function FirebaseStore() {
       };
     },
 
-    // Collections
+    // Groceries
+    createGroceryId(user: UserDTO) {
+      const groceriesCollectionRef = getGroceriesRef(user.familyId);
+
+      return doc(groceriesCollectionRef).id;
+    },
     async getGroceries(user: UserDTO): Promise<GroceryDTO[]> {
       const groceriesCollectionRef = getGroceriesRef(user.familyId);
       const querySnapshot = await getDocs(groceriesCollectionRef);
 
       return querySnapshot.docs.map((doc) => doc.data());
     },
+    setGrocery(user: UserDTO, grocery: GroceryDTO) {
+      const groceriesCollectionRef = getGroceriesRef(user.familyId);
+      const groceryDocRef = doc(groceriesCollectionRef, grocery.id);
+
+      return setDoc(groceryDocRef, grocery);
+    },
+    deleteGrocery(user: UserDTO, id: string) {
+      const groceriesCollectionRef = getGroceriesRef(user.familyId);
+      const groceryDocRef = doc(groceriesCollectionRef, id);
+
+      return deleteDoc(groceryDocRef);
+    },
   };
 }
+
+export const useFirebase = () => useStore(FirebaseStore);

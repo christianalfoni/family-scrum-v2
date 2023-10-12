@@ -5,13 +5,13 @@ import { EditTodo } from "../EditTodo";
 import { Dinners } from "../Dinners";
 import { EditDinner } from "../EditDinner";
 import { PlanNextWeek } from "../PlanNextWeek";
-import { User } from "../../hooks/useCurrentUser";
-import { observe, useStore } from "impact-app";
-import { ViewStackStore } from "../../stores/ViewStackStore";
 
-export const Dashboard = observe(({ user }: { user: User }) => {
-  const viewStackStore = useStore(ViewStackStore);
-  const view = viewStackStore.current;
+import { observe } from "impact-app";
+import { useViewStack } from "../../stores/ViewStackStore";
+
+export const Dashboard = observe(() => {
+  const viewStack = useViewStack();
+  const view = viewStack.current;
 
   const renderView = () => {
     switch (view.name) {
@@ -20,7 +20,7 @@ export const Dashboard = observe(({ user }: { user: User }) => {
       }
 
       case "GROCERIES_SHOPPING": {
-        return <GroceriesShopping user={user} />;
+        return <GroceriesShopping />;
       }
       case "CHECKLISTS": {
         return <CheckLists user={user} />;

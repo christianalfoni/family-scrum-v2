@@ -27,10 +27,11 @@ export function SessionStore() {
   async function handleAuthStateChanged(maybeUser: User | null) {
     if (maybeUser) {
       try {
+        const lastStatus = state.value.status;
         const user = await getUser(maybeUser.uid);
 
         // We might be unauthenticated during fetching the user doc, use RXJS to see how that could be solved?
-        if (state.value.status === "AUTHENTICATING") {
+        if (state.value.status === lastStatus) {
           state.value = {
             status: "AUTHENTICATED",
             user: user,
@@ -56,3 +57,5 @@ export function SessionStore() {
     signIn,
   };
 }
+
+export const useSession = () => useStore(SessionStore);

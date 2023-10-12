@@ -1,4 +1,4 @@
-import { signal } from "impact-app";
+import { signal, useStore } from "impact-app";
 
 export type View =
   | {
@@ -54,3 +54,5 @@ export function ViewStackStore() {
     },
   };
 }
+
+export const useViewStack = () => useStore(ViewStackStore);

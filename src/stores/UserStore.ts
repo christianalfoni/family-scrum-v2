@@ -1,4 +1,4 @@
-import { signal } from "impact-app";
+import { signal, useStore } from "impact-app";
 import { UserDTO } from "./FirebaseStore";
 
 export function UserStore(userData: UserDTO) {
@@ -10,3 +10,5 @@ export function UserStore(userData: UserDTO) {
     },
   };
 }
+
+export const useUser = () => useStore(UserStore);

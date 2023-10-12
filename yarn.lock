@@ -103,11 +103,6 @@
     "@babel/helper-split-export-declaration" "^7.22.6"
     "@babel/helper-validator-identifier" "^7.22.20"
 
-"@babel/helper-plugin-utils@^7.22.5":
-  version "7.22.5"
-  resolved "https://registry.yarnpkg.com/@babel/helper-plugin-utils/-/helper-plugin-utils-7.22.5.tgz#dd7ee3735e8a313b9f7b05a773d892e88e6d7295"
-  integrity sha512-uLls06UVKgFG9QD4OeFYLEGteMIAa5kpTPcFL28yuCIIzsf6ZyKZMllKVOCZFhiZ5ptnwX4mtKdWCBE/uT4amg==
-
 "@babel/helper-simple-access@^7.22.5":
   version "7.22.5"
   resolved "https://registry.yarnpkg.com/@babel/helper-simple-access/-/helper-simple-access-7.22.5.tgz#4938357dc7d782b80ed6dbb03a0fba3d22b1d5de"
@@ -164,21 +159,6 @@
   version "7.20.7"
   resolved "https://registry.yarnpkg.com/@babel/parser/-/parser-7.20.7.tgz#66fe23b3c8569220817d5feb8b9dcdc95bb4f71b"
   integrity sha512-T3Z9oHybU+0vZlY9CiDSJQTD5ZapcW18ZctFMi0MOAl/4BjFF4ul7NVSARLdbGO5vDqy9eQiGTV0LtKfvCYvcg==
-
-"@babel/plugin-proposal-explicit-resource-management@^7.23.0":
-  version "7.23.0"
-  resolved "https://registry.yarnpkg.com/@babel/plugin-proposal-explicit-resource-management/-/plugin-proposal-explicit-resource-management-7.23.0.tgz#99d015f3be7d96d0e5e33a2a69359bee8932baea"
-  integrity sha512-wu5/1COnSuGj78UBhTpxmESzV/xEcWIjkM54PZ8mhmwHrDBriro0o8LAkbbTXDAsQjwlqkqvIyXzOSykHrDiSg==
-  dependencies:
-    "@babel/helper-plugin-utils" "^7.22.5"
-    "@babel/plugin-syntax-explicit-resource-management" "^7.22.5"
-
-"@babel/plugin-syntax-explicit-resource-management@^7.22.5":
-  version "7.22.5"
-  resolved "https://registry.yarnpkg.com/@babel/plugin-syntax-explicit-resource-management/-/plugin-syntax-explicit-resource-management-7.22.5.tgz#42964a4e754363c07529bb721616b43b4ead57e6"
-  integrity sha512-vokH/rTR4m9hlcxXXL0CPnpoGHUbZ6gfI3kq/UZSwrF9qGo/LxWqEP0qWYqkt5kc6/jrCOTaBeYw+lYleEFtLA==
-  dependencies:
-    "@babel/helper-plugin-utils" "^7.22.5"
 
 "@babel/template@^7.22.15":
   version "7.22.15"
@@ -2230,10 +2210,10 @@ immer@^10.0.2:
   resolved "https://registry.yarnpkg.com/immer/-/immer-10.0.3.tgz#a8de42065e964aa3edf6afc282dfc7f7f34ae3c9"
   integrity sha512-pwupu3eWfouuaowscykeckFmVTpqbzW+rXFCX8rQLkZzM9ftBmU/++Ra+o+L27mz03zJTlyV4UUr+fdKNffo4A==
 
-impact-app@^0.31.1:
-  version "0.31.1"
-  resolved "https://registry.yarnpkg.com/impact-app/-/impact-app-0.31.1.tgz#ad1318a49c67574ea738b0cffe157015df70fd6f"
-  integrity sha512-EarQjWXz8SocVJ/4qatDrft5j5TMhrBMBdHbe034b+JoUvm37M7o7XfB89hzs/gEuSdnYA/yPGl89Qw5YKe1jw==
+impact-app@^0.33.0:
+  version "0.33.0"
+  resolved "https://registry.yarnpkg.com/impact-app/-/impact-app-0.33.0.tgz#9f084237b1b81589f6e696a142f36a6fd958313c"
+  integrity sha512-YRva+xQBiM1c1IztfrWDggxtJ7JY5Ehpkv2ePjg4g3MmFCUkMy7+7Ktl1YbAyGvi8syDLZk9Mf12InsGGwT7Xw==
   dependencies:
     "@radix-ui/react-icons" "^1.3.0"
     immer "^10.0.2"

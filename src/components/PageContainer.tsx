@@ -1,24 +1,24 @@
-import { createStoresProvider, observe, useStore } from "impact-app";
-import { SessionStore } from "../stores/SessionStore";
+import { createScopeProvider, observe } from "impact-app";
+import { useSession } from "../stores/SessionStore";
 import { DashboardSkeleton } from "./Dashboard/DashboardContent";
 import { SignInModal } from "./SignInModal";
 import { Dashboard } from "./Dashboard";
 import { UserStore } from "../stores/UserStore";
 import { GroceriesStore } from "../stores/GroceriesStore";
 
-const DashboardStoresProvider = createStoresProvider({
+const SessionScope = createScopeProvider({
   UserStore,
   GroceriesStore,
 });
 
 const PageContainer: React.FC = observe(() => {
-  const sessionStore = useStore(SessionStore);
+  const session = useSession();
 
-  if (sessionStore.state.status === "AUTHENTICATING") {
+  if (session.state.status === "AUTHENTICATING") {
     return <DashboardSkeleton />;
   }
 
-  if (sessionStore.state.status === "UNAUTHENTICATED") {
+  if (session.state.status === "UNAUTHENTICATED") {
     return (
       <>
         <DashboardSkeleton />
@@ -28,12 +28,12 @@ const PageContainer: React.FC = observe(() => {
   }
 
   return (
-    <DashboardStoresProvider
-      UserStore={sessionStore.state.user}
-      GroceriesStore={sessionStore.state.user}
+    <SessionScope
+      UserStore={session.state.user}
+      GroceriesStore={session.state.user}
     >
       <Dashboard />
-    </DashboardStoresProvider>
+    </SessionScope>
   );
 });
 

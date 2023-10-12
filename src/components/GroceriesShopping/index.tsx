@@ -1,5 +1,5 @@
 import confetti from "canvas-confetti";
-import React, { Dispatch, useEffect } from "react";
+import React, { Dispatch, useEffect, useState } from "react";
 import {
   ChevronLeftIcon,
   LightBulbIcon,
@@ -10,39 +10,15 @@ import { LightBulbIcon as SolidLightBulbIcon } from "@heroicons/react/solid";
 import { useTranslations } from "next-intl";
 import { match } from "react-states";
 import { mp4 } from "../../video";
-import { useGroceriesShopping } from "./useGroceriesShopping";
+import { useGroceries } from "../../stores/GroceriesStore";
+import { observe } from "impact-app";
 import * as selectors from "../../selectors";
-import { ViewAction } from "../Dashboard/useViewStack";
-import { useGroceries } from "../../hooks/useGroceries";
-import { User } from "../../hooks/useCurrentUser";
+import { useViewStack } from "../../stores/ViewStackStore";
 
-export const GroceriesShopping = ({
-  user,
-  dispatchViewStack,
-}: {
-  user: User;
-  dispatchViewStack: Dispatch<ViewAction>;
-}) => {
-  const t = useTranslations("GroceriesShoppingView");
-  const [now] = React.useState(Date.now());
-  const groceries = useGroceries(user).suspend().read();
-  const [
-    { filter, sleep },
-    { GROCERY_INPUT_CHANGED, SHOP_GROCERY, TOGGLE_NO_SLEEP, ADD_GROCERY },
-  ] = useGroceriesShopping({
-    user,
-  });
-  console.log(groceries);
-  const groceriesToShop = selectors.groceriesToShop(groceries.data);
-  const [initialGroceriesLength] = React.useState(groceriesToShop.length);
+const Awake = () => {
+  const [isAwake, setIsAweake] = useState(false);
   const videoRef = React.useRef<HTMLVideoElement>(null);
-  const inputRef = React.useRef<HTMLInputElement>(null);
-  const sortedAndFilteredGroceries = match(filter, {
-    FILTERED: ({ input }) =>
-      selectors.filteredGroceriesByInput(groceriesToShop, input),
-    UNFILTERED: () =>
-      selectors.sortedGroceriesByNameAndCreated(groceriesToShop, now),
-  });
+
   const videoUpdateCallback = React.useCallback(() => {
     const video = videoRef.current!;
 
@@ -52,14 +28,63 @@ export const GroceriesShopping = ({
   }, []);
 
   useEffect(() => {
-    if (!groceriesToShop.length && initialGroceriesLength) {
+    const video = videoRef.current!;
+
+    if (isAwake) {
+      video.play();
+      video.addEventListener("timeupdate", videoUpdateCallback);
+
+      return () => {
+        video.removeEventListener("timeupdate", videoUpdateCallback);
+      };
+    } else {
+      videoRef.current?.pause();
+    }
+  }, [isAwake]);
+
+  return (
+    <div className="relative mx-auto inline-flex items-center justify-center border border-transparent text-sm font-medium rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+      {isAwake ? (
+        <SolidLightBulbIcon className="w-6 h-6 text-yellow-500" />
+      ) : (
+        <LightBulbIcon className="w-6 h-6" />
+      )}
+      <video
+        ref={videoRef}
+        className="absolute left-0 right-0 bottom-0 top-0 opacity-0"
+        onClick={() => {
+          setIsAweake((current) => !current);
+        }}
+        src={mp4}
+        playsInline
+        disablePictureInPicture
+      ></video>
+    </div>
+  );
+};
+
+export const GroceriesShopping = observe(() => {
+  const t = useTranslations("GroceriesShoppingView");
+  const [now] = React.useState(Date.now());
+  const groceries = useGroceries();
+  const viewStack = useViewStack();
+  const list = groceries.groceries.suspend();
+
+  const [initialGroceriesLength] = React.useState(list.length);
+
+  const filteredOrSortedList = groceries.newGroceryInput
+    ? selectors.filteredGroceriesByInput(list, groceries.newGroceryInput)
+    : selectors.sortedGroceriesByNameAndCreated(list, now);
+
+  useEffect(() => {
+    if (!list.length && initialGroceriesLength) {
       confetti({
         particleCount: 100,
         spread: 70,
         origin: { y: 0.6 },
       });
     }
-  }, [groceriesToShop.length, initialGroceriesLength]);
+  }, [list.length, initialGroceriesLength]);
 
   return (
     <div className="bg-white flex flex-col h-screen">
@@ -67,11 +92,7 @@ export const GroceriesShopping = ({
         <div className="flex items-center">
           <div className="flex-1">
             <button
-              onClick={() =>
-                dispatchViewStack({
-                  type: "POP_VIEW",
-                })
-              }
+              onClick={() => viewStack.pop()}
               className=" bg-white p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500"
             >
               <ChevronLeftIcon className="h-6 w-6" aria-hidden="true" />
@@ -79,41 +100,7 @@ export const GroceriesShopping = ({
           </div>
           <h1 className="flex-2 text-lg font-medium">{t("shoppingList")}</h1>
           <span className="flex-1" />
-          <div className="relative mx-auto inline-flex items-center justify-center border border-transparent text-sm font-medium rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
-            {match(sleep, {
-              ALLOW_SLEEP: () => <LightBulbIcon className="w-6 h-6" />,
-              PREVENT_SLEEP: () => (
-                <SolidLightBulbIcon className="w-6 h-6 text-yellow-500" />
-              ),
-            })}
-            <video
-              ref={videoRef}
-              className="absolute left-0 right-0 bottom-0 top-0 opacity-0"
-              onClick={() => {
-                {
-                  const video = videoRef.current!;
-                  match(sleep, {
-                    ALLOW_SLEEP: () => {
-                      video.play();
-                      video.addEventListener("timeupdate", videoUpdateCallback);
-                    },
-                    PREVENT_SLEEP: () => {
-                      videoRef.current?.pause();
-                      video.removeEventListener(
-                        "timeupdate",
-                        videoUpdateCallback
-                      );
-                    },
-                  });
-                }
-
-                TOGGLE_NO_SLEEP();
-              }}
-              src={mp4}
-              playsInline
-              disablePictureInPicture
-            ></video>
-          </div>
+          <Awake />
         </div>
       </div>
       <div className="flex items-center px-6 py-4 border-b border-gray-200">
@@ -127,10 +114,11 @@ export const GroceriesShopping = ({
             </div>
             <input
               id="search"
-              ref={inputRef}
               name="search"
-              value={filter.input}
-              onChange={(event) => GROCERY_INPUT_CHANGED(event.target.value)}
+              value={groceries.newGroceryInput}
+              onChange={(event) =>
+                groceries.changeNewGroceryInput(event.target.value)
+              }
               className="block w-full bg-white border border-gray-300 rounded-md py-2 pl-10 pr-3 text-sm placeholder-gray-500 focus:outline-none focus:text-gray-900 focus:placeholder-gray-400 focus:ring-1 focus:ring-rose-500 focus:border-rose-500 sm:text-sm"
               placeholder={t("filterNewGrocery") as string}
               type="search"
@@ -141,16 +129,12 @@ export const GroceriesShopping = ({
           <button
             type="button"
             className="disabled:opacity-50 bg-white whitespace-nowrap inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-light-blue-500"
-            {...match(filter, {
-              FILTERED: () => ({
-                disabled: false,
-                onClick: () => ADD_GROCERY(),
-              }),
-              UNFILTERED: () => ({
-                disabled: true,
-                onClick: undefined,
-              }),
-            })}
+            {...(groceries.changeNewGroceryInput.length
+              ? {
+                  disabled: false,
+                  onClick: () => groceries.addGrocery.mutate(),
+                }
+              : { disabled: true, onClick: undefined })}
           >
             <PlusIcon
               className="-ml-2 mr-1 h-5 text-gray-400"
@@ -161,11 +145,11 @@ export const GroceriesShopping = ({
         </span>
       </div>
       <ul className="relative z-0 divide-y divide-gray-200 border-b border-gray-200 overflow-y-scroll">
-        {sortedAndFilteredGroceries.map((grocery) => {
+        {filteredOrSortedList.map((grocery) => {
           return (
             <li
               key={grocery.id}
-              onClick={() => SHOP_GROCERY(grocery.id)}
+              onClick={() => groceries.removeGrocery.mutate(grocery.id)}
               className="relative pl-4 pr-6 py-5 hover:bg-gray-50 sm:py-6 sm:pl-6 lg:pl-8 xl:pl-6"
             >
               <div className="flex items-center">
@@ -182,4 +166,4 @@ export const GroceriesShopping = ({
       </ul>
     </div>
   );
-};
+});

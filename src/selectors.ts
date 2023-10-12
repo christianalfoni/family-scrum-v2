@@ -22,7 +22,7 @@ export const todosByWeekday = (week: WeekDTO) => {
     WeekdayTodos,
     WeekdayTodos,
     WeekdayTodos,
-    WeekdayTodos
+    WeekdayTodos,
   ] = [{}, {}, {}, {}, {}, {}, {}];
 
   for (let todoId in week.todos) {
@@ -52,7 +52,7 @@ export const eventsByWeekday = (todos: Record<string, TodoDTO>) => {
     TodoDTO[],
     TodoDTO[],
     TodoDTO[],
-    TodoDTO[]
+    TodoDTO[],
   ] = [[], [], [], [], [], [], []];
 
   Object.values(todos).forEach((todo) => {
@@ -76,7 +76,7 @@ export const eventsByWeekday = (todos: Record<string, TodoDTO>) => {
       }
 
       return 0;
-    })
+    }),
   );
 };
 
@@ -106,13 +106,9 @@ export const shopCount = (groceries: Record<string, GroceryDTO>) => {
   return Object.values(groceries).length;
 };
 
-export const groceriesToShop = (groceries: Record<string, GroceryDTO>) => {
-  return Object.values(groceries);
-};
-
 export const sortedGroceriesByNameAndCreated = (
   groceries: GroceryDTO[],
-  since: number
+  since: number,
 ) =>
   groceries.slice().sort((a, b) => {
     if (a.created > since || a.name.toLowerCase() < b.name.toLowerCase()) {
@@ -126,7 +122,7 @@ export const sortedGroceriesByNameAndCreated = (
 
 export const filteredGroceriesByInput = (
   groceries: GroceryDTO[],
-  input: string
+  input: string,
 ) => {
   if (input) {
     const lowerCaseInput = input.toLocaleLowerCase();
@@ -158,7 +154,7 @@ export const filteredGroceriesByInput = (
 export const todosByType = (
   todos: Record<string, TodoDTO>,
   previousWeek: WeekDTO,
-  currentWeekId: string
+  currentWeekId: string,
 ): {
   previousWeek: TodoDTO[];
   eventsThisWeek: TodoDTO[];
@@ -174,7 +170,7 @@ export const todosByType = (
       }
 
       return false;
-    }
+    },
   );
   const currentWeekDate = getDateFromWeekId(currentWeekId);
   const result = Object.values(todos).reduce(
@@ -206,7 +202,7 @@ export const todosByType = (
       eventsThisWeek: [] as TodoDTO[],
       laterEvents: [] as TodoDTO[],
       thisWeek: [] as TodoDTO[],
-    }
+    },
   );
 
   result.eventsThisWeek.sort((a, b) => {

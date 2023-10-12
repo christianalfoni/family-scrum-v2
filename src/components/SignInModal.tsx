@@ -5,10 +5,10 @@ import { Fragment } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { LockClosedIcon } from "@heroicons/react/outline";
 import { useStore } from "impact-app";
-import { SessionStore } from "../stores/SessionStore";
+import { SessionStore, useSession } from "../stores/SessionStore";
 
 export const SignInModal = () => {
-  const sessionStore = useStore(SessionStore);
+  const session = useSession();
   const t = useTranslations("SignInModal");
 
   return (
@@ -68,7 +68,7 @@ export const SignInModal = () => {
                 <button
                   type="button"
                   className="inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:text-sm"
-                  onClick={() => sessionStore.signIn()}
+                  onClick={() => session.signIn()}
                 >
                   {t("loginWithGoogle")}
                 </button>
