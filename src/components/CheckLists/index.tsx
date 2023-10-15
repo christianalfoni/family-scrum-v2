@@ -3,27 +3,19 @@ import { useTranslations } from "next-intl";
 import { ChevronLeftIcon } from "@heroicons/react/outline";
 
 import { TodoItem } from "../TodoItem";
-import * as selectors from "../../selectors";
-import { ViewAction } from "../Dashboard/useViewStack";
-import { useTodos } from "../../hooks/useTodos";
-import { User } from "../../hooks/useCurrentUser";
-import {
-  useCheckListItems,
-  useCheckListItemsByTodoId,
-} from "../../hooks/useCheckListItems";
+import { useTodos } from "../../stores/TodosStore";
+import { useViewStack } from "../../stores/ViewStackStore";
+import { useCheckListItems } from "../../stores/CheckListItemsStore";
 
-export const CheckLists = ({
-  user,
-  dispatchViewStack,
-}: {
-  user: User;
-  dispatchViewStack: React.Dispatch<ViewAction>;
-}) => {
+export const CheckLists = () => {
   const t = useTranslations("CheckListsView");
-  const todos = useTodos(user).suspend().read();
-  const checkLists = selectors.checkLists(todos.data);
-  const checkListItems = useCheckListItems(user).suspend().read().data;
-  const checkListItemsByTodoId = useCheckListItemsByTodoId(checkListItems);
+  const viewStack = useViewStack();
+  const todos = useTodos();
+
+  const todosList = todos.query.suspend();
+  const todosWithCheckList = todosList.filter((todo) =>
+    Boolean(todo.checkList),
+  );
 
   return (
     <div className="bg-white flex flex-col h-screen">
@@ -31,11 +23,7 @@ export const CheckLists = ({
         <div className="flex items-center">
           <div className="flex-1">
             <button
-              onClick={() =>
-                dispatchViewStack({
-                  type: "POP_VIEW",
-                })
-              }
+              onClick={() => viewStack.pop()}
               className="bg-white p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500"
             >
               <ChevronLeftIcon className="h-6 w-6" aria-hidden="true" />
@@ -46,21 +34,16 @@ export const CheckLists = ({
         </div>
       </div>
       <ul className="relative z-0 divide-y divide-gray-200 border-b border-gray-200 overflow-y-scroll">
-        {checkLists.map((todo) => (
+        {todosWithCheckList.map((todo) => (
           <TodoItem
             key={todo.id}
             todo={todo}
             onClick={() =>
-              dispatchViewStack({
-                type: "PUSH_VIEW",
-                view: {
-                  name: "EDIT_TODO",
-                  id: todo.id,
-                },
+              viewStack.push({
+                name: "EDIT_TODO",
+                id: todo.id,
               })
             }
-            user={user}
-            checkListItems={checkListItemsByTodoId[todo.id]}
           />
         ))}
       </ul>

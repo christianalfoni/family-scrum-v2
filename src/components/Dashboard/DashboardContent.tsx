@@ -16,18 +16,15 @@ import { addDays } from "date-fns";
 
 import * as selectors from "../../selectors";
 
-import { getDinnerImageRef, useDinners } from "../../hooks/useDinners";
-import { useGroceries } from "../../hooks/useGroceries";
-import { useFamily } from "../../hooks/useFamily";
-import { useTodos } from "../../hooks/useTodos";
-import { useSuspendCaches } from "../../useCache";
-import { useWeeks } from "../../hooks/useWeeks";
-import { User } from "../../hooks/useCurrentUser";
+import { getDinnerImageRef } from "../../hooks/useDinners";
+
 import { useImage } from "../../hooks/useImage";
 import { DinnerDTO } from "../../types";
-import { useStore } from "impact-app";
-import { ViewStackStore } from "../../stores/ViewStackStore";
-import { GroceriesStore } from "../../stores/GroceriesStore";
+import { useViewStack } from "../../stores/ViewStackStore";
+import { useGroceries } from "../../stores/GroceriesStore";
+import { useTodos } from "../../stores/TodosStore";
+import { useWeeks } from "../../stores/WeeksStore";
+import { useDinners } from "../../stores/DinnersStore";
 
 SwiperCore.use([Controller]);
 
@@ -193,13 +190,29 @@ export const DashboardSkeleton = () => {
 };
 
 export const DashboardContent = () => {
-  const viewStackStore = useStore(ViewStackStore);
-  const groceriesStore = useStore(GroceriesStore);
+  const viewStack = useViewStack();
+  const groceries = useGroceries();
+  const todos = useTodos();
+  const weeks = useWeeks();
+  const dinners = useDinners();
   const t = useTranslations("DashboardView");
   const tCommon = useTranslations("common");
   const intl = useIntl();
 
-  const groceriesQuery = groceriesStore.groceries.fetch();
+  // prefetch
+  weeks.previousWeek.fetch();
+  weeks.currentWeek.fetch();
+  weeks.nextWeek.fetch();
+
+  const groceriesQuery = groceries.query.fetch();
+  const todosQuery = todos.query.fetch();
+  const checkLists = React.useMemo(
+    () =>
+      todosQuery.status === "fulfilled"
+        ? todosQuery.value.filter((todo) => Boolean(todo.checkList))
+        : [],
+    [todosQuery],
+  );
   /*
   const [dinnersCache, groceriesCache, familyCache, todosCache, weeksCache] =
     useSuspendCaches([
@@ -233,7 +246,7 @@ export const DashboardContent = () => {
         <MenuCard
           Icon={ShoppingCartIcon}
           onClick={() => {
-            viewStackStore.push({
+            viewStack.push({
               name: "GROCERIES_SHOPPING",
             });
           }}
@@ -245,37 +258,33 @@ export const DashboardContent = () => {
             : 0}
           )
         </MenuCard>
-        {/*
+
         <MenuCard
           disabled={!checkLists.length}
           Icon={ClipboardCheckIcon}
           onClick={() => {
-            dispatchViewStack({
-              type: "PUSH_VIEW",
-              view: {
-                name: "CHECKLISTS",
-              },
+            viewStack.push({
+              name: "CHECKLISTS",
             });
           }}
           color="bg-blue-500"
         >
           {t("checkLists")} ( {checkLists.length} )
         </MenuCard>
+
         <MenuCard
           Icon={ChatAlt2Icon}
           onClick={() => {
-            dispatchViewStack({
-              type: "PUSH_VIEW",
-              view: {
-                name: "PLAN_NEXT_WEEK",
-                subView: "DINNERS",
-              },
+            viewStack.push({
+              name: "PLAN_NEXT_WEEK",
+              subView: "DINNERS",
             });
           }}
           color="bg-green-500"
         >
           {t("planNextWeek")}
         </MenuCard>
+        {/*
         <MenuCard
           Icon={HeartIcon}
           onClick={() => {

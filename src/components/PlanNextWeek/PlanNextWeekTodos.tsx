@@ -7,16 +7,11 @@ import { weekdays } from "../../utils";
 
 import { TodoItem } from "../TodoItem";
 
-import { User } from "../../hooks/useCurrentUser";
-import { useSuspendCaches } from "../../useCache";
-import { useFamily } from "../../hooks/useFamily";
-import { useTodos } from "../../hooks/useTodos";
-import { useWeeks } from "../../hooks/useWeeks";
 import {
   useCheckListItems,
   useCheckListItemsByTodoId,
 } from "../../hooks/useCheckListItems";
-import { ViewAction } from "../Dashboard/useViewStack";
+
 import {
   CheckListItemDTO,
   FamilyDTO,
@@ -112,23 +107,10 @@ const PlanTodoItem = React.memo(
         );
       })}
     </TodoItem>
-  )
+  ),
 );
 
-export const PlanNextWeekTodos = ({
-  user,
-  dispatchViewStack,
-  toggleWeekday,
-}: {
-  user: User;
-  dispatchViewStack: React.Dispatch<ViewAction>;
-  toggleWeekday: (params: {
-    active: boolean;
-    todoId: string;
-    userId: string;
-    weekdayIndex: number;
-  }) => void;
-}) => {
+export const PlanNextWeekTodos = () => {
   const [familyCache, todosCache, weeksCache, checkListItemsCache] =
     useSuspendCaches([
       useFamily(user),
@@ -145,7 +127,7 @@ export const PlanNextWeekTodos = ({
   const sortedTodos = selectors.todosByType(
     todos,
     previousWeek,
-    currentWeek.id
+    currentWeek.id,
   );
   const sortedUserIds = React.useMemo(
     () =>
@@ -156,7 +138,7 @@ export const PlanNextWeekTodos = ({
 
         return 1;
       }),
-    [family]
+    [family],
   );
   const onTodoClick = React.useCallback(
     (id: string) =>
@@ -167,7 +149,7 @@ export const PlanNextWeekTodos = ({
           id,
         },
       }),
-    []
+    [],
   );
 
   const renderTodo = (todo: TodoDTO) => (

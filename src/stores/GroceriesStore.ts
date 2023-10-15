@@ -1,42 +1,41 @@
 import { mutation, query, signal, useCleanup, useStore } from "impact-app";
-import { GroceryDTO, UserDTO, useFirebase } from "./FirebaseStore";
-import { useUser } from "./UserStore";
+import { UserDTO, useFirebase } from "./FirebaseStore";
 
 export function GroceriesStore(user: UserDTO) {
   const firebase = useFirebase();
-
-  const groceriesQuery = query(() => firebase.getGroceries(user));
+  const groceriesCollection = firebase.collections.groceries(user.familyId);
+  const groceriesQuery = query(() => firebase.getDocs(groceriesCollection));
   const newGroceryInput = signal("");
 
-  useCleanup(firebase.onGroceriesChange(user, handleGroceriesChange));
-
-  function handleGroceriesChange(groceries: GroceryDTO[]) {
-    groceriesQuery.set(groceries);
-  }
+  useCleanup(
+    firebase.onCollectionSnapshot(groceriesCollection, (update) =>
+      groceriesQuery.set(update),
+    ),
+  );
 
   return {
+    query: groceriesQuery,
     get newGroceryInput() {
       return newGroceryInput.value;
     },
     changeNewGroceryInput(input: string) {
       newGroceryInput.value = input;
     },
-    groceries: groceriesQuery,
     addGrocery: mutation(() => {
       const name = newGroceryInput.value;
 
       newGroceryInput.value = "";
 
-      const grocery: GroceryDTO = {
-        id: firebase.createGroceryId(user),
+      return firebase.setDoc(groceriesCollection, {
+        id: firebase.createId(groceriesCollection),
         name,
-        created: Date.now(),
-        modified: Date.now(),
-      };
-
-      return firebase.setGrocery(user, grocery);
+        created: firebase.createServerTimestamp(),
+        modified: firebase.createServerTimestamp(),
+      });
     }),
-    removeGrocery: mutation((id: string) => firebase.deleteGrocery(user, id)),
+    removeGrocery: mutation((id: string) =>
+      firebase.deleteDoc(groceriesCollection, id),
+    ),
   };
 }
 

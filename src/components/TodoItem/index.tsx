@@ -12,11 +12,10 @@ import {
 } from "@heroicons/react/outline";
 import { getDayName } from "../../utils";
 
-import { useTodoItem } from "./useTodoItem";
-import * as selectors from "../../selectors";
-
-import { match } from "react-states";
-import { CheckListItemDTO, FamilyUserDTO, TodoDTO } from "../../types";
+import { TodoDTO } from "../../stores/FirebaseStore";
+import { useCheckList } from "../../hooks/useCheckList";
+import { useTodos } from "../../stores/TodosStore";
+import { useCheckListItems } from "../../stores/CheckListItemsStore";
 
 const Confirmed = () => (
   <div className="absolute z-10 top-0 left-0 bottom-0 right-0 flex items-center justify-center bg-white">
@@ -79,49 +78,31 @@ const AddCheckListItem: React.FC<{ onAdd: (title: string) => void }> = ({
 
 export const TodoItem = React.memo(
   ({
-    user,
     todo,
-    checkListItems,
     children,
     onClick,
   }: {
-    user: FamilyUserDTO;
     todo: TodoDTO;
-    checkListItems: {
-      [itemId: string]: CheckListItemDTO;
-    };
     onClick: () => void;
     children?: React.ReactNode;
   }) => {
-    const [
-      state,
-      {
-        ADD_CHECKLIST_ITEM,
-        ARCHIVE_TODO,
-        DELETE_CHECKLIST_ITEM,
-        SHOW_ADD_CHECKLIST_ITEM,
-        TOGGLE_CHECKLIST_ITEM,
-        TOGGLE_SHOW_CHECKLIST,
-      },
-    ] = useTodoItem({
-      todo,
-      user,
-    });
     const t = useTranslations("CheckListsView");
     const tCommon = useTranslations("common");
+    const todos = useTodos();
+    const checkListItems = useCheckListItems();
+    const [isCollapsed, setCollapsed] = React.useState(true);
+    const [addingCheckListItem, setAddingCheckListItem] = React.useState(false);
     const [archiving, setArchiving] = React.useState(false);
     const intl = useIntl();
-    const sortedCheckListItems = checkListItems
-      ? selectors.sortedCheckListItems(checkListItems)
-      : [];
+    const checkList = useCheckList(todo.id);
 
     React.useEffect(() => {
       if (archiving) {
-        const id = setTimeout(() => ARCHIVE_TODO(), 1500);
+        const id = setTimeout(() => todos.archiveTodo.mutate(todo.id), 1500);
 
         return () => clearTimeout(id);
       }
-    }, [archiving, ARCHIVE_TODO]);
+    }, [archiving]);
 
     return (
       <li key={todo.id} className="relative pl-4 pr-6 py-5 ">
@@ -131,8 +112,8 @@ export const TodoItem = React.memo(
             {todo.date ? (
               <span className="flex items-center text-sm mr-3">
                 <CalendarIcon className="w-4 h-4 mr-1" />
-                {tCommon(getDayName(todo.date))} -{" "}
-                {intl.formatDateTime(todo.date, {
+                {tCommon(getDayName(todo.date.toDate()))} -{" "}
+                {intl.formatDateTime(todo.date.toDate(), {
                   day: "numeric",
                   month: "long",
                 })}
@@ -161,69 +142,69 @@ export const TodoItem = React.memo(
           <div className=" my-2 text-sm text-gray-500 border border-gray-200 p-2 rounded-md bg-gray-50">
             <div
               className="flex items-center"
-              onClick={() => TOGGLE_SHOW_CHECKLIST()}
+              onClick={() => setCollapsed((current) => !current)}
             >
               <ClipboardCheckIcon className="w-4 h-4 mr-1" />
-              {
-                sortedCheckListItems.filter((item) => item.completed).length
-              } / {sortedCheckListItems.length}
-              {state.checkList.state === "COLLAPSED" ? (
+              {checkList.filter((item) => item.completed).length} /{" "}
+              {checkList.length}
+              {isCollapsed ? (
                 <ChevronUpIcon className="w-4 h-4 ml-auto" />
               ) : (
                 <ChevronDownIcon className="w-4 h-4 ml-auto" />
               )}
             </div>
-            {match(state.checkList, {
-              COLLAPSED: () => null,
-              EXPANDED: ({ addCheckListItem }) => (
-                <ul className="mt-2">
-                  {sortedCheckListItems.map((item) => (
-                    <li
-                      key={item.id}
-                      className="flex items-center text-lg py-1 px-1"
+            {isCollapsed ? null : (
+              <ul className="mt-2">
+                {checkList.map((item) => (
+                  <li
+                    key={item.id}
+                    className="flex items-center text-lg py-1 px-1"
+                  >
+                    <input
+                      id={item.id}
+                      type="checkbox"
+                      className="rounded text-green-500 mr-2"
+                      checked={item.completed}
+                      onChange={() =>
+                        checkListItems.setCompleted.mutate(
+                          item.id,
+                          !item.completed,
+                        )
+                      }
+                    />
+                    <label htmlFor={item.id} className="w-full">
+                      {item.title}
+                    </label>
+                    <span
+                      className="p-2 text-gray-300"
+                      onClick={() => checkListItems.removeItem.mutate(item.id)}
                     >
-                      <input
-                        id={item.id}
-                        type="checkbox"
-                        className="rounded text-green-500 mr-2"
-                        checked={item.completed}
-                        onChange={() => TOGGLE_CHECKLIST_ITEM(item.id)}
-                      />
-                      <label htmlFor={item.id} className="w-full">
-                        {item.title}
-                      </label>
-                      <span
-                        className="p-2 text-gray-300"
-                        onClick={() => DELETE_CHECKLIST_ITEM(item.id)}
-                      >
-                        <TrashIcon className="w-6 h-6" />
-                      </span>
-                    </li>
-                  ))}
-                  <li>
-                    {match(addCheckListItem, {
-                      INACTIVE: () => (
-                        <div
-                          className="p-2 text-gray-400 text-center text-lg"
-                          onClick={() => SHOW_ADD_CHECKLIST_ITEM()}
-                        >
-                          {t("addNewItem")}
-                        </div>
-                      ),
-                      ACTIVE: () => (
-                        <AddCheckListItem
-                          onAdd={(title) => ADD_CHECKLIST_ITEM(title)}
-                        />
-                      ),
-                    })}
+                      <TrashIcon className="w-6 h-6" />
+                    </span>
                   </li>
-                </ul>
-              ),
-            })}
+                ))}
+                <li>
+                  {addingCheckListItem ? (
+                    <AddCheckListItem
+                      onAdd={(title) =>
+                        checkListItems.addItem.mutate(todo.id, title)
+                      }
+                    />
+                  ) : (
+                    <div
+                      className="p-2 text-gray-400 text-center text-lg"
+                      onClick={() => setAddingCheckListItem(true)}
+                    >
+                      {t("addNewItem")}
+                    </div>
+                  )}
+                </li>
+              </ul>
+            )}
           </div>
         ) : null}
         {children}
       </li>
     );
-  }
+  },
 );

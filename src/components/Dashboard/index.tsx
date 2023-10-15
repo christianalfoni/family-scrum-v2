@@ -1,5 +1,5 @@
 import { GroceriesShopping } from "../GroceriesShopping";
-import { DashboardContent } from "./DashboardContent";
+import { DashboardContent, DashboardSkeleton } from "./DashboardContent";
 import { CheckLists } from "../CheckLists";
 import { EditTodo } from "../EditTodo";
 import { Dinners } from "../Dinners";
@@ -8,6 +8,7 @@ import { PlanNextWeek } from "../PlanNextWeek";
 
 import { observe } from "impact-app";
 import { useViewStack } from "../../stores/ViewStackStore";
+import { Suspense } from "react";
 
 export const Dashboard = observe(() => {
   const viewStack = useViewStack();
@@ -23,10 +24,10 @@ export const Dashboard = observe(() => {
         return <GroceriesShopping />;
       }
       case "CHECKLISTS": {
-        return <CheckLists user={user} />;
+        return <CheckLists />;
       }
       case "PLAN_NEXT_WEEK": {
-        return <PlanNextWeek user={user} view={view.subView} />;
+        return <PlanNextWeek view={view.subView} />;
       }
 
       case "DINNERS": {
@@ -54,7 +55,7 @@ export const Dashboard = observe(() => {
 
   return (
     <div className="h-screen overflow-hidden bg-gray-100 flex flex-col">
-      {renderView()}
+      <Suspense fallback={<DashboardSkeleton />}>{renderView()}</Suspense>
     </div>
   );
 });

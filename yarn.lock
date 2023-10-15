@@ -2210,10 +2210,10 @@ immer@^10.0.2:
   resolved "https://registry.yarnpkg.com/immer/-/immer-10.0.3.tgz#a8de42065e964aa3edf6afc282dfc7f7f34ae3c9"
   integrity sha512-pwupu3eWfouuaowscykeckFmVTpqbzW+rXFCX8rQLkZzM9ftBmU/++Ra+o+L27mz03zJTlyV4UUr+fdKNffo4A==
 
-impact-app@^0.33.0:
-  version "0.33.0"
-  resolved "https://registry.yarnpkg.com/impact-app/-/impact-app-0.33.0.tgz#9f084237b1b81589f6e696a142f36a6fd958313c"
-  integrity sha512-YRva+xQBiM1c1IztfrWDggxtJ7JY5Ehpkv2ePjg4g3MmFCUkMy7+7Ktl1YbAyGvi8syDLZk9Mf12InsGGwT7Xw==
+impact-app@^0.34.0:
+  version "0.34.0"
+  resolved "https://registry.yarnpkg.com/impact-app/-/impact-app-0.34.0.tgz#56580178b3c0c52baf353057362224381c06fe37"
+  integrity sha512-UyWk8qrtipddMkkI81B2tI82sqFnMl4jVS8YpvSu/om3BmGqA35WJ+6vJvbmMFfRAjKkY/isZncjKFy8DM98Vw==
   dependencies:
     "@radix-ui/react-icons" "^1.3.0"
     immer "^10.0.2"

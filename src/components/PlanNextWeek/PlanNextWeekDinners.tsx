@@ -6,18 +6,19 @@ import * as selectors from "../../selectors";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { weekdays } from "../../utils";
 
-import { getDinnerImageRef } from "../../hooks/useDinners";
-import { useImage } from "../../hooks/useImage";
-import { DinnerDTO, WeekDinnersDTO } from "../../types";
+import { useDinners } from "../../stores/DinnersStore";
+import { useWeeks } from "../../stores/WeeksStore";
+import { DinnerDTO, WeekDinnersDTO } from "../../stores/FirebaseStore";
 
 const DinnerSlide = ({ dinner }: { dinner: DinnerDTO }) => {
-  const image = useImage(getDinnerImageRef(dinner.id)).read();
+  const { getImageUrl } = useDinners();
+  const image = getImageUrl.fetch(dinner.id);
 
   return (
     <div className="flex items-center py-4 px-8 space-x-3 h-24">
       <div className="flex-shrink-0 h-16 w-16">
-        {"data" in image ? (
-          <img className="h-16 w-16 rounded" src={image.data} alt="" />
+        {image.status === "fulfilled" ? (
+          <img className="h-16 w-16 rounded" src={image.value} alt="" />
         ) : null}
       </div>
       <div className="min-w-0 flex-1">
@@ -37,17 +38,16 @@ export const DinnerItem = ({
 }: {
   weekday: string;
   weekdayIndex: number;
-  dinners: Record<string, DinnerDTO>;
+  dinners: DinnerDTO[];
   activeDinner: string | null;
   onDinnerChange: (dayIndex: number, dinnerId: string | null) => void;
 }) => {
-  const availableDinners = selectors.sortedDinners(dinners);
-  const activeDinnerIndex = availableDinners.findIndex(
-    (dinner) => dinner.id === activeDinner
+  const activeDinnerIndex = dinners.findIndex(
+    (dinner) => dinner.id === activeDinner,
   );
   const commonT = useTranslations("common");
   const [slideIndex, setSlideIndex] = React.useState(
-    activeDinnerIndex === -1 ? 0 : activeDinnerIndex + 1
+    activeDinnerIndex === -1 ? 0 : activeDinnerIndex + 1,
   );
   const [controlledSwiper, setControlledSwiper] =
     React.useState<SwiperCore | null>(null);
@@ -67,7 +67,7 @@ export const DinnerItem = ({
             weekdayIndex,
             swiper.activeIndex === 0
               ? null
-              : availableDinners[swiper.activeIndex - 1].id
+              : dinners[swiper.activeIndex - 1].id,
           );
         }}
         onSwiper={setControlledSwiper}
@@ -76,14 +76,13 @@ export const DinnerItem = ({
         <SwiperSlide>
           <div className="flex items-center flex-col py-4 px-8 h-24 bg-gray-100 justify-center text-gray-500">
             <div>
-              You have{" "}
-              <span className="font-bold">{availableDinners.length}</span>{" "}
+              You have <span className="font-bold">{dinners.length}</span>{" "}
               recipes
             </div>
             <div className="text-sm">Tap to add more</div>
           </div>
         </SwiperSlide>
-        {availableDinners.map((dinner) => (
+        {dinners.map((dinner) => (
           <SwiperSlide key={dinner.id}>
             <DinnerSlide dinner={dinner} />
           </SwiperSlide>
@@ -115,25 +114,29 @@ export const DinnerItem = ({
   );
 };
 
-export const PlanNextWeekDinners = ({
-  weekDinners,
-  dinners,
-  onChangeDinner,
-}: {
-  weekDinners: WeekDinnersDTO;
-  dinners: Record<string, DinnerDTO>;
-  onChangeDinner: (weekdayIndex: number, dinnerId: string | null) => void;
-}) => {
+export const PlanNextWeekDinners = () => {
+  const { query } = useDinners();
+  const { nextWeek: nextWeekQuery, setNextWeekDinners } = useWeeks();
+
+  const dinners = query.suspend();
+  const nextWeek = nextWeekQuery.suspend();
+
   return (
     <ul className="relative z-0 divide-y divide-gray-200 border-b border-gray-200 overflow-y-scroll">
       {weekdays.map((weekday, index) => (
         <DinnerItem
           key={weekday}
           weekdayIndex={index}
-          onDinnerChange={onChangeDinner}
+          onDinnerChange={(dayIndex, dinnerId) => {
+            setNextWeekDinners.mutate([
+              ...nextWeek.dinners.slice(0, dayIndex),
+              dinnerId,
+              ...nextWeek.dinners.slice(dayIndex + 1),
+            ] as WeekDinnersDTO);
+          }}
           weekday={weekday}
           dinners={dinners}
-          activeDinner={weekDinners[index]}
+          activeDinner={nextWeek.dinners[index]}
         />
       ))}
     </ul>

@@ -1,6 +1,6 @@
 import { User } from "firebase/auth";
 import { signal, useCleanup, useStore } from "impact-app";
-import { FirebaseStore, UserDTO } from "./FirebaseStore";
+import { UserDTO, useFirebase } from "./FirebaseStore";
 
 type SessionState =
   | {
@@ -16,19 +16,20 @@ type SessionState =
     };
 
 export function SessionStore() {
-  const { signIn, getUser, onAuthChanged } = useStore(FirebaseStore);
-
+  const firebase = useFirebase();
+  const usersCollection = firebase.collections.users();
   const state = signal<SessionState>({
     status: "AUTHENTICATING",
   });
 
-  useCleanup(onAuthChanged(handleAuthStateChanged));
+  useCleanup(firebase.onAuthChanged(handleAuthStateChanged));
 
   async function handleAuthStateChanged(maybeUser: User | null) {
     if (maybeUser) {
       try {
         const lastStatus = state.value.status;
-        const user = await getUser(maybeUser.uid);
+
+        const user = await firebase.getDoc(usersCollection, maybeUser.uid);
 
         // We might be unauthenticated during fetching the user doc, use RXJS to see how that could be solved?
         if (state.value.status === lastStatus) {
@@ -54,7 +55,7 @@ export function SessionStore() {
     get state() {
       return state.value;
     },
-    signIn,
+    signIn: firebase.signIn,
   };
 }
 

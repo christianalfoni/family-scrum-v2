@@ -6,37 +6,14 @@ import {
 } from "@heroicons/react/outline";
 import { useTranslations } from "next-intl";
 
-import { usePlanNextWeek } from "./usePlanNextWeek";
 import { PlanNextWeekDinners } from "./PlanNextWeekDinners";
 import { PlanNextWeekTodos } from "./PlanNextWeekTodos";
-import { Dispatch } from "react";
-import { ViewAction } from "../Dashboard/useViewStack";
 
-import { useWeeks } from "../../hooks/useWeeks";
-import { useDinners } from "../../hooks/useDinners";
-import { User } from "../../hooks/useCurrentUser";
-import { useSuspendCaches } from "../../useCache";
+import { useViewStack } from "../../stores/ViewStackStore";
 
-export const PlanNextWeek = ({
-  user,
-  dispatchViewStack,
-  view,
-}: {
-  user: User;
-  dispatchViewStack: Dispatch<ViewAction>;
-  view: "DINNERS" | "TODOS";
-}) => {
-  const [weeksCache, dinnersCache] = useSuspendCaches([
-    useWeeks(user),
-    useDinners(user),
-  ]);
-  const weeks = weeksCache.read();
-  const dinners = dinnersCache.read();
+export const PlanNextWeek = ({ view }: { view: "DINNERS" | "TODOS" }) => {
+  const viewStack = useViewStack();
 
-  const [, { CHANGE_WEEKDAY_DINNER, TOGGLE_WEEKDAY }] = usePlanNextWeek({
-    user,
-    weekId: weeks.data.nextWeek.id,
-  });
   const t = useTranslations("PlanWeekView");
 
   return (
@@ -45,11 +22,7 @@ export const PlanNextWeek = ({
         <div className="flex items-center">
           <div className="flex-1">
             <button
-              onClick={() =>
-                dispatchViewStack({
-                  type: "POP_VIEW",
-                })
-              }
+              onClick={() => viewStack.pop()}
               className="bg-white p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500"
             >
               <ChevronLeftIcon className="h-6 w-6" aria-hidden="true" />
@@ -59,12 +32,9 @@ export const PlanNextWeek = ({
             <button
               type="button"
               onClick={() =>
-                dispatchViewStack({
-                  type: "REPLACE_VIEW",
-                  view: {
-                    name: "PLAN_NEXT_WEEK",
-                    subView: "DINNERS",
-                  },
+                viewStack.replace({
+                  name: "PLAN_NEXT_WEEK",
+                  subView: "DINNERS",
                 })
               }
               className="flex-1 relative inline-flex items-center px-4 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-900 hover:bg-gray-50 focus:z-10 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600"
@@ -80,12 +50,9 @@ export const PlanNextWeek = ({
             <button
               type="button"
               onClick={() =>
-                dispatchViewStack({
-                  type: "REPLACE_VIEW",
-                  view: {
-                    name: "PLAN_NEXT_WEEK",
-                    subView: "TODOS",
-                  },
+                viewStack.replace({
+                  name: "PLAN_NEXT_WEEK",
+                  subView: "TODOS",
                 })
               }
               className="flex-1 inline-flex -ml-px relative items-center px-4 py-2 rounded-r-md border border-gray-300 bg-gray-50 text-sm font-medium text-gray-900 hover:bg-gray-50 focus:z-10 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600"
@@ -103,15 +70,13 @@ export const PlanNextWeek = ({
             <button
               className="ml-auto"
               onClick={() =>
-                dispatchViewStack({
-                  type: "PUSH_VIEW",
-                  view:
-                    view === "DINNERS"
-                      ? {
-                          name: "EDIT_DINNER",
-                        }
-                      : { name: "EDIT_TODO" },
-                })
+                viewStack.push(
+                  view === "DINNERS"
+                    ? {
+                        name: "EDIT_DINNER",
+                      }
+                    : { name: "EDIT_TODO" },
+                )
               }
             >
               <PlusIcon className="w-6 h-6" />
@@ -119,21 +84,7 @@ export const PlanNextWeek = ({
           </div>
         </div>
       </div>
-      {view === "DINNERS" ? (
-        <PlanNextWeekDinners
-          dinners={dinners.data}
-          weekDinners={weeks.data.nextWeek.dinners}
-          onChangeDinner={(weekdayIndex, dinnerId) =>
-            CHANGE_WEEKDAY_DINNER({ dinnerId, weekdayIndex })
-          }
-        />
-      ) : (
-        <PlanNextWeekTodos
-          user={user}
-          dispatchViewStack={dispatchViewStack}
-          toggleWeekday={(params) => TOGGLE_WEEKDAY(params)}
-        />
-      )}
+      {view === "DINNERS" ? <PlanNextWeekDinners /> : <PlanNextWeekTodos />}
     </div>
   );
 };

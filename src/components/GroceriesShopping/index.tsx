@@ -68,23 +68,26 @@ export const GroceriesShopping = observe(() => {
   const [now] = React.useState(Date.now());
   const groceries = useGroceries();
   const viewStack = useViewStack();
-  const list = groceries.groceries.suspend();
+  const groceriesList = groceries.query.suspend();
 
-  const [initialGroceriesLength] = React.useState(list.length);
+  const [initialGroceriesLength] = React.useState(groceriesList.length);
 
   const filteredOrSortedList = groceries.newGroceryInput
-    ? selectors.filteredGroceriesByInput(list, groceries.newGroceryInput)
-    : selectors.sortedGroceriesByNameAndCreated(list, now);
+    ? selectors.filteredGroceriesByInput(
+        groceriesList,
+        groceries.newGroceryInput,
+      )
+    : selectors.sortedGroceriesByNameAndCreated(groceriesList, now);
 
   useEffect(() => {
-    if (!list.length && initialGroceriesLength) {
+    if (!groceriesList.length && initialGroceriesLength) {
       confetti({
         particleCount: 100,
         spread: 70,
         origin: { y: 0.6 },
       });
     }
-  }, [list.length, initialGroceriesLength]);
+  }, [groceriesList.length, initialGroceriesLength]);
 
   return (
     <div className="bg-white flex flex-col h-screen">

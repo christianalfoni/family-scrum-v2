@@ -41,8 +41,8 @@ export const todosByWeekday = (week: WeekDTO) => {
   return todosByWeekday;
 };
 
-export const checkLists = (todos: Record<string, TodoDTO>) =>
-  Object.values(todos).filter((todo) => Boolean(todo.checkList));
+export const checkLists = (todos: TodoDTO[]) =>
+  todos.filter((todo) => Boolean(todo.checkList));
 
 export const eventsByWeekday = (todos: Record<string, TodoDTO>) => {
   const eventsByWeekday: [
