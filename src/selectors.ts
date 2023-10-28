@@ -8,7 +8,7 @@ import {
   GroceryDTO,
   TodoDTO,
   WeekDTO,
-} from "./types";
+} from "./stores/FirebaseStore";
 
 export type WeekdayTodos = {
   [todoId: string]: string[];

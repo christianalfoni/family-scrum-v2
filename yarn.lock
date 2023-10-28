@@ -927,11 +927,6 @@
   resolved "https://registry.yarnpkg.com/@protobufjs/utf8/-/utf8-1.1.0.tgz#a777360b5b39a1a2e5106f8e858f2fd2d060c570"
   integrity sha1-p3c2C1s5oaLlEG+OhY8v0tBgxXA=
 
-"@radix-ui/react-icons@^1.3.0":
-  version "1.3.0"
-  resolved "https://registry.yarnpkg.com/@radix-ui/react-icons/-/react-icons-1.3.0.tgz#c61af8f323d87682c5ca76b856d60c2312dbcb69"
-  integrity sha512-jQxj/0LKgp+j9BiTXz3O3sgs26RNet2iLWmsPyRz2SIcR4q/4SbazXfnYwbAr+vLYKSfc7qxzyGQA1HLlYiuNw==
-
 "@swc/helpers@0.5.2":
   version "0.5.2"
   resolved "https://registry.yarnpkg.com/@swc/helpers/-/helpers-0.5.2.tgz#85ea0c76450b61ad7d10a37050289eded783c27d"
@@ -2205,19 +2200,16 @@ idb@7.0.1:
   resolved "https://registry.yarnpkg.com/idb/-/idb-7.0.1.tgz#d2875b3a2f205d854ee307f6d196f246fea590a7"
   integrity sha512-UUxlE7vGWK5RfB/fDwEGgRf84DY/ieqNha6msMV99UsEMQhJ1RwbCd8AYBj3QMgnE3VZnfQvm4oKVCJTYlqIgg==
 
-immer@^10.0.2:
+immer@^10.0.3:
   version "10.0.3"
   resolved "https://registry.yarnpkg.com/immer/-/immer-10.0.3.tgz#a8de42065e964aa3edf6afc282dfc7f7f34ae3c9"
   integrity sha512-pwupu3eWfouuaowscykeckFmVTpqbzW+rXFCX8rQLkZzM9ftBmU/++Ra+o+L27mz03zJTlyV4UUr+fdKNffo4A==
 
-impact-app@^0.34.0:
-  version "0.34.0"
-  resolved "https://registry.yarnpkg.com/impact-app/-/impact-app-0.34.0.tgz#56580178b3c0c52baf353057362224381c06fe37"
-  integrity sha512-UyWk8qrtipddMkkI81B2tI82sqFnMl4jVS8YpvSu/om3BmGqA35WJ+6vJvbmMFfRAjKkY/isZncjKFy8DM98Vw==
+impact-app@^0.37.3:
+  version "0.37.3"
+  resolved "https://registry.yarnpkg.com/impact-app/-/impact-app-0.37.3.tgz#e82d8f9edb2004f171f8af6c281e0b05c77406c3"
+  integrity sha512-xae0BiQCj1sXa81DHYskh9gjMSg2051RM7+aixBlpZSQtZ9PtG2CIQSUKOarDQ2tOUivDAnowQoXOcF1rHYc/w==
   dependencies:
-    "@radix-ui/react-icons" "^1.3.0"
-    immer "^10.0.2"
-    react "*"
     stackframe "^1.3.4"
     stacktrace-gps "^3.1.2"
 
@@ -3120,7 +3112,7 @@ react-states@^7.1.1:
   resolved "https://registry.yarnpkg.com/react-states/-/react-states-7.1.1.tgz#1fd6859d917b9c5fff8ca75d825ecf6a43d3705f"
   integrity sha512-okrJZcYW9bsqHi9rrYvJR7kuUyiR+0urLHmRvPO85zjziZFIGHULQHywzH1hIaQJDDS3STRz8dZpTEYXIhYPTQ==
 
-react@*, react@^18.2.0:
+react@^18.2.0:
   version "18.2.0"
   resolved "https://registry.yarnpkg.com/react/-/react-18.2.0.tgz#555bd98592883255fa00de14f1151a917b5d77d5"
   integrity sha512-/3IjMdb2L9QbBdWiW5e3P2/npwMBaU9mHCSCUzNln0ZCYbcfTsGbTJrU/kGemdH2IWmB2ioZ+zkxtmq6g09fGQ==
