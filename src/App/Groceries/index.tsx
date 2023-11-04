@@ -32,7 +32,7 @@ const GroceriesContent = () => {
   const t = useTranslations("GroceriesShoppingView");
   const [now] = React.useState(Date.now());
   const { views } = useGlobalContext();
-  const { groceries } = useAppContext();
+  const { groceriesPromise: groceries } = useAppContext();
   const { newGroceryInput, changeNewGroceryInput, addGrocery, removeGrocery } =
     useGroceriesContext();
 

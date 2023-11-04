@@ -2210,10 +2210,10 @@ impact-context@^0.1.1:
   resolved "https://registry.yarnpkg.com/impact-context/-/impact-context-0.1.1.tgz#d0bdfef9cc944988b26fde1460503028479f9b38"
   integrity sha512-EyrDLmF12T45kIrKlba8e0WlYxap+3eNaxo8x65j88ikDNwFin8tyDSNiyON4oHf+nP7q/e5AoZ4SfpkaMJLkg==
 
-impact-signal@^0.1.1:
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/impact-signal/-/impact-signal-0.1.1.tgz#27435992f642b2521f33e2e6f4b796967e3bb36d"
-  integrity sha512-XsICnXtR7jCIrbIpH9UgFELZLICM/RsgKGlDqCveuk8DhtnHahPOFE2WOOAJHw/8weX471072glAAzCJJH991w==
+impact-signal@^0.1.3:
+  version "0.1.3"
+  resolved "https://registry.yarnpkg.com/impact-signal/-/impact-signal-0.1.3.tgz#aafd580c1824d8853456fd7f60747fa4ac388d71"
+  integrity sha512-ALaVIl2lQLPU9l7HLCDdbrUCYWlpVOSqemRKXMYCRplg0dI+A8ArzDgI4C22cGRiQDwbzjnZwPljJYZEmgA5UQ==
   dependencies:
     stackframe "^1.3.4"
     stacktrace-gps "^3.1.2"

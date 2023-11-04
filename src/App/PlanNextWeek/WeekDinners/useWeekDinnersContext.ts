@@ -4,7 +4,7 @@ import { useAppContext } from "../../useAppContext";
 import { WeekDTO, WeekDinnersDTO } from "../../../useGlobalContext/firebase";
 import { signal } from "impact-signal";
 
-function DinnersContext({
+function WeekDinnersContext({
   initialWeekDinners,
 }: {
   initialWeekDinners: WeekDinnersDTO;
@@ -35,4 +35,4 @@ function DinnersContext({
   };
 }
 
-export const useDinnersContext = context(DinnersContext);
+export const useWeekDinnersContext = context(WeekDinnersContext);

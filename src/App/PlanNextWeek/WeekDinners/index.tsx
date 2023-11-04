@@ -9,10 +9,10 @@ import { weekdays } from "../../../utils";
 import { use } from "impact-signal";
 import { useAppContext } from "../../useAppContext";
 import { DinnerDTO } from "../../../useGlobalContext/firebase";
-import { useDinnersContext } from "./useDinnersContext";
+import { useWeekDinnersContext } from "./useWeekDinnersContext";
 
 const DinnerSlide = ({ dinner }: { dinner: DinnerDTO }) => {
-  const { getImageUrl } = useAppContext();
+  const { getImageUrlPromise: getImageUrl } = useAppContext();
   const image = getImageUrl("dinners", dinner.id);
 
   return (
@@ -115,9 +115,9 @@ export const DinnerItem = ({
   );
 };
 
-const DinnersContent = () => {
-  const { dinners: dinnersPromise } = useAppContext();
-  const { setNextWeekDinners, weekDinners } = useDinnersContext();
+const WeekDinnersContent = () => {
+  const { dinnersPromise: dinnersPromise } = useAppContext();
+  const { setNextWeekDinners, weekDinners } = useWeekDinnersContext();
 
   const dinners = use(dinnersPromise);
 
@@ -139,14 +139,14 @@ const DinnersContent = () => {
   );
 };
 
-export function Dinners() {
+export function WeekDinners() {
   const { weeks } = useAppContext();
 
   const nextWeek = use(weeks.next.week);
 
   return (
-    <useDinnersContext.Provider initialWeekDinners={nextWeek.dinners}>
-      <DinnersContent />
-    </useDinnersContext.Provider>
+    <useWeekDinnersContext.Provider initialWeekDinners={nextWeek.dinners}>
+      <WeekDinnersContent />
+    </useWeekDinnersContext.Provider>
   );
 }

@@ -2,6 +2,7 @@ import { useGlobalContext } from "../useGlobalContext";
 import { CheckLists } from "./CheckLists";
 import { Dashboard } from "./Dashboard";
 import { Skeleton } from "./Dashboard/Skeleton";
+import { Dinners } from "./Dinners";
 import { Groceries } from "./Groceries";
 import { PlanNextWeek } from "./PlanNextWeek";
 import { SignInModal } from "./SignInModal";
@@ -45,7 +46,7 @@ export const App: React.FC = () => {
       }
 
       case "DINNERS": {
-        return <Dinners user={user} />;
+        return <Dinners />;
       }
       case "EDIT_DINNER": {
         return (
