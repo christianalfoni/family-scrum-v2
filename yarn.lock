@@ -2205,10 +2205,15 @@ immer@^10.0.3:
   resolved "https://registry.yarnpkg.com/immer/-/immer-10.0.3.tgz#a8de42065e964aa3edf6afc282dfc7f7f34ae3c9"
   integrity sha512-pwupu3eWfouuaowscykeckFmVTpqbzW+rXFCX8rQLkZzM9ftBmU/++Ra+o+L27mz03zJTlyV4UUr+fdKNffo4A==
 
-impact-app@^0.37.3:
-  version "0.37.3"
-  resolved "https://registry.yarnpkg.com/impact-app/-/impact-app-0.37.3.tgz#e82d8f9edb2004f171f8af6c281e0b05c77406c3"
-  integrity sha512-xae0BiQCj1sXa81DHYskh9gjMSg2051RM7+aixBlpZSQtZ9PtG2CIQSUKOarDQ2tOUivDAnowQoXOcF1rHYc/w==
+impact-context@^0.1.1:
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/impact-context/-/impact-context-0.1.1.tgz#d0bdfef9cc944988b26fde1460503028479f9b38"
+  integrity sha512-EyrDLmF12T45kIrKlba8e0WlYxap+3eNaxo8x65j88ikDNwFin8tyDSNiyON4oHf+nP7q/e5AoZ4SfpkaMJLkg==
+
+impact-signal@^0.1.1:
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/impact-signal/-/impact-signal-0.1.1.tgz#27435992f642b2521f33e2e6f4b796967e3bb36d"
+  integrity sha512-XsICnXtR7jCIrbIpH9UgFELZLICM/RsgKGlDqCveuk8DhtnHahPOFE2WOOAJHw/8weX471072glAAzCJJH991w==
   dependencies:
     stackframe "^1.3.4"
     stacktrace-gps "^3.1.2"

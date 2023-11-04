@@ -1,10 +1,9 @@
-import { context } from "impact-app";
-
-import { signal } from "impact-app";
+import { signal } from "impact-signal";
+import { context } from "impact-context";
 import { useGlobalContext } from "../../useGlobalContext";
 import { useAppContext } from "../useAppContext";
 
-export const useGroceriesContext = context(() => {
+function GroceriesContext() {
   const { firebase } = useGlobalContext();
   const { user } = useAppContext();
 
@@ -29,15 +28,21 @@ export const useGroceriesContext = context(() => {
     },
     addGrocery() {
       const name = newGroceryInput.value;
-
+      const currentInput = newGroceryInput.value;
       newGroceryInput.value = "";
 
-      addingGrocery.value = firebase.setDoc(groceriesCollection, {
-        id: firebase.createId(groceriesCollection),
-        name,
-        created: firebase.createServerTimestamp(),
-        modified: firebase.createServerTimestamp(),
-      });
+      addingGrocery.value = firebase
+        .setDoc(groceriesCollection, {
+          id: firebase.createId(groceriesCollection),
+          name,
+          created: firebase.createServerTimestamp(),
+          modified: firebase.createServerTimestamp(),
+        })
+        .catch((error) => {
+          newGroceryInput.value = currentInput;
+
+          throw error;
+        });
 
       return addingGrocery.value;
     },
@@ -47,4 +52,6 @@ export const useGroceriesContext = context(() => {
       return removingGrocery.value;
     },
   };
-});
+}
+
+export const useGroceriesContext = context(GroceriesContext);

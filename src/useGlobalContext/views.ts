@@ -1,5 +1,5 @@
 import { produce } from "immer";
-import { signal } from "impact-app";
+import { signal } from "impact-signal";
 
 export type View =
   | {

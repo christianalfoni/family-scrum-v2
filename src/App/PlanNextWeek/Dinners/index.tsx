@@ -2,23 +2,23 @@ import * as React from "react";
 import { useTranslations } from "next-intl";
 import SwiperCore from "swiper";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/outline";
-import * as selectors from "../../selectors";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { weekdays } from "../../utils";
 
-import { useDinners } from "../../stores/DinnersStore";
-import { useWeeks } from "../../stores/WeeksStore";
-import { DinnerDTO, WeekDinnersDTO } from "../../stores/FirebaseStore";
-import { use } from "impact-app";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { weekdays } from "../../../utils";
+
+import { use } from "impact-signal";
+import { useAppContext } from "../../useAppContext";
+import { DinnerDTO } from "../../../useGlobalContext/firebase";
+import { useDinnersContext } from "./useDinnersContext";
 
 const DinnerSlide = ({ dinner }: { dinner: DinnerDTO }) => {
-  const { getImageUrl } = useDinners();
-  const image = getImageUrl(dinner.id);
+  const { getImageUrl } = useAppContext();
+  const image = getImageUrl("dinners", dinner.id);
 
   return (
     <div className="flex items-center py-4 px-8 space-x-3 h-24">
       <div className="flex-shrink-0 h-16 w-16">
-        {image.status === "fulfilled" ? (
+        {image.status === "fulfilled" && image.value ? (
           <img className="h-16 w-16 rounded" src={image.value} alt="" />
         ) : null}
       </div>
@@ -115,12 +115,11 @@ export const DinnerItem = ({
   );
 };
 
-export const PlanNextWeekDinners = () => {
-  const { dinners: dinnersPromise } = useDinners();
-  const { next, setNextWeekDinners } = useWeeks();
+const DinnersContent = () => {
+  const { dinners: dinnersPromise } = useAppContext();
+  const { setNextWeekDinners, weekDinners } = useDinnersContext();
 
   const dinners = use(dinnersPromise);
-  const nextWeek = use(next.week);
 
   return (
     <ul className="relative z-0 divide-y divide-gray-200 border-b border-gray-200 overflow-y-scroll">
@@ -129,17 +128,25 @@ export const PlanNextWeekDinners = () => {
           key={weekday}
           weekdayIndex={index}
           onDinnerChange={(dayIndex, dinnerId) => {
-            setNextWeekDinners([
-              ...nextWeek.dinners.slice(0, dayIndex),
-              dinnerId,
-              ...nextWeek.dinners.slice(dayIndex + 1),
-            ] as WeekDinnersDTO);
+            setNextWeekDinners(dayIndex, dinnerId);
           }}
           weekday={weekday}
           dinners={dinners}
-          activeDinner={nextWeek.dinners[index]}
+          activeDinner={weekDinners[index]}
         />
       ))}
     </ul>
   );
 };
+
+export function Dinners() {
+  const { weeks } = useAppContext();
+
+  const nextWeek = use(weeks.next.week);
+
+  return (
+    <useDinnersContext.Provider initialWeekDinners={nextWeek.dinners}>
+      <DinnersContent />
+    </useDinnersContext.Provider>
+  );
+}

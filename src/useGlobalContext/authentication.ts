@@ -1,6 +1,7 @@
 import { User } from "firebase/auth";
-import { signal, cleanup } from "impact-app";
-import type { UserDTO, createFirebase } from "./firebase";
+import { cleanup } from "impact-context";
+import { signal } from "impact-signal";
+import type { FamilyDTO, UserDTO, createFirebase } from "./firebase";
 
 export type SessionState =
   | {
@@ -9,14 +10,18 @@ export type SessionState =
   | {
       status: "AUTHENTICATED";
       user: UserDTO;
+      family: FamilyDTO;
     }
   | {
       status: "UNAUTHENTICATED";
       reason?: string;
     };
 
-export function createSession(firebase: ReturnType<typeof createFirebase>) {
+export function createAuthentication(
+  firebase: ReturnType<typeof createFirebase>,
+) {
   const usersCollection = firebase.collections.users();
+  const familiesCollection = firebase.collections.families();
   const state = signal<SessionState>({
     status: "AUTHENTICATING",
   });
@@ -30,11 +35,22 @@ export function createSession(firebase: ReturnType<typeof createFirebase>) {
 
         const user = await firebase.getDoc(usersCollection, maybeUser.uid);
 
+        if (!user) {
+          throw new Error("No user doc");
+        }
+
+        const family = await firebase.getDoc(familiesCollection, user.familyId);
+
+        if (!family) {
+          throw new Error("No family doc");
+        }
+
         // We might be unauthenticated during fetching the user doc, use RXJS to see how that could be solved?
         if (state.value.status === lastStatus) {
           state.value = {
             status: "AUTHENTICATED",
-            user: user,
+            user,
+            family,
           };
         }
       } catch (e) {

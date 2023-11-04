@@ -3,19 +3,22 @@ import { CheckLists } from "./CheckLists";
 import { Dashboard } from "./Dashboard";
 import { Skeleton } from "./Dashboard/Skeleton";
 import { Groceries } from "./Groceries";
+import { PlanNextWeek } from "./PlanNextWeek";
 import { SignInModal } from "./SignInModal";
 import { useAppContext } from "./useAppContext";
-import { observer } from "impact-app";
+import { observer } from "impact-signal";
 import { Suspense } from "react";
 
-export const App: React.FC = observer(() => {
-  const { session, views } = useGlobalContext();
+export const App: React.FC = () => {
+  using _ = observer();
 
-  if (session.state.status === "AUTHENTICATING") {
+  const { authentication, views } = useGlobalContext();
+
+  if (authentication.state.status === "AUTHENTICATING") {
     return <Skeleton />;
   }
 
-  if (session.state.status === "UNAUTHENTICATED") {
+  if (authentication.state.status === "UNAUTHENTICATED") {
     return (
       <>
         <Skeleton />
@@ -26,8 +29,6 @@ export const App: React.FC = observer(() => {
 
   const renderView = () => {
     const view = views.current;
-
-    console.log(view);
 
     switch (view.name) {
       case "DASHBOARD": {
@@ -68,8 +69,9 @@ export const App: React.FC = observer(() => {
 
   return (
     <useAppContext.Provider
-      key={session.state.user.id}
-      user={session.state.user}
+      key={authentication.state.user.id}
+      user={authentication.state.user}
+      family={authentication.state.family}
     >
       <Suspense fallback={<Skeleton />}>
         <div className="h-screen overflow-hidden bg-gray-100 flex flex-col">
@@ -78,4 +80,4 @@ export const App: React.FC = observer(() => {
       </Suspense>
     </useAppContext.Provider>
   );
-});
+};

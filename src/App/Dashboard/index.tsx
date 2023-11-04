@@ -19,7 +19,7 @@ import * as selectors from "../../selectors";
 import { DinnerDTO } from "../../types";
 import { useAppContext } from "../useAppContext";
 import { useGlobalContext } from "../../useGlobalContext";
-import { observer } from "impact-app";
+import { observer } from "impact-signal";
 import { MenuCard } from "./MenuCard";
 
 SwiperCore.use([Controller]);
@@ -49,8 +49,9 @@ const WeekdayDinner = ({ dinner }: { dinner: DinnerDTO }) => {
   );
 };
 
+export const Dashboard = () => {
+  using _ = observer();
 
-export const Dashboard = observer(() => {
   const { views } = useGlobalContext();
   const { groceries, todosWithCheckList } = useAppContext();
 
@@ -124,20 +125,20 @@ export const Dashboard = observer(() => {
         >
           {t("checkLists")} ( {todosWithCheckList.length} )
         </MenuCard>
-        {/*
+
         <MenuCard
           Icon={ChatAlt2Icon}
           onClick={() => {
-            viewStack.push({
+            views.push({
               name: "PLAN_NEXT_WEEK",
-              subView: "DINNERS",
+              subView: "TODOS",
             });
           }}
           color="bg-green-500"
         >
           {t("planNextWeek")}
         </MenuCard>
-
+        {/*
           <MenuCard
             Icon={HeartIcon}
             onClick={() => {
@@ -270,4 +271,4 @@ export const Dashboard = observer(() => {
           */}
     </>
   );
-});
+};

@@ -167,10 +167,6 @@ export function createFirebase() {
       const document = await getDoc(docRef);
       const data = document.data();
 
-      if (!data) {
-        throw new Error("No document data on " + id);
-      }
-
       return data;
     },
     async getDocs<T>(collection: CollectionReference<T>) {

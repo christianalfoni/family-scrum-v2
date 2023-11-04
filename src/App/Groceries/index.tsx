@@ -7,25 +7,28 @@ import {
 } from "@heroicons/react/outline";
 
 import { useTranslations } from "next-intl";
-import { observer, use } from "impact-app";
+import { observer, use } from "impact-signal";
 import * as selectors from "../../selectors";
 import { useAppContext } from "../useAppContext";
 import { useGroceriesContext } from "./useGroceriesContext";
-import { DashboardSkeleton } from "../Dashboard";
+
 import { Awake } from "./Awake";
 import { useGlobalContext } from "../../useGlobalContext";
+import { Skeleton } from "../Dashboard/Skeleton";
 
 export const Groceries = () => {
   return (
     <useGroceriesContext.Provider>
-      <Suspense fallback={<DashboardSkeleton />}>
+      <Suspense fallback={<Skeleton />}>
         <GroceriesContent />
       </Suspense>
     </useGroceriesContext.Provider>
   );
 };
 
-const GroceriesContent = observer(() => {
+const GroceriesContent = () => {
+  using _ = observer();
+
   const t = useTranslations("GroceriesShoppingView");
   const [now] = React.useState(Date.now());
   const { views } = useGlobalContext();
@@ -129,4 +132,4 @@ const GroceriesContent = observer(() => {
       </ul>
     </div>
   );
-});
+};

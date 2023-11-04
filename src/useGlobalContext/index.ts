@@ -1,16 +1,16 @@
-import { context } from "impact-app";
+import { context } from "impact-context";
 import { createFirebase } from "./firebase";
 import { createViews } from "./views";
-import { createSession } from "./session";
+import { createAuthentication } from "./authentication";
 
 export const useGlobalContext = context(() => {
   const firebase = createFirebase();
   const views = createViews();
-  const session = createSession(firebase);
+  const authentication = createAuthentication(firebase);
 
   return {
     views,
     firebase,
-    session,
+    authentication,
   };
 });
