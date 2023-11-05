@@ -9,7 +9,7 @@ import { weekdays } from "../../../../utils";
 export const PlanTodoItem = React.memo(({ todo }: { todo: TodoDTO }) => {
   const { weeks } = useAppContext();
 
-  const nestWeekTodos = use(weeks.next.weekTodos);
+  const nestWeekTodos = use(weeks.next.getWeekTodos());
 
   return (
     <usePlanTodoItemContext.Provider
@@ -30,7 +30,7 @@ export const PlanTodoItemContent = ({ todo }: { todo: TodoDTO }) => {
   const { activityByUserId, familyUsers, setNextWeekTodoActivity } =
     usePlanTodoItemContext();
 
-  const currentWeekTodos = use(weeks.current.weekTodos);
+  const currentWeekTodos = use(weeks.current.getWeekTodos());
 
   return (
     <TodoItem todo={todo}>

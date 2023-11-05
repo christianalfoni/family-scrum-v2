@@ -9,7 +9,7 @@ import {
 import React from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { MenuCard } from "./MenuCard";
-import { getDayIndex, getFirstDateOfCurrentWeek, weekdays } from "../../utils";
+import { weekdays } from "../../utils";
 import { WeekdaySlideContent } from "./WeekDaySlideContent";
 
 export const Skeleton = () => {

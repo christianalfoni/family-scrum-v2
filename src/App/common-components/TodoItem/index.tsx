@@ -73,7 +73,7 @@ const TodoItemContent = ({ children }: { children?: React.ReactNode }) => {
           onClick={() => {
             views.push({
               name: "EDIT_TODO",
-              id: todo.id,
+              todo,
             });
           }}
         >

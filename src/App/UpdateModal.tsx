@@ -5,7 +5,6 @@ import { Fragment, useEffect } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 
 import { CheckCircleIcon } from "@heroicons/react/outline";
-import { useCache } from "../../useCache";
 
 import { gt } from "semver";
 

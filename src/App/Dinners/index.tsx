@@ -15,7 +15,7 @@ const Dinner = ({
   dinner: DinnerDTO;
   onClick: (id: string) => void;
 }) => {
-  const { getImageUrlPromise: getImageUrl } = useAppContext();
+  const { getImageUrl: getImageUrl } = useAppContext();
   const imagePromise = getImageUrl("dinners", dinner.id);
 
   return (
@@ -46,9 +46,9 @@ const Dinner = ({
 
 export const Dinners = () => {
   const { views } = useGlobalContext();
-  const { dinnersPromise: dinnersPromise } = useAppContext();
+  const { getDinners } = useAppContext();
 
-  const dinners = use(dinnersPromise);
+  const dinners = use(getDinners());
   const sortedDinners = selectors.sortedDinners(dinners);
   const t = useTranslations("DinnersView");
 
@@ -85,10 +85,10 @@ export const Dinners = () => {
             <Dinner
               key={dinner.id}
               dinner={dinner}
-              onClick={(id) =>
+              onClick={() =>
                 views.push({
                   name: "EDIT_DINNER",
-                  id,
+                  dinner,
                 })
               }
             />

@@ -10,10 +10,9 @@ export type WeekdayTodos = {
 };
 
 function DashboardContext() {
-  const { weeks, todosPromise } = useAppContext();
-
-  const todosByWeekdaySignal = derived(() => {
-    const currentWeekTodosPromise = weeks.current.weekTodos;
+  const { weeks, getTodos } = useAppContext();
+  const todosByWeekday = derived(() => {
+    const currentWeekTodosPromise = weeks.current.getWeekTodos();
     const todosByWeekday: [
       WeekdayTodos,
       WeekdayTodos,
@@ -47,7 +46,7 @@ function DashboardContext() {
 
     return todosByWeekday;
   });
-  const eventsByWeekdaySignal = derived(() => {
+  const eventsByWeekday = derived(() => {
     const eventsByWeekday: [
       TodoDTO[],
       TodoDTO[],
@@ -57,11 +56,12 @@ function DashboardContext() {
       TodoDTO[],
       TodoDTO[],
     ] = [[], [], [], [], [], [], []];
-    console.log("EHM", todosPromise.status);
+
+    const todosPromise = getTodos();
+
     if (todosPromise.status !== "fulfilled") {
       return eventsByWeekday;
     }
-    console.log("UHM");
 
     Object.values(todosPromise.value).forEach((todo) => {
       if (
@@ -90,10 +90,10 @@ function DashboardContext() {
 
   return {
     get todosByWeekday() {
-      return todosByWeekdaySignal.value;
+      return todosByWeekday.value;
     },
     get eventsByWeekday() {
-      return eventsByWeekdaySignal.value;
+      return eventsByWeekday.value;
     },
   };
 }

@@ -6,7 +6,7 @@ import { getDateFromWeekId, isWithinWeek } from "../../../utils";
 import { differenceInDays } from "date-fns";
 
 function WeekTodosContext() {
-  const { weeks, todos: todosPromise } = useAppContext();
+  const { weeks, getTodos } = useAppContext();
 
   const categorisedTodos = derived<{
     previousWeek: TodoDTO[];
@@ -14,8 +14,11 @@ function WeekTodosContext() {
     laterEvents: TodoDTO[];
     thisWeek: TodoDTO[];
   }>(() => {
+    const todosPromise = getTodos();
+    const previousWeekTodos = weeks.previous.getWeekTodos();
+
     if (
-      weeks.previous.weekTodos.status !== "fulfilled" ||
+      previousWeekTodos.status !== "fulfilled" ||
       todosPromise.status !== "fulfilled"
     ) {
       return {
@@ -26,7 +29,6 @@ function WeekTodosContext() {
       };
     }
 
-    const previousWeekTodos = weeks.previous.weekTodos.value;
     const todos = todosPromise.value;
 
     const todosInPreviousWeek = Object.values(previousWeekTodos).filter(

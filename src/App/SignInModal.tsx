@@ -7,7 +7,7 @@ import { LockClosedIcon } from "@heroicons/react/outline";
 import { useGlobalContext } from "../useGlobalContext";
 
 export const SignInModal = () => {
-  const { session } = useGlobalContext();
+  const { authentication } = useGlobalContext();
   const t = useTranslations("SignInModal");
 
   return (
@@ -67,7 +67,7 @@ export const SignInModal = () => {
                 <button
                   type="button"
                   className="inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:text-sm"
-                  onClick={() => session.signIn()}
+                  onClick={() => authentication.signIn()}
                 >
                   {t("loginWithGoogle")}
                 </button>

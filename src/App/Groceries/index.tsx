@@ -32,27 +32,25 @@ const GroceriesContent = () => {
   const t = useTranslations("GroceriesShoppingView");
   const [now] = React.useState(Date.now());
   const { views } = useGlobalContext();
-  const { groceriesPromise: groceries } = useAppContext();
+  const { getGroceries } = useAppContext();
   const { newGroceryInput, changeNewGroceryInput, addGrocery, removeGrocery } =
     useGroceriesContext();
-
-  const groceriesList = use(groceries);
-
-  const [initialGroceriesLength] = React.useState(groceriesList.length);
+  const groceries = use(getGroceries());
+  const [initialGroceriesLength] = React.useState(groceries.length);
 
   const filteredOrSortedList = newGroceryInput
-    ? selectors.filteredGroceriesByInput(groceriesList, newGroceryInput)
-    : selectors.sortedGroceriesByNameAndCreated(groceriesList, now);
+    ? selectors.filteredGroceriesByInput(groceries, newGroceryInput)
+    : selectors.sortedGroceriesByNameAndCreated(groceries, now);
 
   useEffect(() => {
-    if (!groceriesList.length && initialGroceriesLength) {
+    if (!groceries.length && initialGroceriesLength) {
       confetti({
         particleCount: 100,
         spread: 70,
         origin: { y: 0.6 },
       });
     }
-  }, [groceriesList.length, initialGroceriesLength]);
+  }, [groceries.length, initialGroceriesLength]);
 
   return (
     <div className="bg-white flex flex-col h-screen">

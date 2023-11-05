@@ -10,18 +10,10 @@ function GroceriesContext() {
   const groceriesCollection = firebase.collections.groceries(user.familyId);
 
   const newGroceryInput = signal("");
-  const addingGrocery = signal<Promise<void>>();
-  const removingGrocery = signal<Promise<void>>();
 
   return {
     get newGroceryInput() {
       return newGroceryInput.value;
-    },
-    get addingGrocery() {
-      return addingGrocery.value;
-    },
-    get removingGrocery() {
-      return removingGrocery.value;
     },
     changeNewGroceryInput(input: string) {
       newGroceryInput.value = input;
@@ -31,7 +23,7 @@ function GroceriesContext() {
       const currentInput = newGroceryInput.value;
       newGroceryInput.value = "";
 
-      addingGrocery.value = firebase
+      firebase
         .setDoc(groceriesCollection, {
           id: firebase.createId(groceriesCollection),
           name,
@@ -43,13 +35,9 @@ function GroceriesContext() {
 
           throw error;
         });
-
-      return addingGrocery.value;
     },
     removeGrocery(id: string) {
-      removingGrocery.value = firebase.deleteDoc(groceriesCollection, id);
-
-      return removingGrocery.value;
+      firebase.deleteDoc(groceriesCollection, id);
     },
   };
 }

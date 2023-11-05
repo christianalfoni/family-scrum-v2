@@ -22,7 +22,8 @@ export const DashboardContent = () => {
   const t = useTranslations("DashboardView");
 
   const { views } = useGlobalContext();
-  const { groceriesPromise: groceries, todosWithCheckList } = useAppContext();
+  const { getGroceries, todosWithCheckList } = useAppContext();
+  const groceriesPromise = getGroceries();
 
   return (
     <>
@@ -37,7 +38,10 @@ export const DashboardContent = () => {
           color="bg-red-500"
         >
           {t("goShopping")} (
-          {groceries.status === "fulfilled" ? groceries.value.length : 0})
+          {groceriesPromise.status === "fulfilled"
+            ? groceriesPromise.value.length
+            : 0}
+          )
         </MenuCard>
 
         <MenuCard

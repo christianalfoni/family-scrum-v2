@@ -1,5 +1,6 @@
 import { produce } from "immer";
 import { signal } from "impact-signal";
+import { DinnerDTO, TodoDTO } from "./firebase";
 
 export type View =
   | {
@@ -20,11 +21,11 @@ export type View =
     }
   | {
       name: "EDIT_DINNER";
-      id?: string;
+      dinner?: DinnerDTO;
     }
   | {
       name: "EDIT_TODO";
-      id?: string;
+      todo?: TodoDTO;
     };
 
 export function createViews() {

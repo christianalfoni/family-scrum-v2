@@ -18,7 +18,7 @@ SwiperCore.use([Controller]);
 const WeekdayDinner = ({ dinner }: { dinner: DinnerDTO }) => {
   using _ = observer();
 
-  const { getImageUrlPromise: getImageUrl } = useAppContext();
+  const { getImageUrl: getImageUrl } = useAppContext();
   const imageUrlPromise = getImageUrl("dinners", dinner.id);
 
   return (
@@ -49,7 +49,7 @@ function isTodo(todo?: TodoDTO): todo is TodoDTO {
 export const CurrentWeekTodos = memo(() => {
   using _ = observer();
 
-  const { dinnersPromise, todosPromise, weeks, family } = useAppContext();
+  const { getDinners, getTodos, weeks, family } = useAppContext();
   const { todosByWeekday, eventsByWeekday } = useDashboardContext();
 
   const tCommon = useTranslations("common");
@@ -60,9 +60,9 @@ export const CurrentWeekTodos = memo(() => {
   const [controlledSwiper, setControlledSwiper] = useState<SwiperCore | null>(
     null,
   );
-  const dinners = use(dinnersPromise);
-  const currentWeek = use(weeks.current.week);
-  const todos = use(todosPromise);
+  const dinners = use(getDinners());
+  const currentWeek = use(weeks.current.getWeek());
+  const todos = use(getTodos());
 
   return (
     <>

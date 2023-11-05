@@ -2,12 +2,7 @@ import { Signal, derived, signal } from "impact-signal";
 import { cleanup, context } from "impact-context";
 import { useGlobalContext } from "../useGlobalContext";
 import { FamilyDTO, UserDTO, WeekDTO } from "../useGlobalContext/firebase";
-import {
-  getCurrentWeekId,
-  getNextWeekId,
-  getPreviousWeekId,
-  mod,
-} from "../utils";
+import { getCurrentWeekId, getNextWeekId, getPreviousWeekId } from "../utils";
 import { Timestamp } from "firebase/firestore";
 
 function collectionToLookupRecord<T extends { id: string }>(collection: T[]) {
@@ -50,7 +45,7 @@ function AppContext({ user, family }: { user: UserDTO; family: FamilyDTO }) {
    */
   function createWeekSignals(weekId: string) {
     // We default to an empty document
-    const weekPromiseSignal = signal(
+    const weekPromise = signal(
       firebase.getDoc(weeksCollection, weekId).then(
         (doc): WeekDTO =>
           doc || {
@@ -64,7 +59,7 @@ function AppContext({ user, family }: { user: UserDTO; family: FamilyDTO }) {
       weekId,
     );
 
-    const weekTodosPromiseSignal = signal(
+    const weekTodosPromise = signal(
       firebase.getDocs(weekTodosCollection).then(collectionToLookupRecord),
     );
 
@@ -72,22 +67,22 @@ function AppContext({ user, family }: { user: UserDTO; family: FamilyDTO }) {
       weeksCollection,
       weekId,
       (update) => {
-        weekPromiseSignal.value = Promise.resolve(update);
+        weekPromise.value = Promise.resolve(update);
       },
     );
 
     const disposeWeekTodosSnapshot = firebase.onCollectionSnapshot(
       weekTodosCollection,
       (update) => {
-        weekTodosPromiseSignal.value = Promise.resolve(
+        weekTodosPromise.value = Promise.resolve(
           collectionToLookupRecord(update),
         );
       },
     );
 
     return {
-      week: weekPromiseSignal,
-      weekTodos: weekTodosPromiseSignal,
+      weekPromise,
+      weekTodosPromise,
       dispose() {
         disposeWeekSnapshot();
         disposeWeekTodosSnapshot();
@@ -103,20 +98,17 @@ function AppContext({ user, family }: { user: UserDTO; family: FamilyDTO }) {
     nextWeekId,
   ].map(createWeekSignals);
 
-  const dinnersPromiseSignal = signal(
+  const dinnersPromise = signal(
     firebase.getDocs(dinnersCollection).then(sortByCreated),
   );
-  const imageUrlPromiseSignals: Record<
-    string,
-    Signal<Promise<string | null>>
-  > = {};
-  const todosPromiseSignal = signal(firebase.getDocs(todosCollection));
-  const todosWithCheckListSignal = derived(() =>
-    todosPromiseSignal.value.status === "fulfilled"
-      ? todosPromiseSignal.value.value.filter((todo) => Boolean(todo.checkList))
+  const imageUrlPromises: Record<string, Signal<Promise<string | null>>> = {};
+  const todosPromise = signal(firebase.getDocs(todosCollection));
+  const todosWithCheckList = derived(() =>
+    todosPromise.value.status === "fulfilled"
+      ? todosPromise.value.value.filter((todo) => Boolean(todo.checkList))
       : [],
   );
-  const groceriesPromiseSignal = signal(firebase.getDocs(groceriesCollection));
+  const groceriesPromise = signal(firebase.getDocs(groceriesCollection));
 
   /**
    * DATA SUBSCRIPTIONS
@@ -127,20 +119,20 @@ function AppContext({ user, family }: { user: UserDTO; family: FamilyDTO }) {
 
   cleanup(
     firebase.onCollectionSnapshot(todosCollection, (update) => {
-      todosPromiseSignal.value = Promise.resolve(update);
+      todosPromise.value = Promise.resolve(update);
     }),
   );
 
   cleanup(
     firebase.onCollectionSnapshot(dinnersCollection, (update) => {
-      dinnersPromiseSignal.value = Promise.resolve(sortByCreated(update));
+      dinnersPromise.value = Promise.resolve(sortByCreated(update));
     }),
   );
 
   cleanup(
     firebase.onCollectionSnapshot(
       groceriesCollection,
-      (update) => (groceriesPromiseSignal.value = Promise.resolve(update)),
+      (update) => (groceriesPromise.value = Promise.resolve(update)),
     ),
   );
 
@@ -151,48 +143,54 @@ function AppContext({ user, family }: { user: UserDTO; family: FamilyDTO }) {
     get family() {
       return family;
     },
-    get dinnersPromise() {
-      return dinnersPromiseSignal.value;
-    },
-    get groceriesPromise() {
-      return groceriesPromiseSignal.value;
-    },
-    get todosPromise() {
-      return todosPromiseSignal.value;
-    },
     get todosWithCheckList() {
-      return todosWithCheckListSignal.value;
+      return todosWithCheckList.value;
+    },
+    getDinners() {
+      return dinnersPromise.value;
+    },
+    getGroceries() {
+      return groceriesPromise.value;
+    },
+    getTodos() {
+      return todosPromise.value;
     },
     weeks: {
-      get previous() {
-        return {
-          id: previousWeekId,
-          week: previousWeek.week.value,
-          weekTodos: previousWeek.weekTodos.value,
-        };
+      previous: {
+        id: previousWeekId,
+        getWeek() {
+          return previousWeek.weekPromise.value;
+        },
+        getWeekTodos() {
+          return previousWeek.weekTodosPromise.value;
+        },
       },
-      get current() {
-        return {
-          id: currentWeekId,
-          week: currentWeek.week.value,
-          weekTodos: currentWeek.weekTodos.value,
-        };
+      current: {
+        id: currentWeekId,
+        getWeek() {
+          return currentWeek.weekPromise.value;
+        },
+        getWeekTodos() {
+          return currentWeek.weekTodosPromise.value;
+        },
       },
-      get next() {
-        return {
-          id: nextWeekId,
-          week: nextWeek.week.value,
-          weekTodos: nextWeek.weekTodos.value,
-        };
+      next: {
+        id: nextWeekId,
+        getWeek() {
+          return nextWeek.weekPromise.value;
+        },
+        getWeekTodos() {
+          return nextWeek.weekTodosPromise.value;
+        },
       },
     },
-    getImageUrlPromise(collection: string, id: string) {
+    getImageUrl(collection: string, id: string) {
       const ref = collection + "/" + id;
 
-      let imageUrl = imageUrlPromiseSignals[ref];
+      let imageUrl = imageUrlPromises[ref];
 
       if (!imageUrl) {
-        imageUrl = imageUrlPromiseSignals[ref] = signal(
+        imageUrl = imageUrlPromises[ref] = signal(
           firebase.getImageUrl(ref).catch(() => null),
         );
       }

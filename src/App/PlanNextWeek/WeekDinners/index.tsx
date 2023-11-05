@@ -12,7 +12,7 @@ import { DinnerDTO } from "../../../useGlobalContext/firebase";
 import { useWeekDinnersContext } from "./useWeekDinnersContext";
 
 const DinnerSlide = ({ dinner }: { dinner: DinnerDTO }) => {
-  const { getImageUrlPromise: getImageUrl } = useAppContext();
+  const { getImageUrl: getImageUrl } = useAppContext();
   const image = getImageUrl("dinners", dinner.id);
 
   return (
@@ -116,10 +116,10 @@ export const DinnerItem = ({
 };
 
 const WeekDinnersContent = () => {
-  const { dinnersPromise: dinnersPromise } = useAppContext();
+  const { getDinners } = useAppContext();
   const { setNextWeekDinners, weekDinners } = useWeekDinnersContext();
 
-  const dinners = use(dinnersPromise);
+  const dinners = use(getDinners());
 
   return (
     <ul className="relative z-0 divide-y divide-gray-200 border-b border-gray-200 overflow-y-scroll">
@@ -142,7 +142,7 @@ const WeekDinnersContent = () => {
 export function WeekDinners() {
   const { weeks } = useAppContext();
 
-  const nextWeek = use(weeks.next.week);
+  const nextWeek = use(weeks.next.getWeek());
 
   return (
     <useWeekDinnersContext.Provider initialWeekDinners={nextWeek.dinners}>

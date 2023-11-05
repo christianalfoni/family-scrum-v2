@@ -3,6 +3,8 @@ import { CheckLists } from "./CheckLists";
 import { Dashboard } from "./Dashboard";
 import { Skeleton } from "./Dashboard/Skeleton";
 import { Dinners } from "./Dinners";
+import { EditDinner } from "./EditDinner";
+import { EditTodo } from "./EditTodo";
 import { Groceries } from "./Groceries";
 import { PlanNextWeek } from "./PlanNextWeek";
 import { SignInModal } from "./SignInModal";
@@ -49,21 +51,10 @@ export const App: React.FC = () => {
         return <Dinners />;
       }
       case "EDIT_DINNER": {
-        return (
-          <EditDinner
-            user={user}
-            initialDinner={view.id ? dinners[view.id] : undefined}
-          />
-        );
+        return <EditDinner dinner={view.dinner} />;
       }
       case "EDIT_TODO": {
-        return (
-          <EditTodo
-            user={user}
-            todo={view.id ? todos[view.id] : undefined}
-            onBackClick={() => dispatchViewStack({ type: "POP_VIEW" })}
-          />
-        );
+        return <EditTodo todo={view.todo} />;
       }
     }
   };
