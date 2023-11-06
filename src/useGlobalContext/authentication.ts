@@ -3,28 +3,37 @@ import { cleanup } from "impact-context";
 import { signal } from "impact-signal";
 import type { FamilyDTO, UserDTO, createFirebase } from "./firebase";
 
+type AuthenticatedSessionState = {
+  status: "AUTHENTICATED";
+  user: UserDTO;
+  family: FamilyDTO;
+};
+
 export type SessionState =
   | {
       status: "AUTHENTICATING";
     }
-  | {
-      status: "AUTHENTICATED";
-      user: UserDTO;
-      family: FamilyDTO;
-    }
+  | AuthenticatedSessionState
   | {
       status: "UNAUTHENTICATED";
       reason?: string;
     };
+
+const AUTHENTICATION_CACHE_KEY = "family_scrum_authentication";
 
 export function createAuthentication(
   firebase: ReturnType<typeof createFirebase>,
 ) {
   const usersCollection = firebase.collections.users();
   const familiesCollection = firebase.collections.families();
-  const state = signal<SessionState>({
-    status: "AUTHENTICATING",
-  });
+  const cachedAuthentication: AuthenticatedSessionState | null = JSON.parse(
+    localStorage.getItem(AUTHENTICATION_CACHE_KEY) || "null",
+  );
+  const state = signal<SessionState>(
+    cachedAuthentication || {
+      status: "AUTHENTICATING",
+    },
+  );
 
   cleanup(firebase.onAuthChanged(handleAuthStateChanged));
 
@@ -52,6 +61,10 @@ export function createAuthentication(
             user,
             family,
           };
+          localStorage.setItem(
+            AUTHENTICATION_CACHE_KEY,
+            JSON.stringify(state.value),
+          );
         }
       } catch (e) {
         state.value = {
