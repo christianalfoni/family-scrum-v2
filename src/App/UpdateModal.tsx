@@ -1,56 +1,26 @@
 import { useTranslations } from "next-intl";
 
 /* This example requires Tailwind CSS v2.0+ */
-import { Fragment, useEffect } from "react";
+import { Fragment } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 
 import { CheckCircleIcon } from "@heroicons/react/outline";
-
-import { gt } from "semver";
-
-const fetchVersion = async () => {
-  const response = await fetch("/api/version");
-  const { version } = await response.json();
-
-  return version as string;
-};
-
-const STORAGE_KEY = "family-scrum.version";
-
-const useNewVersion = () => {
-  const cache = useCache<string>("version", fetchVersion);
-  const localVersion = localStorage.getItem(STORAGE_KEY);
-
-  const version = cache.read();
-
-  useEffect(() => {
-    if (version.status === "fresh") {
-      localStorage.setItem(STORAGE_KEY, version.data);
-    }
-  }, [version, localVersion]);
-
-  if (
-    version.status === "fresh" &&
-    localVersion &&
-    gt(version.data, localVersion)
-  ) {
-    return true;
-  }
-
-  return false;
-};
+import { useGlobalContext } from "../useGlobalContext";
+import { observer } from "impact-signal";
 
 export const UpdateModal = () => {
+  using _ = observer();
+
   const t = useTranslations("UpdateModal");
-  const hasNewVersion = useNewVersion();
+  const { version } = useGlobalContext();
 
   return (
-    <Transition.Root show={hasNewVersion} as={Fragment}>
+    <Transition.Root show={version.hasNew} as={Fragment}>
       <Dialog
         as="div"
         static
         className="fixed z-30 inset-0 overflow-y-auto"
-        open={hasNewVersion}
+        open={version.hasNew}
         onClose={() => {}}
       >
         <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">

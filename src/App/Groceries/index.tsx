@@ -8,7 +8,6 @@ import {
 
 import { useTranslations } from "next-intl";
 import { observer, use } from "impact-signal";
-import * as selectors from "../../selectors";
 import { useAppContext } from "../useAppContext";
 import { useGroceriesContext } from "./useGroceriesContext";
 
@@ -17,8 +16,12 @@ import { useGlobalContext } from "../../useGlobalContext";
 import { Skeleton } from "../Dashboard/Skeleton";
 
 export const Groceries = () => {
+  const { getGroceries } = useAppContext();
+
+  const groceries = use(getGroceries());
+
   return (
-    <useGroceriesContext.Provider>
+    <useGroceriesContext.Provider groceries={groceries}>
       <Suspense fallback={<Skeleton />}>
         <GroceriesContent />
       </Suspense>
@@ -30,27 +33,14 @@ const GroceriesContent = () => {
   using _ = observer();
 
   const t = useTranslations("GroceriesShoppingView");
-  const [now] = React.useState(Date.now());
   const { views } = useGlobalContext();
-  const { getGroceries } = useAppContext();
-  const { newGroceryInput, changeNewGroceryInput, addGrocery, removeGrocery } =
-    useGroceriesContext();
-  const groceries = use(getGroceries());
-  const [initialGroceriesLength] = React.useState(groceries.length);
-
-  const filteredOrSortedList = newGroceryInput
-    ? selectors.filteredGroceriesByInput(groceries, newGroceryInput)
-    : selectors.sortedGroceriesByNameAndCreated(groceries, now);
-
-  useEffect(() => {
-    if (!groceries.length && initialGroceriesLength) {
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 },
-      });
-    }
-  }, [groceries.length, initialGroceriesLength]);
+  const {
+    newGroceryInput,
+    changeNewGroceryInput,
+    addGrocery,
+    removeGrocery,
+    groceries,
+  } = useGroceriesContext();
 
   return (
     <div className="bg-white flex flex-col h-screen">
@@ -109,7 +99,7 @@ const GroceriesContent = () => {
         </span>
       </div>
       <ul className="relative z-0 divide-y divide-gray-200 border-b border-gray-200 overflow-y-scroll">
-        {filteredOrSortedList.map((grocery) => {
+        {groceries.map((grocery) => {
           return (
             <li
               key={grocery.id}

@@ -1,9 +1,8 @@
-import React, { Dispatch } from "react";
+import React from "react";
 import { ChevronLeftIcon, PlusIcon } from "@heroicons/react/outline";
-import * as selectors from "../../selectors";
 
 import { useTranslations } from "next-intl";
-import { DinnerDTO, UserDTO } from "../../useGlobalContext/firebase";
+import { DinnerDTO } from "../../useGlobalContext/firebase";
 import { useAppContext } from "../useAppContext";
 import { useGlobalContext } from "../../useGlobalContext";
 import { use } from "impact-signal";
@@ -49,7 +48,6 @@ export const Dinners = () => {
   const { getDinners } = useAppContext();
 
   const dinners = use(getDinners());
-  const sortedDinners = selectors.sortedDinners(dinners);
   const t = useTranslations("DinnersView");
 
   return (
@@ -79,9 +77,9 @@ export const Dinners = () => {
           </div>
         </div>
       </div>
-      {sortedDinners.length ? (
+      {dinners.length ? (
         <ul className="relative z-0 divide-y divide-gray-200 border-b border-gray-200 overflow-y-scroll">
-          {sortedDinners.map((dinner) => (
+          {dinners.map((dinner) => (
             <Dinner
               key={dinner.id}
               dinner={dinner}
