@@ -19,28 +19,23 @@
     },
     "deploy:functions": {
       "name": "deploy:functions",
-      "command": "yarn deploy:functions",
-      "runAtStart": false
+      "command": "yarn deploy:functions"
     },
     "dev:sandbox": {
       "name": "dev:sandbox",
-      "command": "yarn dev:sandbox",
-      "runAtStart": false
+      "command": "yarn dev:sandbox"
     },
     "build": {
       "name": "build",
-      "command": "yarn build",
-      "runAtStart": false
+      "command": "yarn build"
     },
     "start": {
       "name": "start",
-      "command": "yarn start",
-      "runAtStart": false
+      "command": "yarn start"
     },
     "typecheck": {
       "name": "typecheck",
-      "command": "yarn typecheck",
-      "runAtStart": false
+      "command": "yarn typecheck"
     }
   }
 }
