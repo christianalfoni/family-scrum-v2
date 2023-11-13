@@ -13,11 +13,8 @@ import { DinnerDTO } from "../../useGlobalContext/firebase";
 import { useEditDinnerContext } from "./useEditDinnerContext";
 import { useAppContext } from "../useAppContext";
 import { useGlobalContext } from "../../useGlobalContext";
-import { observer } from "impact-signal";
 
 export const EditDinnerContent = () => {
-  using _ = observer();
-
   const { camera, views } = useGlobalContext();
   const { getImageUrl } = useAppContext();
   const dinner = useEditDinnerContext();

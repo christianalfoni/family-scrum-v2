@@ -9,12 +9,10 @@ import { Groceries } from "./Groceries";
 import { PlanNextWeek } from "./PlanNextWeek";
 import { SignInModal } from "./SignInModal";
 import { useAppContext } from "./useAppContext";
-import { observer } from "impact-signal";
+
 import { Suspense } from "react";
 
 export const App: React.FC = () => {
-  using _ = observer();
-
   const { authentication, views } = useGlobalContext();
 
   if (authentication.state.status === "AUTHENTICATING") {
@@ -30,34 +28,40 @@ export const App: React.FC = () => {
     );
   }
 
-  const renderView = () => {
-    const view = views.current;
+  const view = views.current;
+  let content: JSX.Element;
 
-    switch (view.name) {
-      case "DASHBOARD": {
-        return <Dashboard />;
-      }
-      case "GROCERIES_SHOPPING": {
-        return <Groceries />;
-      }
-      case "CHECKLISTS": {
-        return <CheckLists />;
-      }
-      case "PLAN_NEXT_WEEK": {
-        return <PlanNextWeek view={view.subView} />;
-      }
-
-      case "DINNERS": {
-        return <Dinners />;
-      }
-      case "EDIT_DINNER": {
-        return <EditDinner dinner={view.dinner} />;
-      }
-      case "EDIT_TODO": {
-        return <EditTodo todo={view.todo} />;
-      }
+  switch (view.name) {
+    case "DASHBOARD": {
+      content = <Dashboard />;
+      break;
     }
-  };
+    case "GROCERIES_SHOPPING": {
+      content = <Groceries />;
+      break;
+    }
+    case "CHECKLISTS": {
+      content = <CheckLists />;
+      break;
+    }
+    case "PLAN_NEXT_WEEK": {
+      content = <PlanNextWeek view={view.subView} />;
+      break;
+    }
+
+    case "DINNERS": {
+      content = <Dinners />;
+      break;
+    }
+    case "EDIT_DINNER": {
+      content = <EditDinner dinner={view.dinner} />;
+      break;
+    }
+    case "EDIT_TODO": {
+      content = <EditTodo todo={view.todo} />;
+      break;
+    }
+  }
 
   return (
     <useAppContext.Provider
@@ -67,7 +71,7 @@ export const App: React.FC = () => {
     >
       <Suspense fallback={<Skeleton />}>
         <div className="h-screen overflow-hidden bg-gray-100 flex flex-col">
-          {renderView()}
+          {content}
         </div>
       </Suspense>
     </useAppContext.Provider>

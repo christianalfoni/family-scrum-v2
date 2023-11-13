@@ -1,11 +1,10 @@
-import { derived } from "impact-signal";
-import { context } from "impact-context";
+import { derived, context } from "impact-app";
 import { useAppContext } from "../../useAppContext";
 import { TodoDTO } from "../../../useGlobalContext/firebase";
 import { getDateFromWeekId, isWithinWeek } from "../../../utils";
 import { differenceInDays } from "date-fns";
 
-function WeekTodosContext() {
+export const useWeekTodosContext = context(() => {
   const { weeks, getTodos } = useAppContext();
 
   const categorisedTodos = derived<{
@@ -114,6 +113,4 @@ function WeekTodosContext() {
       return categorisedTodos.value;
     },
   };
-}
-
-export const useWeekTodosContext = context(WeekTodosContext);
+});

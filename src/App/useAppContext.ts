@@ -1,49 +1,35 @@
-import { Signal, derived, signal } from "impact-signal";
-import { cleanup, context } from "impact-context";
+import { Signal, derived, signal, cleanup, context } from "impact-app";
 import { useGlobalContext } from "../useGlobalContext";
 import { FamilyDTO, UserDTO, WeekDTO } from "../useGlobalContext/firebase";
 import { getCurrentWeekId, getNextWeekId, getPreviousWeekId } from "../utils";
 import { Timestamp } from "firebase/firestore";
 
-function collectionToLookupRecord<T extends { id: string }>(collection: T[]) {
-  return collection.reduce<Record<string, T>>((aggr, doc) => {
-    aggr[doc.id] = doc;
+export type Props = {
+  user: UserDTO;
+  family: FamilyDTO;
+};
 
-    return aggr;
-  }, {});
-}
+export const useAppContext = context((props: Props) => {
+  const { user, family } = props;
 
-function sortByCreated<T extends { created: Timestamp }>(items: T[]) {
-  return items.sort((a, b) => {
-    if (a.created < b.created) {
-      return 1;
-    } else if (a.created > b.created) {
-      return -1;
-    }
-
-    return 0;
-  });
-}
-
-function AppContext({ user, family }: { user: UserDTO; family: FamilyDTO }) {
   const { firebase } = useGlobalContext();
 
   const previousWeekId = getPreviousWeekId();
   const currentWeekId = getCurrentWeekId();
   const nextWeekId = getNextWeekId();
 
-  /**
-   * COLLECTIONS
-   */
   const dinnersCollection = firebase.collections.dinners(user.familyId);
   const groceriesCollection = firebase.collections.groceries(user.familyId);
   const todosCollection = firebase.collections.todos(user.familyId);
   const weeksCollection = firebase.collections.weeks(user.familyId);
 
-  /**
-   * DATA SIGNALS
-   */
-  function createWeekSignals(weekId: string) {
+  // We map over the previous, current and next week to get and subscribe to
+  // the week dinners and todos of the week
+  const [previousWeek, currentWeek, nextWeek] = [
+    previousWeekId,
+    currentWeekId,
+    nextWeekId,
+  ].map((weekId) => {
     // We default to an empty document
     const weekPromise = signal(
       firebase.getDoc(weeksCollection, weekId).then(
@@ -88,15 +74,7 @@ function AppContext({ user, family }: { user: UserDTO; family: FamilyDTO }) {
         disposeWeekTodosSnapshot();
       },
     };
-  }
-
-  // We map over three previous, current and next week to get and subscribe to
-  // the week dinners and todos of the week
-  const [previousWeek, currentWeek, nextWeek] = [
-    previousWeekId,
-    currentWeekId,
-    nextWeekId,
-  ].map(createWeekSignals);
+  });
 
   const dinnersPromise = signal(
     firebase.getDocs(dinnersCollection).then(sortByCreated),
@@ -110,9 +88,6 @@ function AppContext({ user, family }: { user: UserDTO; family: FamilyDTO }) {
   );
   const groceriesPromise = signal(firebase.getDocs(groceriesCollection));
 
-  /**
-   * DATA SUBSCRIPTIONS
-   */
   cleanup(previousWeek.dispose);
   cleanup(currentWeek.dispose);
   cleanup(nextWeek.dispose);
@@ -198,6 +173,24 @@ function AppContext({ user, family }: { user: UserDTO; family: FamilyDTO }) {
       return imageUrl.value;
     },
   };
+});
+
+function collectionToLookupRecord<T extends { id: string }>(collection: T[]) {
+  return collection.reduce<Record<string, T>>((aggr, doc) => {
+    aggr[doc.id] = doc;
+
+    return aggr;
+  }, {});
 }
 
-export const useAppContext = context(AppContext);
+function sortByCreated<T extends { created: Timestamp }>(items: T[]) {
+  return items.sort((a, b) => {
+    if (a.created < b.created) {
+      return 1;
+    } else if (a.created > b.created) {
+      return -1;
+    }
+
+    return 0;
+  });
+}

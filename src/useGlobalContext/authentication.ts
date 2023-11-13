@@ -1,7 +1,6 @@
 import { User } from "firebase/auth";
-import { cleanup } from "impact-context";
-import { signal } from "impact-signal";
-import type { FamilyDTO, UserDTO, createFirebase } from "./firebase";
+import { signal, cleanup } from "impact-app";
+import type { FamilyDTO, UserDTO, useFirebase } from "./firebase";
 
 type AuthenticatedSessionState = {
   status: "AUTHENTICATED";
@@ -21,9 +20,7 @@ export type SessionState =
 
 const AUTHENTICATION_CACHE_KEY = "family_scrum_authentication";
 
-export function createAuthentication(
-  firebase: ReturnType<typeof createFirebase>,
-) {
+export function useAuthentication(firebase: ReturnType<typeof useFirebase>) {
   const usersCollection = firebase.collections.users();
   const familiesCollection = firebase.collections.families();
   const cachedAuthentication: AuthenticatedSessionState | null = JSON.parse(

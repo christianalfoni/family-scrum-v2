@@ -1,5 +1,4 @@
-import confetti from "canvas-confetti";
-import React, { Suspense, useEffect } from "react";
+import React, { Suspense } from "react";
 import {
   ChevronLeftIcon,
   PlusIcon,
@@ -7,7 +6,7 @@ import {
 } from "@heroicons/react/outline";
 
 import { useTranslations } from "next-intl";
-import { observer, use } from "impact-signal";
+import { use } from "impact-app";
 import { useAppContext } from "../useAppContext";
 import { useGroceriesContext } from "./useGroceriesContext";
 
@@ -30,8 +29,6 @@ export const Groceries = () => {
 };
 
 const GroceriesContent = () => {
-  using _ = observer();
-
   const t = useTranslations("GroceriesShoppingView");
   const { views } = useGlobalContext();
   const {

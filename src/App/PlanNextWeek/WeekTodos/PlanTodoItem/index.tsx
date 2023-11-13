@@ -1,6 +1,6 @@
 import React, { Suspense } from "react";
-import { TodoDTO, WeekTodoDTO } from "../../../../useGlobalContext/firebase";
-import { observer, use } from "impact-signal";
+import { TodoDTO } from "../../../../useGlobalContext/firebase";
+import { use } from "impact-app";
 import { TodoItem } from "../../../common-components/TodoItem";
 import { usePlanTodoItemContext } from "./usePlanTodoItemContext";
 import { useAppContext } from "../../../useAppContext";
@@ -24,8 +24,6 @@ export const PlanTodoItem = React.memo(({ todo }: { todo: TodoDTO }) => {
 });
 
 export const PlanTodoItemContent = ({ todo }: { todo: TodoDTO }) => {
-  using _ = observer();
-
   const { weeks, user } = useAppContext();
   const { activityByUserId, familyUsers, setNextWeekTodoActivity } =
     usePlanTodoItemContext();

@@ -1,14 +1,18 @@
-import { context } from "impact-context";
 import { TodoDTO } from "../../useGlobalContext/firebase";
-import { derived, signal } from "impact-signal";
+import { derived, signal, context } from "impact-app";
 import { useGlobalContext } from "../../useGlobalContext";
 import { useAppContext } from "../useAppContext";
 import { produce } from "immer";
 import { Timestamp } from "firebase/firestore";
 
-function EditTodoContext({ todo: initialTodo }: { todo?: TodoDTO }) {
+export type Props = { todo?: TodoDTO };
+
+export const useEditTodoContext = context((props: Props) => {
+  const { todo: initialTodo } = props;
+
   const { firebase, views } = useGlobalContext();
   const { user } = useAppContext();
+
   const todosCollection = firebase.collections.todos(user.familyId);
 
   const todo = signal<TodoDTO>(
@@ -110,6 +114,4 @@ function EditTodoContext({ todo: initialTodo }: { todo?: TodoDTO }) {
       views.pop();
     },
   };
-}
-
-export const useEditTodoContext = context(EditTodoContext);
+});

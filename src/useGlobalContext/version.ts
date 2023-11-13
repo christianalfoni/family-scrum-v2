@@ -1,6 +1,4 @@
-import { context } from "impact-context";
-import { signal } from "impact-signal";
-
+import { signal } from "impact-app";
 import { gt } from "semver";
 
 const fetchVersion = async () => {
@@ -12,7 +10,7 @@ const fetchVersion = async () => {
 
 const STORAGE_KEY = "family-scrum.version";
 
-export function createVersion() {
+export function useVersion() {
   const hasNew = signal(false);
   const currentVersion = localStorage.getItem(STORAGE_KEY);
 

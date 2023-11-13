@@ -10,15 +10,13 @@ import React, { Suspense } from "react";
 
 import { useAppContext } from "../useAppContext";
 import { useGlobalContext } from "../../useGlobalContext";
-import { observer } from "impact-signal";
+
 import { MenuCard } from "./MenuCard";
 
 import { useDashboardContext } from "./useDashboardContext";
 import { CurrentWeekTodos } from "./CurrentWeekTodos";
 
 export const DashboardContent = () => {
-  using _ = observer();
-
   const t = useTranslations("DashboardView");
 
   const { views } = useGlobalContext();

@@ -2119,15 +2119,23 @@ immer@^10.0.3:
   resolved "https://registry.yarnpkg.com/immer/-/immer-10.0.3.tgz#a8de42065e964aa3edf6afc282dfc7f7f34ae3c9"
   integrity sha512-pwupu3eWfouuaowscykeckFmVTpqbzW+rXFCX8rQLkZzM9ftBmU/++Ra+o+L27mz03zJTlyV4UUr+fdKNffo4A==
 
-impact-context@^0.1.1:
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/impact-context/-/impact-context-0.1.1.tgz#d0bdfef9cc944988b26fde1460503028479f9b38"
-  integrity sha512-EyrDLmF12T45kIrKlba8e0WlYxap+3eNaxo8x65j88ikDNwFin8tyDSNiyON4oHf+nP7q/e5AoZ4SfpkaMJLkg==
+impact-app@^0.38.1:
+  version "0.38.1"
+  resolved "https://registry.yarnpkg.com/impact-app/-/impact-app-0.38.1.tgz#ecf18a81d7bc0fe7e2aab097f150ffc3530e74b5"
+  integrity sha512-nT9o3NSaLHGyXgbQYtFFYo7DWuCua9D3CTSCGdCUiOwH9eY4Z2GsJnDrR+faXESiPwclQA79Wz8ck3kEpPXGQQ==
+  dependencies:
+    impact-context latest
+    impact-signal latest
 
-impact-signal@^0.1.4:
-  version "0.1.4"
-  resolved "https://registry.yarnpkg.com/impact-signal/-/impact-signal-0.1.4.tgz#cb27daa63ebc310c685b6cdbaab81df1dbe7379a"
-  integrity sha512-QxSQGltBYoj6+klgQszwUMeOLS1cQ8AjeI0pIl5JVjlKToXpoZSU3qUQgviY/tw52U5Et/1JCDwyoNehG1d6UQ==
+impact-context@latest:
+  version "0.1.3"
+  resolved "https://registry.yarnpkg.com/impact-context/-/impact-context-0.1.3.tgz#505eb96e92eff262dc9b884e29dfa08404ae4dab"
+  integrity sha512-enhV4lxoDIuZY0HjJRBRNp0l0FNCyaYd9fPCYV7Yda5/0GmO+fTHFJj7dAbrjGFBeJAitK12eaq+hq7KginiEw==
+
+impact-signal@latest:
+  version "0.1.5"
+  resolved "https://registry.yarnpkg.com/impact-signal/-/impact-signal-0.1.5.tgz#9bab68a0f470247caa9326354aea29649807142c"
+  integrity sha512-TKB5xvlel6hIpHDoE+Px+eeuqcC/DaYJfRzv/MrLWlDrBwhbpzA6SSE2JRyoe0WnLMIKnRsrpqWpFqlmzbz4Tw==
   dependencies:
     stackframe "^1.3.4"
     stacktrace-gps "^3.1.2"

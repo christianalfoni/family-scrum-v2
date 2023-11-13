@@ -45,7 +45,7 @@ export enum Collection {
   WEEKS = "weeks",
 }
 
-export function createFirebase() {
+export function useFirebase() {
   const provider = new GoogleAuthProvider();
   const app = initializeApp({
     apiKey: "AIzaSyAxghfnwp44VyGkJazhRvjUwbKSSAHm0oo",
@@ -199,13 +199,17 @@ export function createFirebase() {
     transactDoc<T>(
       collection: CollectionReference<T>,
       id: string,
-      cb: (data?: T) => T,
+      cb: (data?: T) => T | undefined,
     ) {
       return runTransaction(firestore, (transaction) => {
         const docRef = doc(collection, id);
-        return transaction
-          .get(docRef)
-          .then((doc) => transaction.set(docRef, cb(doc.data())));
+        return transaction.get(docRef).then((doc) => {
+          const data = cb(doc.data());
+
+          if (data) {
+            return transaction.set(docRef, data);
+          }
+        });
       });
     },
     upload(imageRef: string, imageSrc: string) {

@@ -1,17 +1,21 @@
-import { context } from "impact-context";
+import { context, signal } from "impact-app";
 import { DinnerDTO } from "../../useGlobalContext/firebase";
-import { signal } from "impact-signal";
 import { useGlobalContext } from "../../useGlobalContext";
 import { useAppContext } from "../useAppContext";
 import { produce } from "immer";
 
-function EditDinnerContext({ dinner: initialDinner }: { dinner?: DinnerDTO }) {
+export type Props = { dinner?: DinnerDTO };
+
+export const useEditDinnerContext = context((props: Props) => {
+  const { dinner: initialDinner } = props;
+
   const { firebase } = useGlobalContext();
   const { user } = useAppContext();
+
   const dinnersCollection = firebase.collections.dinners(user.familyId);
+
   const newGroceryName = signal("");
   const newPreparationDescription = signal("");
-
   const dinner = signal<DinnerDTO>(
     initialDinner || {
       id: firebase.createId(dinnersCollection),
@@ -118,6 +122,4 @@ function EditDinnerContext({ dinner: initialDinner }: { dinner?: DinnerDTO }) {
     },
     submit() {},
   };
-}
-
-export const useEditDinnerContext = context(EditDinnerContext);
+});

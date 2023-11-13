@@ -1,6 +1,5 @@
 import { useTranslations } from "next-intl";
 
-/* This example requires Tailwind CSS v2.0+ */
 import { Fragment } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { LockClosedIcon } from "@heroicons/react/outline";

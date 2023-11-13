@@ -1,5 +1,4 @@
-import { derived, observe, signal } from "impact-signal";
-import { context } from "impact-context";
+import { derived, effect, signal, context } from "impact-app";
 import { useGlobalContext } from "../../useGlobalContext";
 import { useAppContext } from "../useAppContext";
 import { GroceryDTO } from "../../useGlobalContext/firebase";
@@ -8,13 +7,16 @@ import confetti from "canvas-confetti";
 import { produce } from "immer";
 import { Timestamp } from "firebase/firestore";
 
-function GroceriesContext({
-  groceries: initialGroceries,
-}: {
+export type Props = {
   groceries: GroceryDTO[];
-}) {
+};
+
+export const useGroceriesContext = context((props: Props) => {
+  const { groceries: initialGroceries } = props;
+
   const { firebase } = useGlobalContext();
   const { user } = useAppContext();
+
   const now = Date.now();
   const initialGroceriesLength = initialGroceries.length;
   const groceriesCollection = firebase.collections.groceries(user.familyId);
@@ -60,7 +62,7 @@ function GroceriesContext({
         });
   });
 
-  observe(() => {
+  effect(() => {
     if (!groceries.value.length && initialGroceriesLength) {
       confetti({
         particleCount: 100,
@@ -114,6 +116,4 @@ function GroceriesContext({
       firebase.deleteDoc(groceriesCollection, id);
     },
   };
-}
-
-export const useGroceriesContext = context(GroceriesContext);
+});

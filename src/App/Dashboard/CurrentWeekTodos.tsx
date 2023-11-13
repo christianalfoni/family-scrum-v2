@@ -10,14 +10,12 @@ import { useAppContext } from "../useAppContext";
 
 import { WeekdaySlideContent } from "./WeekDaySlideContent";
 import { useDashboardContext } from "./useDashboardContext";
-import { observer, use } from "impact-signal";
+import { use } from "impact-app";
 import { DinnerDTO, TodoDTO } from "../../useGlobalContext/firebase";
 
 SwiperCore.use([Controller]);
 
 const WeekdayDinner = ({ dinner }: { dinner: DinnerDTO }) => {
-  using _ = observer();
-
   const { getImageUrl: getImageUrl } = useAppContext();
   const imageUrlPromise = getImageUrl("dinners", dinner.id);
 
@@ -47,8 +45,6 @@ function isTodo(todo?: TodoDTO): todo is TodoDTO {
 }
 
 export const CurrentWeekTodos = memo(() => {
-  using _ = observer();
-
   const { getDinners, getTodos, weeks, family } = useAppContext();
   const { todosByWeekday, eventsByWeekday } = useDashboardContext();
 

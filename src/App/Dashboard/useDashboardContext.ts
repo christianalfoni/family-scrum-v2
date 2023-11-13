@@ -1,5 +1,4 @@
-import { context } from "impact-context";
-import { derived } from "impact-signal";
+import { derived, context } from "impact-app";
 import { useAppContext } from "../useAppContext";
 import { TodoDTO } from "../../useGlobalContext/firebase";
 import { getDay, isThisWeek } from "date-fns";
@@ -9,8 +8,9 @@ export type WeekdayTodos = {
   [todoId: string]: string[];
 };
 
-function DashboardContext() {
+export const useDashboardContext = context(() => {
   const { weeks, getTodos } = useAppContext();
+
   const todosByWeekday = derived(() => {
     const currentWeekTodosPromise = weeks.current.getWeekTodos();
     const todosByWeekday: [
@@ -96,6 +96,4 @@ function DashboardContext() {
       return eventsByWeekday.value;
     },
   };
-}
-
-export const useDashboardContext = context(DashboardContext);
+});

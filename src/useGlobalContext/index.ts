@@ -1,16 +1,16 @@
-import { context } from "impact-context";
-import { createFirebase } from "./firebase";
-import { createViews } from "./views";
-import { createAuthentication } from "./authentication";
-import { createCamera } from "./camera";
-import { createVersion } from "./version";
+import { context } from "impact-app";
+import { useFirebase } from "./firebase";
+import { useViews } from "./views";
+import { useAuthentication } from "./authentication";
+import { useCamera } from "./camera";
+import { useVersion } from "./version";
 
 export const useGlobalContext = context(() => {
-  const firebase = createFirebase();
-  const views = createViews();
-  const authentication = createAuthentication(firebase);
-  const camera = createCamera();
-  const version = createVersion();
+  const firebase = useFirebase();
+  const views = useViews();
+  const authentication = useAuthentication(firebase);
+  const camera = useCamera();
+  const version = useVersion();
 
   return {
     views,

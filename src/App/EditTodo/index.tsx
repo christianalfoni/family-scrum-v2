@@ -14,11 +14,8 @@ import { format } from "date-fns";
 import { useGlobalContext } from "../../useGlobalContext";
 import { useEditTodoContext } from "./useEditTodoContext";
 import { TodoDTO } from "../../useGlobalContext/firebase";
-import { observer } from "impact-signal";
 
 function EditTodoContent() {
-  using _ = observer();
-
   const { views } = useGlobalContext();
   const {
     isValid,

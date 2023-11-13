@@ -1,16 +1,12 @@
 import { useTranslations } from "next-intl";
 
-/* This example requires Tailwind CSS v2.0+ */
 import { Fragment } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 
 import { CheckCircleIcon } from "@heroicons/react/outline";
 import { useGlobalContext } from "../useGlobalContext";
-import { observer } from "impact-signal";
 
 export const UpdateModal = () => {
-  using _ = observer();
-
   const t = useTranslations("UpdateModal");
   const { version } = useGlobalContext();
 

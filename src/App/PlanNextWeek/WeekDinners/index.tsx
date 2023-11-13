@@ -2,11 +2,9 @@ import * as React from "react";
 import { useTranslations } from "next-intl";
 import SwiperCore from "swiper";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/outline";
-
 import { Swiper, SwiperSlide } from "swiper/react";
 import { weekdays } from "../../../utils";
-
-import { use } from "impact-signal";
+import { use } from "impact-app";
 import { useAppContext } from "../../useAppContext";
 import { DinnerDTO } from "../../../useGlobalContext/firebase";
 import { useWeekDinnersContext } from "./useWeekDinnersContext";

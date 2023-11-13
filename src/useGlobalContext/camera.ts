@@ -1,4 +1,4 @@
-import { signal } from "impact-signal";
+import { signal } from "impact-app";
 
 export type CameraState =
   | {
@@ -20,7 +20,8 @@ export type CameraState =
       status: "ERROR";
       error: string;
     };
-export function createCamera() {
+
+export function useCamera() {
   const state = signal<CameraState>({
     status: "NOT_STARTED",
   });

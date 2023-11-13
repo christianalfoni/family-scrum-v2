@@ -1,5 +1,5 @@
 import { produce } from "immer";
-import { signal } from "impact-signal";
+import { signal } from "impact-app";
 import { DinnerDTO, TodoDTO } from "./firebase";
 
 export type View =
@@ -28,7 +28,7 @@ export type View =
       todo?: TodoDTO;
     };
 
-export function createViews() {
+export function useViews() {
   const views = signal<View[]>([
     {
       name: "DASHBOARD",

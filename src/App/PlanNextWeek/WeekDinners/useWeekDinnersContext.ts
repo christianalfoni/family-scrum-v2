@@ -1,14 +1,15 @@
-import { context } from "impact-context";
 import { useGlobalContext } from "../../../useGlobalContext";
 import { useAppContext } from "../../useAppContext";
 import { WeekDTO, WeekDinnersDTO } from "../../../useGlobalContext/firebase";
-import { signal } from "impact-signal";
+import { signal, context } from "impact-app";
 
-function WeekDinnersContext({
-  initialWeekDinners,
-}: {
+export type Props = {
   initialWeekDinners: WeekDinnersDTO;
-}) {
+};
+
+export const useWeekDinnersContext = context((props: Props) => {
+  const { initialWeekDinners } = props;
+
   const { firebase } = useGlobalContext();
   const { user, weeks } = useAppContext();
 
@@ -33,6 +34,4 @@ function WeekDinnersContext({
       });
     },
   };
-}
-
-export const useWeekDinnersContext = context(WeekDinnersContext);
+});

@@ -1,5 +1,4 @@
-import { cleanup, context } from "impact-context";
-import { signal } from "impact-signal";
+import { signal, cleanup, context } from "impact-app";
 import { useAppContext } from "../../../useAppContext";
 import { useGlobalContext } from "../../../../useGlobalContext";
 import {
@@ -7,13 +6,11 @@ import {
   WeekTodoDTO,
 } from "../../../../useGlobalContext/firebase";
 
-function PlanTodoItemContext({
-  todoId,
-  weekTodo,
-}: {
-  todoId: string;
-  weekTodo?: WeekTodoDTO;
-}) {
+export type Props = { todoId: string; weekTodo?: WeekTodoDTO };
+
+export const usePlanTodoItemContext = context((props: Props) => {
+  const { todoId, weekTodo } = props;
+
   const { firebase } = useGlobalContext();
   const { weeks, user, family } = useAppContext();
 
@@ -122,6 +119,4 @@ function PlanTodoItemContext({
       });
     },
   };
-}
-
-export const usePlanTodoItemContext = context(PlanTodoItemContext);
+});

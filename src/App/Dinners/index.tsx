@@ -1,11 +1,10 @@
 import React from "react";
 import { ChevronLeftIcon, PlusIcon } from "@heroicons/react/outline";
-
 import { useTranslations } from "next-intl";
 import { DinnerDTO } from "../../useGlobalContext/firebase";
 import { useAppContext } from "../useAppContext";
 import { useGlobalContext } from "../../useGlobalContext";
-import { use } from "impact-signal";
+import { use } from "impact-app";
 
 const Dinner = ({
   dinner,

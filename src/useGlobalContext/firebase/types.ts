@@ -13,6 +13,18 @@ export type GroceryDTO = {
   name: string;
 };
 
+export type CheckListItem = {
+  title: string;
+} & (
+  | {
+      completed: false;
+    }
+  | {
+      completed: true;
+      completedByUserId: string;
+    }
+);
+
 export type TodoDTO = {
   id: string;
   created: Timestamp;
@@ -20,19 +32,7 @@ export type TodoDTO = {
   description: string;
   date?: Timestamp;
   time?: string;
-  checkList?: Array<
-    {
-      title: string;
-    } & (
-      | {
-          completed: false;
-        }
-      | {
-          completed: true;
-          completedByUserId: string;
-        }
-    )
-  >;
+  checkList?: CheckListItem[];
   grocery?: string;
 };
 
