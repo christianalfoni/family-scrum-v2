@@ -1,30 +1,19 @@
 const colors = require("tailwindcss/colors");
 
 module.exports = {
-  purge: {
-    content: [
-      "./src/pages/**/*.{js,ts,jsx,tsx}",
-      "./src/components/**/*.{js,ts,jsx,tsx}",
-    ],
-    options: {
-      safelist: [],
-    },
-  },
-  darkMode: false, // or 'media' or 'class'
+  content: [
+    "./src/pages/**/*.{js,ts,jsx,tsx}",
+    "./src/App/**/*.{js,ts,jsx,tsx}",
+  ],
   theme: {
     extend: {
       colors: {
-        "light-blue": colors.lightBlue,
+        "light-blue": colors.sky,
         teal: colors.teal,
         cyan: colors.cyan,
         rose: colors.rose,
       },
     },
   },
-  plugins: [require("@tailwindcss/forms"), require("@tailwindcss/line-clamp")],
-  variants: {
-    extend: {
-      opacity: ["disabled"],
-    },
-  },
+  plugins: [require("@tailwindcss/forms")],
 };
