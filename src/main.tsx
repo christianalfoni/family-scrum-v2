@@ -1,10 +1,10 @@
-import { App } from "./App";
+import { AppContext } from "./AppContext";
 import { useGlobalContext } from "./useGlobalContext";
 
 function Main() {
   return (
     <useGlobalContext.Provider>
-      <App />
+      <AppContext />
     </useGlobalContext.Provider>
   );
 }

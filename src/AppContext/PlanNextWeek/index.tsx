@@ -7,8 +7,8 @@ import {
 import { useTranslations } from "next-intl";
 
 import { useGlobalContext } from "../../useGlobalContext";
-import { WeekDinners } from "./WeekDinners";
-import { WeekTodos } from "./WeekTodos";
+import { WeekDinnersContext } from "./WeekDinnersContext";
+import { WeekTodosContext } from "./WeekTodosContext";
 
 export const PlanNextWeek = ({ view }: { view: "DINNERS" | "TODOS" }) => {
   const { views } = useGlobalContext();
@@ -83,7 +83,7 @@ export const PlanNextWeek = ({ view }: { view: "DINNERS" | "TODOS" }) => {
           </div>
         </div>
       </div>
-      {view === "DINNERS" ? <WeekDinners /> : <WeekTodos />}
+      {view === "DINNERS" ? <WeekDinnersContext /> : <WeekTodosContext />}
     </div>
   );
 };

@@ -113,7 +113,7 @@ export const DinnerItem = ({
   );
 };
 
-const WeekDinnersContent = () => {
+export function WeekDinners() {
   const { getDinners } = useAppContext();
   const { setNextWeekDinners, weekDinners } = useWeekDinnersContext();
 
@@ -134,17 +134,5 @@ const WeekDinnersContent = () => {
         />
       ))}
     </ul>
-  );
-};
-
-export function WeekDinners() {
-  const { weeks } = useAppContext();
-
-  const nextWeek = use(weeks.next.getWeek());
-
-  return (
-    <useWeekDinnersContext.Provider initialWeekDinners={nextWeek.dinners}>
-      <WeekDinnersContent />
-    </useWeekDinnersContext.Provider>
   );
 }

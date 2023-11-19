@@ -1,29 +1,12 @@
-import React, { Suspense } from "react";
+import React from "react";
 import { TodoDTO } from "../../../../useGlobalContext/firebase";
 import { use } from "impact-app";
-import { TodoItem } from "../../../common-components/TodoItem";
+import { TodoItemContext } from "../../../common-components/TodoItemContext";
 import { usePlanTodoItemContext } from "./usePlanTodoItemContext";
 import { useAppContext } from "../../../useAppContext";
 import { weekdays } from "../../../../utils";
 
-export const PlanTodoItem = React.memo(({ todo }: { todo: TodoDTO }) => {
-  const { weeks } = useAppContext();
-
-  const nestWeekTodos = use(weeks.next.getWeekTodos());
-
-  return (
-    <usePlanTodoItemContext.Provider
-      todoId={todo.id}
-      weekTodo={nestWeekTodos[todo.id]}
-    >
-      <Suspense fallback={<h4>Loading...</h4>}>
-        <PlanTodoItemContent todo={todo} />
-      </Suspense>
-    </usePlanTodoItemContext.Provider>
-  );
-});
-
-export const PlanTodoItemContent = ({ todo }: { todo: TodoDTO }) => {
+export function PlanTodoItem({ todo }: { todo: TodoDTO }) {
   const { weeks, user } = useAppContext();
   const { activityByUserId, familyUsers, setNextWeekTodoActivity } =
     usePlanTodoItemContext();
@@ -31,7 +14,7 @@ export const PlanTodoItemContent = ({ todo }: { todo: TodoDTO }) => {
   const currentWeekTodos = use(weeks.current.getWeekTodos());
 
   return (
-    <TodoItem todo={todo}>
+    <TodoItemContext todo={todo}>
       {familyUsers.map((familyUser) => {
         const weekActivity = activityByUserId[familyUser.id] ?? [
           false,
@@ -70,8 +53,8 @@ export const PlanTodoItemContent = ({ todo }: { todo: TodoDTO }) => {
                     isActive
                       ? "text-white bg-red-500"
                       : activePreviousWeek
-                      ? "text-gray-700 bg-gray-200"
-                      : "text-gray-700 bg-white"
+                        ? "text-gray-700 bg-gray-200"
+                        : "text-gray-700 bg-white"
                   } ${
                     user.id === familyUser.id ? "" : "opacity-50"
                   } order-1 w-10 h-8 justify-center inline-flex items-center px-2 py-1 border border-gray-300 shadow-sm text-xs font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500`}
@@ -83,6 +66,6 @@ export const PlanTodoItemContent = ({ todo }: { todo: TodoDTO }) => {
           </div>
         );
       })}
-    </TodoItem>
+    </TodoItemContext>
   );
-};
+}

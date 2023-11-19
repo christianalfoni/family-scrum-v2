@@ -14,21 +14,7 @@ import { Awake } from "./Awake";
 import { useGlobalContext } from "../../useGlobalContext";
 import { Skeleton } from "../Dashboard/Skeleton";
 
-export const Groceries = () => {
-  const { getGroceries } = useAppContext();
-
-  const groceries = use(getGroceries());
-
-  return (
-    <useGroceriesContext.Provider groceries={groceries}>
-      <Suspense fallback={<Skeleton />}>
-        <GroceriesContent />
-      </Suspense>
-    </useGroceriesContext.Provider>
-  );
-};
-
-const GroceriesContent = () => {
+export function Groceries() {
   const t = useTranslations("GroceriesShoppingView");
   const { views } = useGlobalContext();
   const {

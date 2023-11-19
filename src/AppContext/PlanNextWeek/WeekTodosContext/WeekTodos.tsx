@@ -2,16 +2,16 @@ import * as React from "react";
 
 import { useTranslations } from "next-intl";
 import { CalendarIcon, CheckCircleIcon } from "@heroicons/react/outline";
-import { PlanTodoItem } from "./PlanTodoItem";
+import { PlanTodoItemContext } from "./PlanTodoItemContext";
 import { TodoDTO } from "../../../useGlobalContext/firebase";
 import { useWeekTodosContext } from "./useWeekTodosContext";
 
-const WeekTodosContent = () => {
+export function WeekTodos() {
   const { categorisedTodos } = useWeekTodosContext();
   const t = useTranslations("PlanWeekView");
 
   const renderTodo = (todo: TodoDTO) => (
-    <PlanTodoItem key={todo.id} todo={todo} />
+    <PlanTodoItemContext key={todo.id} todo={todo} />
   );
 
   return (
@@ -50,10 +50,4 @@ const WeekTodosContent = () => {
       ) : null}
     </ul>
   );
-};
-
-export const WeekTodos = () => (
-  <useWeekTodosContext.Provider>
-    <WeekTodosContent />
-  </useWeekTodosContext.Provider>
-);
+}

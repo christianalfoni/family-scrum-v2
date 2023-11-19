@@ -13,9 +13,8 @@ import { format } from "date-fns";
 
 import { useGlobalContext } from "../../useGlobalContext";
 import { useEditTodoContext } from "./useEditTodoContext";
-import { TodoDTO } from "../../useGlobalContext/firebase";
 
-function EditTodoContent() {
+export function EditTodo() {
   const { views } = useGlobalContext();
   const {
     isValid,
@@ -202,13 +201,5 @@ function EditTodoContent() {
         </div>
       </div>
     </div>
-  );
-}
-
-export function EditTodo({ todo }: { todo?: TodoDTO }) {
-  return (
-    <useEditTodoContext.Provider todo={todo}>
-      <EditTodoContent />
-    </useEditTodoContext.Provider>
   );
 }

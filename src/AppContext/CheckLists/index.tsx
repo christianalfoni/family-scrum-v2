@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useTranslations } from "next-intl";
 import { ChevronLeftIcon } from "@heroicons/react/outline";
-import { TodoItem } from "../common-components/TodoItem";
+import { TodoItemContext } from "../common-components/TodoItemContext";
 import { useGlobalContext } from "../../useGlobalContext";
 import { useAppContext } from "../useAppContext";
 
@@ -28,7 +28,7 @@ export const CheckLists = () => {
       </div>
       <ul className="relative z-0 divide-y divide-gray-200 border-b border-gray-200 overflow-y-scroll">
         {todosWithCheckList.map((todo) => (
-          <TodoItem key={todo.id} todo={todo} />
+          <TodoItemContext key={todo.id} todo={todo} />
         ))}
       </ul>
     </div>

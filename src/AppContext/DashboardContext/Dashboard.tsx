@@ -13,10 +13,9 @@ import { useGlobalContext } from "../../useGlobalContext";
 
 import { MenuCard } from "./MenuCard";
 
-import { useDashboardContext } from "./useDashboardContext";
 import { CurrentWeekTodos } from "./CurrentWeekTodos";
 
-export const DashboardContent = () => {
+export const Dashboard = () => {
   const t = useTranslations("DashboardView");
 
   const { views } = useGlobalContext();
@@ -100,11 +99,3 @@ export const DashboardContent = () => {
     </>
   );
 };
-
-export function Dashboard() {
-  return (
-    <useDashboardContext.Provider>
-      <DashboardContent />
-    </useDashboardContext.Provider>
-  );
-}
