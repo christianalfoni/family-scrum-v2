@@ -45,6 +45,11 @@ export enum Collection {
   WEEKS = "weeks",
 }
 
+/**
+ * Creates an API specific to the collections and related functionality needed for this app,
+ * The API is not aware of the current session, it is part of the global context and the app
+ * needs to pass user and family id for what data to consume
+ */
 export function useFirebase() {
   const provider = new GoogleAuthProvider();
   const app = initializeApp({

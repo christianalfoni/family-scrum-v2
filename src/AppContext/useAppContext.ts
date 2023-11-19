@@ -4,12 +4,19 @@ import { FamilyDTO, UserDTO, WeekDTO } from "../useGlobalContext/firebase";
 import { getCurrentWeekId, getNextWeekId, getPreviousWeekId } from "../utils";
 import { Timestamp } from "firebase/firestore";
 
+export const useAppContext = context(AppContext);
+
 export type Props = {
   user: UserDTO;
   family: FamilyDTO;
 };
 
-export const useAppContext = context((props: Props) => {
+/**
+ * This is the main application context which fetches all the data needed. We could have initialized this
+ * context with the resolved data, but we want the application to show as fast as possible and not all
+ * data is needed for the initial dashboard, we just want to start fetching it as fast as possible
+ */
+function AppContext(props: Props) {
   const { user, family } = props;
 
   const { firebase } = useGlobalContext();
@@ -31,7 +38,7 @@ export const useAppContext = context((props: Props) => {
     nextWeekId,
   ].map((weekId) => {
     // We default to an empty document
-    const weekPromise = signal(
+    const week = signal(
       firebase.getDoc(weeksCollection, weekId).then(
         (doc): WeekDTO =>
           doc || {
@@ -45,7 +52,7 @@ export const useAppContext = context((props: Props) => {
       weekId,
     );
 
-    const weekTodosPromise = signal(
+    const weekTodos = signal(
       firebase.getDocs(weekTodosCollection).then(collectionToLookupRecord),
     );
 
@@ -53,22 +60,20 @@ export const useAppContext = context((props: Props) => {
       weeksCollection,
       weekId,
       (update) => {
-        weekPromise.value = Promise.resolve(update);
+        week.value = Promise.resolve(update);
       },
     );
 
     const disposeWeekTodosSnapshot = firebase.onCollectionSnapshot(
       weekTodosCollection,
       (update) => {
-        weekTodosPromise.value = Promise.resolve(
-          collectionToLookupRecord(update),
-        );
+        weekTodos.value = Promise.resolve(collectionToLookupRecord(update));
       },
     );
 
     return {
-      weekPromise,
-      weekTodosPromise,
+      week,
+      weekTodos,
       dispose() {
         disposeWeekSnapshot();
         disposeWeekTodosSnapshot();
@@ -76,17 +81,18 @@ export const useAppContext = context((props: Props) => {
     };
   });
 
-  const dinnersPromise = signal(
+  // Firebase fetches urls to images asynchronously, we cache them
+  const imageUrls: Record<string, Signal<Promise<string | null>>> = {};
+  const dinners = signal(
     firebase.getDocs(dinnersCollection).then(sortByCreated),
   );
-  const imageUrlPromises: Record<string, Signal<Promise<string | null>>> = {};
-  const todosPromise = signal(firebase.getDocs(todosCollection));
+  const todos = signal(firebase.getDocs(todosCollection));
   const todosWithCheckList = derived(() =>
-    todosPromise.value.status === "fulfilled"
-      ? todosPromise.value.value.filter((todo) => Boolean(todo.checkList))
+    todos.value.status === "fulfilled"
+      ? todos.value.value.filter((todo) => Boolean(todo.checkList))
       : [],
   );
-  const groceriesPromise = signal(firebase.getDocs(groceriesCollection));
+  const groceries = signal(firebase.getDocs(groceriesCollection));
 
   cleanup(previousWeek.dispose);
   cleanup(currentWeek.dispose);
@@ -94,20 +100,20 @@ export const useAppContext = context((props: Props) => {
 
   cleanup(
     firebase.onCollectionSnapshot(todosCollection, (update) => {
-      todosPromise.value = Promise.resolve(update);
+      todos.value = Promise.resolve(update);
     }),
   );
 
   cleanup(
     firebase.onCollectionSnapshot(dinnersCollection, (update) => {
-      dinnersPromise.value = Promise.resolve(sortByCreated(update));
+      dinners.value = Promise.resolve(sortByCreated(update));
     }),
   );
 
   cleanup(
     firebase.onCollectionSnapshot(
       groceriesCollection,
-      (update) => (groceriesPromise.value = Promise.resolve(update)),
+      (update) => (groceries.value = Promise.resolve(update)),
     ),
   );
 
@@ -121,51 +127,51 @@ export const useAppContext = context((props: Props) => {
     get todosWithCheckList() {
       return todosWithCheckList.value;
     },
-    getDinners() {
-      return dinnersPromise.value;
+    fetchDinners() {
+      return dinners.value;
     },
-    getGroceries() {
-      return groceriesPromise.value;
+    fetchGroceries() {
+      return groceries.value;
     },
-    getTodos() {
-      return todosPromise.value;
+    fetchTodos() {
+      return todos.value;
     },
     weeks: {
       previous: {
         id: previousWeekId,
-        getWeek() {
-          return previousWeek.weekPromise.value;
+        fetchWeek() {
+          return previousWeek.week.value;
         },
-        getWeekTodos() {
-          return previousWeek.weekTodosPromise.value;
+        fetchWeekTodos() {
+          return previousWeek.weekTodos.value;
         },
       },
       current: {
         id: currentWeekId,
-        getWeek() {
-          return currentWeek.weekPromise.value;
+        fetchWeek() {
+          return currentWeek.week.value;
         },
-        getWeekTodos() {
-          return currentWeek.weekTodosPromise.value;
+        fetchWeekTodos() {
+          return currentWeek.weekTodos.value;
         },
       },
       next: {
         id: nextWeekId,
-        getWeek() {
-          return nextWeek.weekPromise.value;
+        fetchWeek() {
+          return nextWeek.week.value;
         },
-        getWeekTodos() {
-          return nextWeek.weekTodosPromise.value;
+        fetchWeekTodos() {
+          return nextWeek.weekTodos.value;
         },
       },
     },
-    getImageUrl(collection: string, id: string) {
+    fetchImageUrl(collection: string, id: string) {
       const ref = collection + "/" + id;
 
-      let imageUrl = imageUrlPromises[ref];
+      let imageUrl = imageUrls[ref];
 
       if (!imageUrl) {
-        imageUrl = imageUrlPromises[ref] = signal(
+        imageUrl = imageUrls[ref] = signal(
           firebase.getImageUrl(ref).catch(() => null),
         );
       }
@@ -173,7 +179,7 @@ export const useAppContext = context((props: Props) => {
       return imageUrl.value;
     },
   };
-});
+}
 
 function collectionToLookupRecord<T extends { id: string }>(collection: T[]) {
   return collection.reduce<Record<string, T>>((aggr, doc) => {

@@ -1,7 +1,8 @@
 import { useGlobalContext } from "../useGlobalContext";
 import { App } from "./App";
-import { Skeleton } from "./DashboardContext/Skeleton";
+import { Skeleton } from "./Dashboard/Skeleton";
 import { SignInModal } from "./SignInModal";
+import { UpdateModal } from "./UpdateModal";
 import { useAppContext } from "./useAppContext";
 
 import { Suspense } from "react";
@@ -30,6 +31,7 @@ export const AppContext: React.FC = () => {
     >
       <Suspense fallback={<Skeleton />}>
         <App />
+        <UpdateModal />
       </Suspense>
     </useAppContext.Provider>
   );

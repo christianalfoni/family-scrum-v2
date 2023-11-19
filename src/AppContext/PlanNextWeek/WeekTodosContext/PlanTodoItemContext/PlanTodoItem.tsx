@@ -11,7 +11,7 @@ export function PlanTodoItem({ todo }: { todo: TodoDTO }) {
   const { activityByUserId, familyUsers, setNextWeekTodoActivity } =
     usePlanTodoItemContext();
 
-  const currentWeekTodos = use(weeks.current.getWeekTodos());
+  const currentWeekTodos = use(weeks.current.fetchWeekTodos());
 
   return (
     <TodoItemContext todo={todo}>

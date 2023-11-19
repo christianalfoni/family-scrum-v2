@@ -4,8 +4,10 @@ import { TodoDTO } from "../../../useGlobalContext/firebase";
 import { getDateFromWeekId, isWithinWeek } from "../../../utils";
 import { differenceInDays } from "date-fns";
 
-export const useWeekTodosContext = context(() => {
-  const { weeks, getTodos } = useAppContext();
+export const useWeekTodosContext = context(WeekTodosContext);
+
+function WeekTodosContext() {
+  const { weeks, fetchTodos } = useAppContext();
 
   const categorisedTodos = derived<{
     previousWeek: TodoDTO[];
@@ -13,8 +15,8 @@ export const useWeekTodosContext = context(() => {
     laterEvents: TodoDTO[];
     thisWeek: TodoDTO[];
   }>(() => {
-    const todosPromise = getTodos();
-    const previousWeekTodos = weeks.previous.getWeekTodos();
+    const todosPromise = fetchTodos();
+    const previousWeekTodos = weeks.previous.fetchWeekTodos();
 
     if (
       previousWeekTodos.status !== "fulfilled" ||
@@ -113,4 +115,4 @@ export const useWeekTodosContext = context(() => {
       return categorisedTodos.value;
     },
   };
-});
+}

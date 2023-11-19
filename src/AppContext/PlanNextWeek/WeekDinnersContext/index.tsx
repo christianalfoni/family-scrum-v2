@@ -7,7 +7,7 @@ import { WeekDinners } from "./WeekDinners";
 export function WeekDinnersContext() {
   const { weeks } = useAppContext();
 
-  const nextWeek = use(weeks.next.getWeek());
+  const nextWeek = use(weeks.next.fetchWeek());
 
   return (
     <useWeekDinnersContext.Provider initialWeekDinners={nextWeek.dinners}>

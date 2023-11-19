@@ -1,12 +1,10 @@
 import { useTranslations } from "next-intl";
-
 import { Fragment } from "react";
 import { Dialog, Transition } from "@headlessui/react";
-
 import { CheckCircleIcon } from "@heroicons/react/outline";
 import { useGlobalContext } from "../useGlobalContext";
 
-export const UpdateModal = () => {
+export function UpdateModal() {
   const t = useTranslations("UpdateModal");
   const { version } = useGlobalContext();
 
@@ -76,4 +74,4 @@ export const UpdateModal = () => {
       </Dialog>
     </Transition.Root>
   );
-};
+}

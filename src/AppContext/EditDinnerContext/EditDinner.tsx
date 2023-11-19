@@ -13,12 +13,12 @@ import { useEditDinnerContext } from "./useEditDinnerContext";
 import { useAppContext } from "../useAppContext";
 import { useGlobalContext } from "../../useGlobalContext";
 
-export const EditDinner = () => {
+export function EditDinner() {
   const { camera, views } = useGlobalContext();
-  const { getImageUrl } = useAppContext();
+  const { fetchImageUrl } = useAppContext();
   const dinner = useEditDinnerContext();
 
-  const imagePromise = getImageUrl("dinners", dinner.id);
+  const imagePromise = fetchImageUrl("dinners", dinner.id);
 
   const t = useTranslations("DinnerView");
 
@@ -312,4 +312,4 @@ export const EditDinner = () => {
       </div>
     </div>
   );
-};
+}

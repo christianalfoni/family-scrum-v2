@@ -23,6 +23,9 @@ const AUTHENTICATION_CACHE_KEY = "family_scrum_authentication";
 export function useAuthentication(firebase: ReturnType<typeof useFirebase>) {
   const usersCollection = firebase.collections.users();
   const familiesCollection = firebase.collections.families();
+
+  // It takes quite a long time for Firebase to evalaute the curent session, we
+  // use a cached user and family to get rolling faster
   const cachedAuthentication: AuthenticatedSessionState | null = JSON.parse(
     localStorage.getItem(AUTHENTICATION_CACHE_KEY) || "null",
   );
@@ -34,6 +37,8 @@ export function useAuthentication(firebase: ReturnType<typeof useFirebase>) {
 
   cleanup(firebase.onAuthChanged(handleAuthStateChanged));
 
+  // As part of being authenticated we also want to grab information
+  // about the users family reference and the family itself
   async function handleAuthStateChanged(maybeUser: User | null) {
     if (maybeUser) {
       try {
@@ -51,18 +56,18 @@ export function useAuthentication(firebase: ReturnType<typeof useFirebase>) {
           throw new Error("No family doc");
         }
 
-        // We might be unauthenticated during fetching the user doc, use RXJS to see how that could be solved?
-        if (state.value.status === lastStatus) {
-          state.value = {
-            status: "AUTHENTICATED",
-            user,
-            family,
-          };
-          localStorage.setItem(
-            AUTHENTICATION_CACHE_KEY,
-            JSON.stringify(state.value),
-          );
-        }
+        // Theoretically we could already be unauthenticated by Firebase for whatever reason. Something
+        // like RxJS would be interesting to explore here.
+        state.value = {
+          status: "AUTHENTICATED",
+          user,
+          family,
+        };
+
+        localStorage.setItem(
+          AUTHENTICATION_CACHE_KEY,
+          JSON.stringify(state.value),
+        );
       } catch (e) {
         state.value = {
           status: "UNAUTHENTICATED",
@@ -80,6 +85,5 @@ export function useAuthentication(firebase: ReturnType<typeof useFirebase>) {
     get state() {
       return state.value;
     },
-    signIn: firebase.signIn,
   };
 }

@@ -3,21 +3,25 @@ import { useTranslations, useIntl } from "next-intl";
 import React, { memo, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import SwiperCore, { Controller } from "swiper";
-import { getDayIndex, getFirstDateOfCurrentWeek, weekdays } from "../../utils";
+import {
+  getDayIndex,
+  getFirstDateOfCurrentWeek,
+  weekdays,
+} from "../../../utils";
 import { addDays } from "date-fns";
 
-import { useAppContext } from "../useAppContext";
+import { useAppContext } from "../../useAppContext";
 
 import { WeekdaySlideContent } from "./WeekDaySlideContent";
-import { useDashboardContext } from "./useDashboardContext";
+import { useCurrentWeekTodosContext } from "./useCurrentWeekTodosContext";
 import { use } from "impact-app";
-import { DinnerDTO, TodoDTO } from "../../useGlobalContext/firebase";
+import { DinnerDTO, TodoDTO } from "../../../useGlobalContext/firebase";
 
 SwiperCore.use([Controller]);
 
-const WeekdayDinner = ({ dinner }: { dinner: DinnerDTO }) => {
-  const { getImageUrl: getImageUrl } = useAppContext();
-  const imageUrlPromise = getImageUrl("dinners", dinner.id);
+function WeekdayDinner({ dinner }: { dinner: DinnerDTO }) {
+  const { fetchImageUrl } = useAppContext();
+  const imageUrlPromise = fetchImageUrl("dinners", dinner.id);
 
   return (
     <li key="DINNER">
@@ -38,27 +42,29 @@ const WeekdayDinner = ({ dinner }: { dinner: DinnerDTO }) => {
       </div>
     </li>
   );
-};
+}
 
 function isTodo(todo?: TodoDTO): todo is TodoDTO {
   return Boolean(todo);
 }
 
-export const CurrentWeekTodos = memo(() => {
-  const { getDinners, getTodos, weeks, family } = useAppContext();
-  const { todosByWeekday, eventsByWeekday } = useDashboardContext();
+export function CurrentWeekTodos() {
+  const { fetchDinners, fetchTodos, weeks, family } = useAppContext();
+  const { todosByWeekday, eventsByWeekday } = useCurrentWeekTodosContext();
 
   const tCommon = useTranslations("common");
   const intl = useIntl();
+
   const currentDayIndex = getDayIndex();
   const currentWeekDate = getFirstDateOfCurrentWeek();
   const [slideIndex, setSlideIndex] = useState(currentDayIndex);
   const [controlledSwiper, setControlledSwiper] = useState<SwiperCore | null>(
     null,
   );
-  const dinners = use(getDinners());
-  const currentWeek = use(weeks.current.getWeek());
-  const todos = use(getTodos());
+
+  const dinners = use(fetchDinners());
+  const currentWeek = use(weeks.current.fetchWeek());
+  const todos = use(fetchTodos());
 
   return (
     <>
@@ -162,4 +168,4 @@ export const CurrentWeekTodos = memo(() => {
       </div>
     </>
   );
-});
+}

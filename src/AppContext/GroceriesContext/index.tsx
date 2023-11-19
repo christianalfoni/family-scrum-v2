@@ -4,13 +4,13 @@ import { use } from "impact-app";
 import { useAppContext } from "../useAppContext";
 import { useGroceriesContext } from "./useGroceriesContext";
 
-import { Skeleton } from "../DashboardContext/Skeleton";
+import { Skeleton } from "../Dashboard/Skeleton";
 import { Groceries } from "./Groceries";
 
 export const GroceriesContext = () => {
-  const { getGroceries } = useAppContext();
+  const { fetchGroceries } = useAppContext();
 
-  const groceries = use(getGroceries());
+  const groceries = use(fetchGroceries());
 
   return (
     <useGroceriesContext.Provider groceries={groceries}>

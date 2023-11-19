@@ -13,14 +13,15 @@ import { useGlobalContext } from "../../useGlobalContext";
 
 import { MenuCard } from "./MenuCard";
 
-import { CurrentWeekTodos } from "./CurrentWeekTodos";
+import { CurrentWeekTodosContext } from "./CurrentWeekTodosContext";
 
 export const Dashboard = () => {
+  const { views } = useGlobalContext();
+  const { fetchGroceries, todosWithCheckList } = useAppContext();
+
   const t = useTranslations("DashboardView");
 
-  const { views } = useGlobalContext();
-  const { getGroceries, todosWithCheckList } = useAppContext();
-  const groceriesPromise = getGroceries();
+  const groceriesPromise = fetchGroceries();
 
   return (
     <>
@@ -42,7 +43,6 @@ export const Dashboard = () => {
         </MenuCard>
 
         <MenuCard
-          disabled={!todosWithCheckList.length}
           Icon={ClipboardCheckIcon}
           onClick={() => {
             views.push({
@@ -81,21 +81,20 @@ export const Dashboard = () => {
       </ul>
 
       <div className="h-2/4">
-        <Suspense fallback={null}>
-          <CurrentWeekTodos />
-        </Suspense>
-        <button
-          type="button"
-          onClick={() => {
-            views.push({
-              name: "EDIT_TODO",
-            });
-          }}
-          className="z-50 fixed right-6 bottom-14 h-14 w-14 rounded-full inline-flex items-center justify-center px-3 py-2 border border-gray-300 shadow-lg text-sm font-medium  text-gray-500 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-        >
-          <PlusIcon className="w-8 h-8" />
-        </button>
+        <CurrentWeekTodosContext />
       </div>
+
+      <button
+        type="button"
+        onClick={() => {
+          views.push({
+            name: "EDIT_TODO",
+          });
+        }}
+        className="z-50 fixed right-6 bottom-14 h-14 w-14 rounded-full inline-flex items-center justify-center px-3 py-2 border border-gray-300 shadow-lg text-sm font-medium  text-gray-500 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+      >
+        <PlusIcon className="w-8 h-8" />
+      </button>
     </>
   );
 };

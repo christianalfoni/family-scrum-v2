@@ -39,8 +39,10 @@ function CheckListItem({
 
 export function CheckList({ checkList }: { checkList: CheckListItem[] }) {
   const { addCheckListItem } = useTodoItemContext();
-  const [addingCheckListItem, setAddingCheckListItem] = React.useState(false);
+
   const t = useTranslations("CheckListsView");
+
+  const [addingCheckListItem, setAddingCheckListItem] = React.useState(false);
 
   return (
     <ul className="mt-2">
