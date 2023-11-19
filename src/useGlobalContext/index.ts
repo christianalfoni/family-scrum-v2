@@ -6,6 +6,7 @@ import { useCamera } from "./camera";
 import { useVersion } from "./version";
 
 export const useGlobalContext = context(() => {
+  // We compose the global context using the hooks pattern
   const firebase = useFirebase();
   const views = useViews();
   const authentication = useAuthentication(firebase);

@@ -4,7 +4,7 @@ import { LightBulbIcon as SolidLightBulbIcon } from "@heroicons/react/solid";
 
 import { mp4 } from "../../video";
 
-export const Awake = () => {
+export function Awake() {
   const [isAwake, setIsAweake] = useState(false);
   const videoRef = React.useRef<HTMLVideoElement>(null);
 
@@ -50,4 +50,4 @@ export const Awake = () => {
       ></video>
     </div>
   );
-};
+}

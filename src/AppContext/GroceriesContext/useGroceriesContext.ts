@@ -7,11 +7,13 @@ import confetti from "canvas-confetti";
 import { produce } from "immer";
 import { Timestamp } from "firebase/firestore";
 
+export const useGroceriesContext = context(GroceriesContext);
+
 export type Props = {
   groceries: GroceryDTO[];
 };
 
-export const useGroceriesContext = context((props: Props) => {
+function GroceriesContext(props: Props) {
   const { groceries: initialGroceries } = props;
 
   const { firebase } = useGlobalContext();
@@ -116,4 +118,4 @@ export const useGroceriesContext = context((props: Props) => {
       firebase.deleteDoc(groceriesCollection, id);
     },
   };
-});
+}

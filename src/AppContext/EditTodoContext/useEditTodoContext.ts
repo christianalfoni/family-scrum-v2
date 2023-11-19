@@ -7,7 +7,9 @@ import { Timestamp } from "firebase/firestore";
 
 export type Props = { todo?: TodoDTO };
 
-export const useEditTodoContext = context((props: Props) => {
+export const useEditTodoContext = context(EditTodoContext);
+
+function EditTodoContext(props: Props) {
   const { todo: initialTodo } = props;
 
   const { firebase, views } = useGlobalContext();
@@ -114,4 +116,4 @@ export const useEditTodoContext = context((props: Props) => {
       views.pop();
     },
   };
-});
+}

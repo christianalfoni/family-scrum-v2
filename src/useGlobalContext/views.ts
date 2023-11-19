@@ -28,6 +28,10 @@ export type View =
       todo?: TodoDTO;
     };
 
+/**
+ * This is very much like a router, though since the app is used from the home
+ * screen we use a stack of views instead
+ */
 export function useViews() {
   const views = signal<View[]>([
     {

@@ -4,9 +4,15 @@ import { TodoDTO } from "../../../useGlobalContext/firebase";
 import { useGlobalContext } from "../../../useGlobalContext";
 import { produce } from "immer";
 
+export const useTodoItemContext = context(TodoItemContext);
+
 export type Props = { todo: TodoDTO };
 
-export const useTodoItemContext = context((props: Props) => {
+/**
+ * This context wraps a single todo. This ensures we can update it, from a subscription
+ * and optimistically, without being affected by changes to the parent collection
+ */
+function TodoItemContext(props: Props) {
   const { todo: initialTodo } = props;
   const id = initialTodo.id;
 
@@ -95,4 +101,4 @@ export const useTodoItemContext = context((props: Props) => {
       });
     },
   };
-});
+}

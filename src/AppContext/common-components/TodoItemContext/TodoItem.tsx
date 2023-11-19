@@ -13,17 +13,17 @@ import { Confirmed } from "./Confirmed";
 import { getDayName } from "../../../utils";
 import { useTodoItemContext } from "./useTodoItemContext";
 import { useGlobalContext } from "../../../useGlobalContext";
-
 import { CheckList } from "./CheckList";
 
 export function TodoItem({ children }: { children?: React.ReactNode }) {
-  const tCommon = useTranslations("common");
   const { views } = useGlobalContext();
   const { todo, archiveTodo } = useTodoItemContext();
-  const [isCollapsed, setCollapsed] = React.useState(true);
 
-  const [archiving, setArchiving] = React.useState(false);
+  const tCommon = useTranslations("common");
   const intl = useIntl();
+
+  const [isCollapsed, setCollapsed] = React.useState(true);
+  const [archiving, setArchiving] = React.useState(false);
 
   React.useEffect(() => {
     if (archiving) {

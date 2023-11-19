@@ -6,15 +6,15 @@ import { useAppContext } from "../useAppContext";
 import { useGlobalContext } from "../../useGlobalContext";
 import { use } from "impact-app";
 
-const Dinner = ({
+function Dinner({
   dinner,
   onClick,
 }: {
   dinner: DinnerDTO;
   onClick: (id: string) => void;
-}) => {
-  const { getImageUrl: getImageUrl } = useAppContext();
-  const imagePromise = getImageUrl("dinners", dinner.id);
+}) {
+  const { fetchImageUrl } = useAppContext();
+  const imagePromise = fetchImageUrl("dinners", dinner.id);
 
   return (
     <li
@@ -40,14 +40,15 @@ const Dinner = ({
       </div>
     </li>
   );
-};
+}
 
-export const Dinners = () => {
+export function Dinners() {
   const { views } = useGlobalContext();
-  const { getDinners } = useAppContext();
+  const { fetchDinners } = useAppContext();
 
-  const dinners = use(getDinners());
   const t = useTranslations("DinnersView");
+
+  const dinners = use(fetchDinners());
 
   return (
     <div className="bg-white flex flex-col h-screen">
@@ -107,4 +108,4 @@ export const Dinners = () => {
       )}
     </div>
   );
-};
+}

@@ -1,6 +1,6 @@
 import { useGlobalContext } from "../useGlobalContext";
 import { CheckLists } from "./CheckLists";
-import { DashboardContext } from "./DashboardContext";
+import { Dashboard } from "./Dashboard";
 import { Dinners } from "./Dinners";
 import { EditDinnerContext } from "./EditDinnerContext";
 import { EditTodoContext } from "./EditTodoContext";
@@ -15,7 +15,7 @@ export function App() {
 
   switch (view.name) {
     case "DASHBOARD": {
-      content = <DashboardContext />;
+      content = <Dashboard />;
       break;
     }
     case "GROCERIES_SHOPPING": {

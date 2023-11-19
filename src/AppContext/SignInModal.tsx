@@ -5,8 +5,8 @@ import { Dialog, Transition } from "@headlessui/react";
 import { LockClosedIcon } from "@heroicons/react/outline";
 import { useGlobalContext } from "../useGlobalContext";
 
-export const SignInModal = () => {
-  const { authentication } = useGlobalContext();
+export function SignInModal() {
+  const { firebase } = useGlobalContext();
   const t = useTranslations("SignInModal");
 
   return (
@@ -66,7 +66,7 @@ export const SignInModal = () => {
                 <button
                   type="button"
                   className="inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:text-sm"
-                  onClick={() => authentication.signIn()}
+                  onClick={() => firebase.signIn()}
                 >
                   {t("loginWithGoogle")}
                 </button>
@@ -77,4 +77,4 @@ export const SignInModal = () => {
       </Dialog>
     </Transition.Root>
   );
-};
+}

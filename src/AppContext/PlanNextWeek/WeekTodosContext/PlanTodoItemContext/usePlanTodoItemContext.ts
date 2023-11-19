@@ -6,9 +6,11 @@ import {
   WeekTodoDTO,
 } from "../../../../useGlobalContext/firebase";
 
+export const usePlanTodoItemContext = context(PlanTodoItemContext);
+
 export type Props = { todoId: string; weekTodo?: WeekTodoDTO };
 
-export const usePlanTodoItemContext = context((props: Props) => {
+function PlanTodoItemContext(props: Props) {
   const { todoId, weekTodo } = props;
 
   const { firebase } = useGlobalContext();
@@ -119,4 +121,4 @@ export const usePlanTodoItemContext = context((props: Props) => {
       });
     },
   };
-});
+}

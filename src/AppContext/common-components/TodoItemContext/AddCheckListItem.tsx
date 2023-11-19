@@ -2,9 +2,11 @@ import { PlusIcon } from "@heroicons/react/outline";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-export const AddCheckListItem: React.FC<{ onAdd: (title: string) => void }> = ({
+export function AddCheckListItem({
   onAdd,
-}) => {
+}: {
+  onAdd: (title: string) => void;
+}) {
   const t = useTranslations("CheckListsView");
   const [title, setTitle] = useState("");
 
@@ -39,4 +41,4 @@ export const AddCheckListItem: React.FC<{ onAdd: (title: string) => void }> = ({
       </span>
     </div>
   );
-};
+}

@@ -9,7 +9,7 @@ import { PlanTodoItem } from "./PlanTodoItem";
 export const PlanTodoItemContext = React.memo(({ todo }: { todo: TodoDTO }) => {
   const { weeks } = useAppContext();
 
-  const nestWeekTodos = use(weeks.next.getWeekTodos());
+  const nestWeekTodos = use(weeks.next.fetchWeekTodos());
 
   return (
     <usePlanTodoItemContext.Provider

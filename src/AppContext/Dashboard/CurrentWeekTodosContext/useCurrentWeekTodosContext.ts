@@ -1,18 +1,23 @@
 import { derived, context } from "impact-app";
-import { useAppContext } from "../useAppContext";
-import { TodoDTO } from "../../useGlobalContext/firebase";
+import { useAppContext } from "../../useAppContext";
+import { TodoDTO } from "../../../useGlobalContext/firebase";
 import { getDay, isThisWeek } from "date-fns";
-import { mod } from "../../utils";
+import { mod } from "../../../utils";
 
 export type WeekdayTodos = {
   [todoId: string]: string[];
 };
 
-export const useDashboardContext = context(() => {
-  const { weeks, getTodos } = useAppContext();
+/**
+ * This context is responsible for handling the state for the week overview on the dashboard
+ */
+export const useCurrentWeekTodosContext = context(CurrentWeekTodosContext);
+
+function CurrentWeekTodosContext() {
+  const { weeks, fetchTodos } = useAppContext();
 
   const todosByWeekday = derived(() => {
-    const currentWeekTodosPromise = weeks.current.getWeekTodos();
+    const currentWeekTodosPromise = weeks.current.fetchWeekTodos();
     const todosByWeekday: [
       WeekdayTodos,
       WeekdayTodos,
@@ -57,7 +62,7 @@ export const useDashboardContext = context(() => {
       TodoDTO[],
     ] = [[], [], [], [], [], [], []];
 
-    const todosPromise = getTodos();
+    const todosPromise = fetchTodos();
 
     if (todosPromise.status !== "fulfilled") {
       return eventsByWeekday;
@@ -96,4 +101,4 @@ export const useDashboardContext = context(() => {
       return eventsByWeekday.value;
     },
   };
-});
+}

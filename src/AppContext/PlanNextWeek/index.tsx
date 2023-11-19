@@ -10,7 +10,7 @@ import { useGlobalContext } from "../../useGlobalContext";
 import { WeekDinnersContext } from "./WeekDinnersContext";
 import { WeekTodosContext } from "./WeekTodosContext";
 
-export const PlanNextWeek = ({ view }: { view: "DINNERS" | "TODOS" }) => {
+export function PlanNextWeek({ view }: { view: "DINNERS" | "TODOS" }) {
   const { views } = useGlobalContext();
 
   const t = useTranslations("PlanWeekView");
@@ -86,4 +86,4 @@ export const PlanNextWeek = ({ view }: { view: "DINNERS" | "TODOS" }) => {
       {view === "DINNERS" ? <WeekDinnersContext /> : <WeekTodosContext />}
     </div>
   );
-};
+}

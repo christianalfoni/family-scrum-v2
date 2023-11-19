@@ -1,4 +1,4 @@
-import React, { Suspense } from "react";
+import React from "react";
 import {
   ChevronLeftIcon,
   PlusIcon,
@@ -6,13 +6,10 @@ import {
 } from "@heroicons/react/outline";
 
 import { useTranslations } from "next-intl";
-import { use } from "impact-app";
-import { useAppContext } from "../useAppContext";
-import { useGroceriesContext } from "./useGroceriesContext";
 
+import { useGroceriesContext } from "./useGroceriesContext";
 import { Awake } from "./Awake";
 import { useGlobalContext } from "../../useGlobalContext";
-import { Skeleton } from "../Dashboard/Skeleton";
 
 export function Groceries() {
   const t = useTranslations("GroceriesShoppingView");
@@ -103,4 +100,4 @@ export function Groceries() {
       </ul>
     </div>
   );
-};
+}
