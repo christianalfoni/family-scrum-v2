@@ -2,7 +2,7 @@ import React, { lazy } from "react";
 
 import { GetStaticPropsContext } from "next";
 import { useBrowser } from "../useBrowser";
-import { Skeleton } from "../App/Dashboard/Skeleton";
+import { Skeleton } from "../AppContext/DashboardContext/Skeleton";
 
 const LazyMain = lazy(() => import("../main"));
 

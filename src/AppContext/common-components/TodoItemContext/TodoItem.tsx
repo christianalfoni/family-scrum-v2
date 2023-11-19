@@ -13,11 +13,10 @@ import { Confirmed } from "./Confirmed";
 import { getDayName } from "../../../utils";
 import { useTodoItemContext } from "./useTodoItemContext";
 import { useGlobalContext } from "../../../useGlobalContext";
-import { TodoDTO } from "../../../useGlobalContext/firebase";
+
 import { CheckList } from "./CheckList";
 
-const TodoItemContent = ({ children }: { children?: React.ReactNode }) => {
-  const t = useTranslations("CheckListsView");
+export function TodoItem({ children }: { children?: React.ReactNode }) {
   const tCommon = useTranslations("common");
   const { views } = useGlobalContext();
   const { todo, archiveTodo } = useTodoItemContext();
@@ -97,18 +96,4 @@ const TodoItemContent = ({ children }: { children?: React.ReactNode }) => {
       {children}
     </li>
   );
-};
-
-export const TodoItem = ({
-  todo,
-  children,
-}: {
-  todo: TodoDTO;
-  children?: React.ReactNode;
-}) => {
-  return (
-    <useTodoItemContext.Provider todo={todo}>
-      <TodoItemContent>{children}</TodoItemContent>
-    </useTodoItemContext.Provider>
-  );
-};
+}

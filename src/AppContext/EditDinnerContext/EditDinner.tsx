@@ -9,12 +9,11 @@ import {
 } from "@heroicons/react/outline";
 
 import { useTranslations } from "next-intl";
-import { DinnerDTO } from "../../useGlobalContext/firebase";
 import { useEditDinnerContext } from "./useEditDinnerContext";
 import { useAppContext } from "../useAppContext";
 import { useGlobalContext } from "../../useGlobalContext";
 
-export const EditDinnerContent = () => {
+export const EditDinner = () => {
   const { camera, views } = useGlobalContext();
   const { getImageUrl } = useAppContext();
   const dinner = useEditDinnerContext();
@@ -314,11 +313,3 @@ export const EditDinnerContent = () => {
     </div>
   );
 };
-
-export function EditDinner({ dinner }: { dinner?: DinnerDTO }) {
-  return (
-    <useEditDinnerContext.Provider dinner={dinner}>
-      <EditDinnerContent />
-    </useEditDinnerContext.Provider>
-  );
-}

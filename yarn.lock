@@ -2119,10 +2119,10 @@ immer@^10.0.3:
   resolved "https://registry.yarnpkg.com/immer/-/immer-10.0.3.tgz#a8de42065e964aa3edf6afc282dfc7f7f34ae3c9"
   integrity sha512-pwupu3eWfouuaowscykeckFmVTpqbzW+rXFCX8rQLkZzM9ftBmU/++Ra+o+L27mz03zJTlyV4UUr+fdKNffo4A==
 
-impact-app@^0.38.2:
-  version "0.38.2"
-  resolved "https://registry.yarnpkg.com/impact-app/-/impact-app-0.38.2.tgz#dde2bc6c069424c2d333afbb8b48b1e12cb6b532"
-  integrity sha512-7D49OsORDDhtmfeF0jpi5pVhdN6EyrVUt/mJke4LQ+E46qfiRgDCF3p7n+66GveMt/A6sDYCGRp2oynwpv/OSQ==
+impact-app@^0.39.0:
+  version "0.39.0"
+  resolved "https://registry.yarnpkg.com/impact-app/-/impact-app-0.39.0.tgz#e818b5adfe5285d7e71e57d734c9b2eb5b025d6c"
+  integrity sha512-jgi3N/SU0W549TC19LHS8dfWS2WTKSaA4pXW4KVD4OnZyY+sbBsoBX7u7Ymb2j7SFCstCV6+c9ZKlmrxjrO/IQ==
   dependencies:
     impact-context "^0.1.4"
     impact-signal "^0.1.5"
