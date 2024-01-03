@@ -70,5 +70,8 @@
     "title": "Tittel",
     "add": "Legg til",
     "addNewItem": "Add new item"
+  },
+  "Assistant": {
+    "send": "Send"
   }
 }
