@@ -1,13 +1,8 @@
 import {
-  DrawerContent,
-  DrawerDescription,
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
-  DrawerTrigger,
 } from "@/components/ui/drawer";
-import { useGlobalContext } from "@/useGlobalContext";
-import { ChatIcon } from "@heroicons/react/outline";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { useAssistantContext } from "./useAssistantContext";
@@ -43,7 +38,7 @@ export function Assistant() {
           disabled={assistant.state.status !== "THREAD_CREATED"}
           onChange={(event) => setMessage(event.target.value)}
           className="p-2 border-none block w-full focus:ring-blue-500 focus:border-blue-500 text-sm"
-          placeholder="Description..."
+          placeholder="Type a message..."
           value={message}
         />
       </div>

@@ -111,10 +111,17 @@ export function getCompletedMessages(message: ThreadMessage) {
 
 // The format is "2024-01-01", but the year can be wrong, so
 // we need to manually handle that
-export function createDateFromAssistant(date: string) {
-  const [year, month, day] = date.split("-");
+export function createDateFromAssistant(assistantDate: string) {
+  const [_, month, day] = assistantDate.split("-").map(Number);
 
-  // Calculate the correct year
+  const date = new Date();
 
-  return Timestamp.now();
+  date.setMonth(month - 1);
+  date.setDate(day);
+
+  if (Date.now() > date.getTime()) {
+    date.setFullYear(date.getFullYear() + 1);
+  }
+
+  return Timestamp.fromDate(date);
 }
