@@ -14,6 +14,7 @@ export type Action =
         description: string;
         time?: string;
         date?: string;
+        checklist?: string[];
       };
     };
 
@@ -40,9 +41,10 @@ function toolCallToAction(toolCall: RequiredActionFunctionToolCall): Action {
         groceries: JSON.parse(toolCall.function.arguments).groceries,
       };
     case "add_todo":
+      console.log("HMMM", JSON.parse(toolCall.function.arguments));
       return {
         type: "add_todo",
-        todo: JSON.parse(toolCall.function.arguments).todo,
+        todo: JSON.parse(toolCall.function.arguments),
       };
   }
 
