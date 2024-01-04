@@ -108,8 +108,6 @@ function PlanTodoItemContext(props: Props) {
         [user.id]: userWeekdayActivity,
       };
 
-      console.log("WTF", userWeekdayActivity);
-
       firebase.transactDoc(nextWeekTodosCollection, todoId, (data) => {
         return {
           id: todoId,
