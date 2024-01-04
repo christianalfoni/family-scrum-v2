@@ -72,6 +72,8 @@
     "addNewItem": "Add new item"
   },
   "Assistant": {
-    "send": "Send"
+    "send": "Send",
+    "typeMessage": "Skriv en melding...",
+    "howCanIHelp": "Hva kan jeg hjelpe deg med?"
   }
 }

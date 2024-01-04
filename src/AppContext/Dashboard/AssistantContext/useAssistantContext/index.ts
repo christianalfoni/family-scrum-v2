@@ -50,6 +50,7 @@ export type AssistantState =
   | {
       status: "COMPLETED";
       messages: ThreadMessagesPage;
+      threadId: string;
     }
   | {
       status: "ERROR";
@@ -66,7 +67,9 @@ export const useAssistantContext = context(() => {
   const state = signal<AssistantState>({
     status: "CREATING_THREAD",
   });
-  const messages = signal<Array<{ text: string; role: string }>>([]);
+  const messages = signal<Array<{ text: string; role: "user" | "assistant" }>>(
+    [],
+  );
 
   createThread()
     .then((thread) => {
@@ -83,8 +86,6 @@ export const useAssistantContext = context(() => {
     });
 
   const handleRequiresActionThread = async (
-    threadId: string,
-    runId: string,
     thread: RetrieveThreadResponse & { status: "requires_action" },
   ) => {
     if (thread.action.type === "add_groceries") {
@@ -148,6 +149,7 @@ export const useAssistantContext = context(() => {
           state.value = {
             status: "COMPLETED",
             messages: thread.messages,
+            threadId,
           };
           messages.value = [
             ...messages.value,
@@ -164,7 +166,7 @@ export const useAssistantContext = context(() => {
             runId,
           };
 
-          await handleRequiresActionThread(threadId, runId, thread);
+          await handleRequiresActionThread(thread);
 
           await submitToolOutput(threadId, runId, thread.functionId, {
             type: "success",
@@ -193,7 +195,10 @@ export const useAssistantContext = context(() => {
       return messages.value;
     },
     async send(message: string) {
-      if (state.value.status !== "THREAD_CREATED") {
+      if (
+        state.value.status !== "THREAD_CREATED" &&
+        state.value.status !== "COMPLETED"
+      ) {
         return;
       }
 
@@ -203,7 +208,7 @@ export const useAssistantContext = context(() => {
         status: "REQUESTING_RUN",
         threadId,
       };
-      messages.value = [...messages.value, { role: "You", text: message }];
+      messages.value = [...messages.value, { role: "user", text: message }];
 
       try {
         const run = await runThread(threadId, message);

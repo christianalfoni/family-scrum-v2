@@ -102,10 +102,10 @@ export function poll(poll: () => Promise<any>) {
 export function getCompletedMessages(message: ThreadMessage) {
   return message.content.map((content) => {
     if (content.type === "image_file") {
-      return { text: "N/A (Image file)", role: "Assistant" };
+      return { text: "N/A (Image file)", role: "assistant" as const };
     }
 
-    return { text: content.text.value, role: "Assistant" };
+    return { text: content.text.value, role: "assistant" as const };
   });
 }
 
