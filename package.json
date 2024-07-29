@@ -24,6 +24,7 @@
     "firebase-functions": "^4.1.1",
     "immer": "^10.0.3",
     "impact-app": "^0.39.0",
+    "impact-react": "^1.8.0",
     "lodash.debounce": "^4.0.8",
     "lucide-react": "^0.303.0",
     "mobx": "^6.13.1",

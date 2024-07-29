@@ -1,5 +1,3 @@
-import { createSignal } from "@/ratchit";
-import { signal } from "impact-app";
 import { gt } from "semver";
 
 const STORAGE_KEY = "family-scrum.version";
@@ -9,26 +7,15 @@ const STORAGE_KEY = "family-scrum.version";
  * cached version when opening. This ensures that we detect when a new version is available
  * not notify that another refresh will get you to that latest version
  */
-export class Version {
-  #hasNew = createSignal(false);
+export async function detectNewVersion() {
+  const currentVersion = localStorage.getItem(STORAGE_KEY);
+  const version = await fetchVersion();
 
-  get hasNew() {
-    return this.#hasNew.get();
-  }
+  localStorage.setItem(STORAGE_KEY, version);
 
-  constructor() {
-    const currentVersion = localStorage.getItem(STORAGE_KEY);
+  return currentVersion && gt(version, currentVersion);
 
-    this.#fetchVersion().then((version) => {
-      if (!currentVersion || gt(version, currentVersion)) {
-        this.#hasNew.set(true);
-      }
-
-      localStorage.setItem(STORAGE_KEY, version);
-    });
-  }
-
-  async #fetchVersion() {
+  async function fetchVersion() {
     const response = await fetch("/api/version");
     const { version } = await response.json();
 
