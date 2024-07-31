@@ -13,7 +13,7 @@ export async function detectNewVersion() {
 
   localStorage.setItem(STORAGE_KEY, version);
 
-  return currentVersion && gt(version, currentVersion);
+  return Boolean(currentVersion && gt(version, currentVersion));
 
   async function fetchVersion() {
     const response = await fetch("/api/version");

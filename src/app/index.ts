@@ -1,13 +1,34 @@
+import { use } from "impact-react";
 import { createApp } from "./app";
 
 const app = createApp();
 
 export const useApp = () => app;
 
-export const useAuthenticatedApp = () => {
-  if (app.state.status === "AUTHENTICATED") {
-    return app.state;
+export const useFamilyScrum = () => {
+  const app = useApp();
+
+  if (app.session.status !== "AUTHENTICATED") {
+    throw new Error("Wrong usage");
   }
 
-  throw new Error("You can not use the app in an unauthenticated state");
+  return app.session.familyScrum;
+};
+
+export const useDinners = () => {
+  const familyScrum = useFamilyScrum();
+
+  return use(familyScrum.dinners);
+};
+
+export const useGroceries = () => {
+  const familyScrum = useFamilyScrum();
+
+  return use(familyScrum.groceries);
+};
+
+export const useTodos = () => {
+  const familyScrum = useFamilyScrum();
+
+  return use(familyScrum.todos);
 };

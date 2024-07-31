@@ -1,49 +1,53 @@
-import { signal } from "impact-react";
-import { detectNewVersion } from "./version";
-import { createFirebase, FamilyDTO, UserDTO } from "./firebase";
-import { createDinners, Dinners } from "./dinners";
 import { User } from "firebase/auth";
-import { AppState, AuthenticatedState, FirebaseSession } from "./app.types";
+import { signal } from "impact-react";
+import { createFamilyScrum, FamilyScrum } from "./familyScrum/familyScrum";
+import { createFirebase, FamilyDTO, UserDTO } from "./firebase";
+import { detectNewVersion } from "./version";
+import { AuthenticatedSessionState, SessionState } from "./app.types";
 
-const FIREBASE_SESSION_CACHE_KEY = "family_scrum_authentication";
+const AUTHENTICATION_CACHE_KEY = "family_scrum_authentication";
 
 export function createApp() {
   const firebase = createFirebase();
   const hasNewVersion = signal(detectNewVersion());
-  const state = signal(getInitialState());
+  const session = signal(getInitialSessionState());
 
   firebase.onAuthChanged(handleAuthStateChanged);
 
   return {
-    get state() {
-      return state();
+    get session() {
+      return session();
     },
     get hasNewVersion() {
       return hasNewVersion();
     },
   };
 
-  function getInitialState(): AppState {
+  function getInitialSessionState(): SessionState {
     // It takes quite a long time for Firebase to evalaute the curent session, we
     // use a cached user and family to get rolling faster
-    const cachedSession: FirebaseSession | null = JSON.parse(
-      localStorage.getItem(FIREBASE_SESSION_CACHE_KEY) || "null"
-    );
+    const cachedAuthentication: { user: UserDTO; family: FamilyDTO } | null =
+      JSON.parse(localStorage.getItem(AUTHENTICATION_CACHE_KEY) || "null");
 
-    return cachedSession
-      ? createAuthenticatedState(cachedSession)
+    return cachedAuthentication
+      ? createAuthenticatedState(
+          cachedAuthentication.user,
+          cachedAuthentication.family
+        )
       : {
           status: "AUTHENTICATING",
         };
   }
 
   function createAuthenticatedState(
-    session: FirebaseSession
-  ): AuthenticatedState {
+    user: UserDTO,
+    family: FamilyDTO
+  ): AuthenticatedSessionState {
     return {
       status: "AUTHENTICATED",
-      ...session,
-      dinners: createDinners(firebase),
+      user,
+      family,
+      familyScrum: createFamilyScrum(firebase, user, family),
     };
   }
 
@@ -52,6 +56,17 @@ export function createApp() {
   async function handleAuthStateChanged(maybeUser: User | null) {
     const usersCollection = firebase.collections.users();
     const familiesCollection = firebase.collections.families();
+    const currentSession = session();
+
+    // We do not update the session when already authenticated
+    if (currentSession.status === "AUTHENTICATED" && maybeUser) {
+      return;
+    }
+
+    // We dispose of the family scrum instance when logged out
+    if (currentSession.status === "AUTHENTICATED") {
+      currentSession.familyScrum.dispose();
+    }
 
     if (maybeUser) {
       try {
@@ -69,25 +84,23 @@ export function createApp() {
 
         // Theoretically we could already be unauthenticated by Firebase for whatever reason. Something
         // like RxJS would be interesting to explore here.
-        state(
-          createAuthenticatedState({
+        session(createAuthenticatedState(user, family));
+
+        localStorage.setItem(
+          AUTHENTICATION_CACHE_KEY,
+          JSON.stringify({
             user,
             family,
           })
         );
-
-        localStorage.setItem(
-          FIREBASE_SESSION_CACHE_KEY,
-          JSON.stringify(state())
-        );
       } catch (e) {
-        state({
+        session({
           status: "UNAUTHENTICATED",
           reason: String(e),
         });
       }
     } else {
-      state({
+      session({
         status: "UNAUTHENTICATED",
       });
     }

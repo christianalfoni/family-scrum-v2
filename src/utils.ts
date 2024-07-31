@@ -8,6 +8,30 @@ import {
   differenceInDays,
 } from "date-fns";
 
+import { Timestamp } from "firebase/firestore";
+
+export function sortByCreated<T extends { created: Timestamp }>(items: T[]) {
+  return items.sort((a, b) => {
+    if (a.created < b.created) {
+      return 1;
+    } else if (a.created > b.created) {
+      return -1;
+    }
+
+    return 0;
+  });
+}
+
+export function collectionToLookupRecord<T extends { id: string }>(
+  collection: T[]
+) {
+  return collection.reduce<Record<string, T>>((aggr, doc) => {
+    aggr[doc.id] = doc;
+
+    return aggr;
+  }, {});
+}
+
 export const getFirstDateOfPreviousWeek = () =>
   setDay(subDays(new Date(), 7), 1, { weekStartsOn: 1 });
 

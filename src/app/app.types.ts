@@ -1,26 +1,19 @@
-import { Dinners } from "./dinners";
+import { FamilyScrum } from "./familyScrum/familyScrum";
 import { FamilyDTO, UserDTO } from "./firebase";
 
-export type FirebaseSession = {
+export type AuthenticatedSessionState = {
+  status: "AUTHENTICATED";
   user: UserDTO;
   family: FamilyDTO;
+  familyScrum: FamilyScrum;
 };
 
-export type AuthenticatingState = {
-  status: "AUTHENTICATING";
-};
-
-export type AuthenticatedState = FirebaseSession & {
-  status: "AUTHENTICATED";
-  dinners: Dinners;
-};
-
-export type UnauthenticatedState = {
-  status: "UNAUTHENTICATED";
-  reason?: string;
-};
-
-export type AppState =
-  | AuthenticatingState
-  | AuthenticatedState
-  | UnauthenticatedState;
+export type SessionState =
+  | {
+      status: "AUTHENTICATING";
+    }
+  | AuthenticatedSessionState
+  | {
+      status: "UNAUTHENTICATED";
+      reason?: string;
+    };
