@@ -3,7 +3,7 @@ import { useTranslations } from "next-intl";
 import { ReactNode, useEffect, useState } from "react";
 import { useAssistantContext } from "./useAssistantContext";
 import { MessageCircleWarningIcon } from "lucide-react";
-import { useAppContext } from "@/AppContext/useAppContext";
+import { useAppContext } from "@/App/useAppContext";
 
 const ASSISTANT_AVATAR_URL = "/chat_avatar.png";
 

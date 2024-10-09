@@ -11,6 +11,7 @@
   "dependencies": {
     "@headlessui/react": "^1.7.7",
     "@heroicons/react": "^1.0.1",
+    "@impact-react/signals": "^1.2.1",
     "@radix-ui/react-dialog": "^1.0.5",
     "@tailwindcss/forms": "^0.5.6",
     "@types/fast-levenshtein": "^0.0.1",
@@ -23,7 +24,6 @@
     "firebase-admin": "^11.4.0",
     "firebase-functions": "^4.1.1",
     "immer": "^10.0.3",
-    "impact-app": "^0.39.0",
     "lodash.debounce": "^4.0.8",
     "lucide-react": "^0.303.0",
     "next": "^13.5.4",

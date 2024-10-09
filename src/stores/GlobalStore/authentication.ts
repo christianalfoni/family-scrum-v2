@@ -1,6 +1,6 @@
 import { User } from "firebase/auth";
-import { signal, cleanup } from "impact-app";
 import type { FamilyDTO, UserDTO, useFirebase } from "./firebase";
+import { signal } from "@impact-react/signals";
 
 type AuthenticatedSessionState = {
   status: "AUTHENTICATED";
@@ -27,23 +27,19 @@ export function useAuthentication(firebase: ReturnType<typeof useFirebase>) {
   // It takes quite a long time for Firebase to evalaute the curent session, we
   // use a cached user and family to get rolling faster
   const cachedAuthentication: AuthenticatedSessionState | null = JSON.parse(
-    localStorage.getItem(AUTHENTICATION_CACHE_KEY) || "null",
+    localStorage.getItem(AUTHENTICATION_CACHE_KEY) || "null"
   );
-  const state = signal<SessionState>(
+  const [state, setState] = signal<SessionState>(
     cachedAuthentication || {
       status: "AUTHENTICATING",
-    },
+    }
   );
-
-  cleanup(firebase.onAuthChanged(handleAuthStateChanged));
 
   // As part of being authenticated we also want to grab information
   // about the users family reference and the family itself
   async function handleAuthStateChanged(maybeUser: User | null) {
     if (maybeUser) {
       try {
-        const lastStatus = state.value.status;
-
         const user = await firebase.getDoc(usersCollection, maybeUser.uid);
 
         if (!user) {
@@ -58,32 +54,27 @@ export function useAuthentication(firebase: ReturnType<typeof useFirebase>) {
 
         // Theoretically we could already be unauthenticated by Firebase for whatever reason. Something
         // like RxJS would be interesting to explore here.
-        state.value = {
+        setState({
           status: "AUTHENTICATED",
           user,
           family,
-        };
+        });
 
-        localStorage.setItem(
-          AUTHENTICATION_CACHE_KEY,
-          JSON.stringify(state.value),
-        );
+        localStorage.setItem(AUTHENTICATION_CACHE_KEY, JSON.stringify(state()));
       } catch (e) {
-        state.value = {
+        setState({
           status: "UNAUTHENTICATED",
           reason: String(e),
-        };
+        });
       }
     } else {
-      state.value = {
+      setState({
         status: "UNAUTHENTICATED",
-      };
+      });
     }
   }
 
   return {
-    get state() {
-      return state.value;
-    },
+    state,
   };
 }

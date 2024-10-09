@@ -1,4 +1,4 @@
-import { useGlobalContext } from "../useGlobalContext";
+import { useGlobalStore } from "@/stores/GlobalStore";
 import { CheckLists } from "./CheckLists";
 import { Dashboard } from "./Dashboard";
 import { Dinners } from "./Dinners";
@@ -8,7 +8,7 @@ import { GroceriesContext } from "./GroceriesContext";
 import { PlanNextWeek } from "./PlanNextWeek";
 
 export function App() {
-  const { views } = useGlobalContext();
+  const { views } = useGlobalStore();
 
   const view = views.current;
   let content: JSX.Element;

@@ -1,4 +1,4 @@
-import { signal } from "impact-app";
+import { signal } from "@impact-react/signals";
 
 export type CameraState =
   | {
@@ -22,22 +22,20 @@ export type CameraState =
     };
 
 export function useCamera() {
-  const state = signal<CameraState>({
+  const [state, setState] = signal<CameraState>({
     status: "NOT_STARTED",
   });
 
   return {
-    get state() {
-      return state.value;
-    },
+    state,
     startCamera(elementId: string) {
       const video = document.querySelector<HTMLVideoElement>(`#${elementId}`);
 
       if (!video) {
-        state.value = {
+        setState({
           status: "ERROR",
           error: `The element id "${elementId}" does not match any element`,
-        };
+        });
         return;
       }
 
@@ -46,32 +44,33 @@ export function useCamera() {
           .getUserMedia({ video: { facingMode: "environment" } })
           .then((stream) => {
             video.srcObject = stream;
-            state.value = {
+            setState({
               status: "STARTED",
               stream,
-            };
+            });
           })
           .catch((error) => {
-            state.value = {
+            setState({
               status: "ERROR",
               error: String(error),
-            };
+            });
           });
       } else {
-        state.value = {
+        setState({
           status: "ERROR",
           error: "Camera not supported",
-        };
+        });
       }
     },
     capture(elementId: string, width: number, height: number) {
       const video = document.querySelector<HTMLVideoElement>(`#${elementId}`);
+      const currentState = state();
 
-      if (state.value.status !== "STARTED" || !video) {
-        state.value = {
+      if (currentState.status !== "STARTED" || !video) {
+        setState({
           status: "ERROR",
           error: "You can not capture with a non loaded camera",
-        };
+        });
         return;
       }
 
@@ -95,18 +94,18 @@ export function useCamera() {
         0,
         0,
         width,
-        height,
+        height
       );
 
-      state.value.stream.getTracks().forEach((track) => {
+      currentState.stream.getTracks().forEach((track) => {
         track.stop();
       });
 
-      state.value = {
+      setState({
         status: "CAPTURED",
-        stream: state.value.stream,
+        stream: currentState.stream,
         src: canvas.toDataURL(),
-      };
+      });
     },
   };
 }

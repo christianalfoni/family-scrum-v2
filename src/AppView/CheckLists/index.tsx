@@ -2,13 +2,13 @@ import * as React from "react";
 import { useTranslations } from "next-intl";
 import { ChevronLeftIcon } from "@heroicons/react/outline";
 import { TodoItemContext } from "../common-components/TodoItemContext";
-import { useGlobalContext } from "../../useGlobalContext";
-import { useAppContext } from "../useAppContext";
+import { useGlobalStore } from "@/stores/GlobalStore";
+import { useAppStore } from "@/stores/AppStore";
 
-export const CheckLists = () => {
+export function CheckLists() {
   const t = useTranslations("CheckListsView");
-  const { views } = useGlobalContext();
-  const { todosWithCheckList } = useAppContext();
+  const { views } = useGlobalStore();
+  const { todosWithCheckList } = useAppStore();
 
   return (
     <div className="bg-white flex flex-col h-screen">
@@ -27,10 +27,10 @@ export const CheckLists = () => {
         </div>
       </div>
       <ul className="relative z-0 divide-y divide-gray-200 border-b border-gray-200 overflow-y-scroll">
-        {todosWithCheckList.map((todo) => (
+        {todosWithCheckList().map((todo) => (
           <TodoItemContext key={todo.id} todo={todo} />
         ))}
       </ul>
     </div>
   );
-};
+}

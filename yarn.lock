@@ -771,6 +771,24 @@
   resolved "https://registry.yarnpkg.com/@heroicons/react/-/react-1.0.1.tgz#66d25f6441920bd5c2146ea27fd33995885452dd"
   integrity sha512-uikw2gKCmqnvjVxitecWfFLMOKyL9BTFcU4VM3hHj9OMwpkCr5Ke+MRMyY2/aQVmsYs4VTq7NCFX05MYwAHi3g==
 
+"@impact-react/babel-transform@^1.0.2":
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/@impact-react/babel-transform/-/babel-transform-1.0.2.tgz#0089b7b97bf4a32104a457b8e014e7cb79f872d0"
+  integrity sha512-dlXth1CLNDVHJZ+A8ZIaL7xY668EOZA5kciMNmDTHPVqQIypsJYXjrE3TyjfngpctC+nE9kMRUvB0sZoESN0Xg==
+
+"@impact-react/signals@^1.2.1":
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/@impact-react/signals/-/signals-1.2.1.tgz#e3b65bf168832dba5b849da3c0a46cf41eeb425c"
+  integrity sha512-IWRGvoOTBtYS+n2VqagnYjkHRYHRqrQn2Eb3rHHgMXAScqOWRcnzaIoTtSQq+Ze78vbSMb6+vwiu7gV44IF99A==
+  dependencies:
+    "@impact-react/babel-transform" "^1.0.2"
+    "@impact-react/store" "^1.1.0"
+
+"@impact-react/store@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@impact-react/store/-/store-1.1.0.tgz#eaf22abd40eb334452c9999a13892e801c0ab1fc"
+  integrity sha512-+LJ+rMwviOrsoOEZA9yG8NBO9HnlaHoUMi3nin7t0BYCDhZ9D+PXt3rbJORu1d+4+zvfax9SQc9WyFthWrdXug==
+
 "@jridgewell/gen-mapping@^0.3.0", "@jridgewell/gen-mapping@^0.3.2":
   version "0.3.3"
   resolved "https://registry.yarnpkg.com/@jridgewell/gen-mapping/-/gen-mapping-0.3.3.tgz#7e02e6eb5df901aaedb08514203b096614024098"
@@ -2456,27 +2474,6 @@ immer@^10.0.3:
   resolved "https://registry.yarnpkg.com/immer/-/immer-10.0.3.tgz#a8de42065e964aa3edf6afc282dfc7f7f34ae3c9"
   integrity sha512-pwupu3eWfouuaowscykeckFmVTpqbzW+rXFCX8rQLkZzM9ftBmU/++Ra+o+L27mz03zJTlyV4UUr+fdKNffo4A==
 
-impact-app@^0.39.0:
-  version "0.39.0"
-  resolved "https://registry.yarnpkg.com/impact-app/-/impact-app-0.39.0.tgz#e818b5adfe5285d7e71e57d734c9b2eb5b025d6c"
-  integrity sha512-jgi3N/SU0W549TC19LHS8dfWS2WTKSaA4pXW4KVD4OnZyY+sbBsoBX7u7Ymb2j7SFCstCV6+c9ZKlmrxjrO/IQ==
-  dependencies:
-    impact-context "^0.1.4"
-    impact-signal "^0.1.5"
-
-impact-context@^0.1.4:
-  version "0.1.4"
-  resolved "https://registry.yarnpkg.com/impact-context/-/impact-context-0.1.4.tgz#49c99f03bca6989bd2262ec54b7fa9a7045e97f9"
-  integrity sha512-9Syw85omtoUZfXOopDA3QXxw13F7H+/QGqu99+lpUWlHWG1sKaQ8q+h3FrGoWDh6i71VS/r52fC6zkgs/cppOw==
-
-impact-signal@^0.1.5:
-  version "0.1.5"
-  resolved "https://registry.yarnpkg.com/impact-signal/-/impact-signal-0.1.5.tgz#9bab68a0f470247caa9326354aea29649807142c"
-  integrity sha512-TKB5xvlel6hIpHDoE+Px+eeuqcC/DaYJfRzv/MrLWlDrBwhbpzA6SSE2JRyoe0WnLMIKnRsrpqWpFqlmzbz4Tw==
-  dependencies:
-    stackframe "^1.3.4"
-    stacktrace-gps "^3.1.2"
-
 inflight@^1.0.4:
   version "1.0.6"
   resolved "https://registry.yarnpkg.com/inflight/-/inflight-1.0.6.tgz#49bd6331d7d02d0c09bc910a1075ba8165b56df9"
@@ -3596,11 +3593,6 @@ source-map-js@^1.0.2:
   resolved "https://registry.yarnpkg.com/source-map-js/-/source-map-js-1.0.2.tgz#adbc361d9c62df380125e7f161f71c826f1e490c"
   integrity sha512-R0XvVJ9WusLiqTCEiGCmICCMplcCkIwwR11mOSD9CR5u+IXYdiseeEuXCVAjS54zqwkLcPNnmU4OeJ6tUrWhDw==
 
-source-map@0.5.6:
-  version "0.5.6"
-  resolved "https://registry.yarnpkg.com/source-map/-/source-map-0.5.6.tgz#75ce38f52bf0733c5a7f0c118d81334a2bb5f412"
-  integrity sha512-MjZkVp0NHr5+TPihLcadqnlVoGIoWo4IBHptutGh9wI3ttUYvCG26HkSuDi+K6lsZ25syXJXcctwgyVCt//xqA==
-
 source-map@~0.6.1:
   version "0.6.1"
   resolved "https://registry.yarnpkg.com/source-map/-/source-map-0.6.1.tgz#74722af32e9614e9c287a8d0bbde48b5e2f1a263"
@@ -3610,19 +3602,6 @@ ssr-window@^3.0.0, ssr-window@^3.0.0-alpha.1:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/ssr-window/-/ssr-window-3.0.0.tgz#fd5b82801638943e0cc704c4691801435af7ac37"
   integrity sha512-q+8UfWDg9Itrg0yWK7oe5p/XRCJpJF9OBtXfOPgSJl+u3Xd5KI328RUEvUqSMVM9CiQUEf1QdBzJMkYGErj9QA==
-
-stackframe@^1.3.4:
-  version "1.3.4"
-  resolved "https://registry.yarnpkg.com/stackframe/-/stackframe-1.3.4.tgz#b881a004c8c149a5e8efef37d51b16e412943310"
-  integrity sha512-oeVtt7eWQS+Na6F//S4kJ2K2VbRlS9D43mAlMyVpVWovy9o+jfgH8O9agzANzaiLjclA0oYzUXEM4PurhSUChw==
-
-stacktrace-gps@^3.1.2:
-  version "3.1.2"
-  resolved "https://registry.yarnpkg.com/stacktrace-gps/-/stacktrace-gps-3.1.2.tgz#0c40b24a9b119b20da4525c398795338966a2fb0"
-  integrity sha512-GcUgbO4Jsqqg6RxfyTHFiPxdPqF+3LFmQhm7MgCuYQOYuWyqxo5pwRPz5d/u6/WYJdEnWfK4r+jGbyD8TSggXQ==
-  dependencies:
-    source-map "0.5.6"
-    stackframe "^1.3.4"
 
 "statuses@>= 1.5.0 < 2", statuses@~1.5.0:
   version "1.5.0"

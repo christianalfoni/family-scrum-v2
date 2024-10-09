@@ -1,6 +1,6 @@
 import { produce } from "immer";
-import { signal } from "impact-app";
 import { DinnerDTO, TodoDTO } from "./firebase";
+import { signal } from "@impact-react/signals";
 
 export type View =
   | {
@@ -33,7 +33,7 @@ export type View =
  * screen we use a stack of views instead
  */
 export function useViews() {
-  const views = signal<View[]>([
+  const [views, setViews] = signal<View[]>([
     {
       name: "DASHBOARD",
     },
@@ -41,22 +41,30 @@ export function useViews() {
 
   return {
     get current() {
-      return views.value[views.value.length - 1]!;
+      const currentViews = views();
+
+      return currentViews[currentViews.length - 1]!;
     },
     push(view: View) {
-      views.value = produce(views.value, (draft) => {
-        draft.push(view);
-      });
+      setViews(
+        produce((draft) => {
+          draft.push(view);
+        })
+      );
     },
     replace(view: View) {
-      views.value = produce(views.value, (draft) => {
-        draft[draft.length - 1] = view;
-      });
+      setViews(
+        produce((draft) => {
+          draft[draft.length - 1] = view;
+        })
+      );
     },
     pop() {
-      views.value = produce(views.value, (draft) => {
-        draft.pop();
-      });
+      setViews(
+        produce((draft) => {
+          draft.pop();
+        })
+      );
     },
   };
 }

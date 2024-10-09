@@ -1,11 +1,11 @@
-import { AppContext } from "./AppContext";
-import { useGlobalContext } from "./useGlobalContext";
+import { AppView } from "./AppView";
+import { useGlobalStore } from "./stores/GlobalStore";
 
 function Main() {
   return (
-    <useGlobalContext.Provider>
-      <AppContext />
-    </useGlobalContext.Provider>
+    <useGlobalStore.Provider>
+      <AppView />
+    </useGlobalStore.Provider>
   );
 }
 

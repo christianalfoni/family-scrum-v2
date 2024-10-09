@@ -1,10 +1,16 @@
-import { Signal, derived, signal, cleanup, context } from "impact-app";
-import { useGlobalContext } from "../useGlobalContext";
-import { FamilyDTO, UserDTO, WeekDTO } from "../useGlobalContext/firebase";
+import { FamilyDTO, UserDTO, WeekDTO } from "./GlobalStore/firebase";
 import { getCurrentWeekId, getNextWeekId, getPreviousWeekId } from "../utils";
 import { Timestamp } from "firebase/firestore";
+import { useGlobalStore } from "./GlobalStore";
+import {
+  Cleanup,
+  createStore,
+  derived,
+  Signal,
+  signal,
+} from "@impact-react/signals";
 
-export const useAppContext = context(AppContext);
+export const useAppStore = createStore(AppStore);
 
 export type Props = {
   user: UserDTO;
@@ -16,10 +22,10 @@ export type Props = {
  * context with the resolved data, but we want the application to show as fast as possible and not all
  * data is needed for the initial dashboard, we just want to start fetching it as fast as possible
  */
-function AppContext(props: Props) {
+function AppStore(props: Props, cleanup: Cleanup) {
   const { user, family } = props;
 
-  const { firebase } = useGlobalContext();
+  const { firebase } = useGlobalStore();
 
   const previousWeekId = getPreviousWeekId();
   const currentWeekId = getCurrentWeekId();
@@ -38,37 +44,37 @@ function AppContext(props: Props) {
     nextWeekId,
   ].map((weekId) => {
     // We default to an empty document
-    const week = signal(
+    const [week, setWeek] = signal(
       firebase.getDoc(weeksCollection, weekId).then(
         (doc): WeekDTO =>
           doc || {
             id: weekId,
             dinners: [null, null, null, null, null, null, null],
-          },
-      ),
+          }
+      )
     );
     const weekTodosCollection = firebase.collections.weekTodos(
       user.familyId,
-      weekId,
+      weekId
     );
 
-    const weekTodos = signal(
-      firebase.getDocs(weekTodosCollection).then(collectionToLookupRecord),
+    const [weekTodos, setWeekTodos] = signal(
+      firebase.getDocs(weekTodosCollection).then(collectionToLookupRecord)
     );
 
     const disposeWeekSnapshot = firebase.onDocSnapshot(
       weeksCollection,
       weekId,
       (update) => {
-        week.value = Promise.resolve(update);
-      },
+        setWeek(Promise.resolve(update));
+      }
     );
 
     const disposeWeekTodosSnapshot = firebase.onCollectionSnapshot(
       weekTodosCollection,
       (update) => {
-        weekTodos.value = Promise.resolve(collectionToLookupRecord(update));
-      },
+        setWeekTodos(Promise.resolve(collectionToLookupRecord(update)));
+      }
     );
 
     return {
@@ -83,16 +89,20 @@ function AppContext(props: Props) {
 
   // Firebase fetches urls to images asynchronously, we cache them
   const imageUrls: Record<string, Signal<Promise<string | null>>> = {};
-  const dinners = signal(
-    firebase.getDocs(dinnersCollection).then(sortByCreated),
+  const [dinners, setDinners] = signal(
+    firebase.getDocs(dinnersCollection).then(sortByCreated)
   );
-  const todos = signal(firebase.getDocs(todosCollection));
-  const todosWithCheckList = derived(() =>
-    todos.value.status === "fulfilled"
-      ? todos.value.value.filter((todo) => Boolean(todo.checkList))
-      : [],
+  const [todos, setTodos] = signal(firebase.getDocs(todosCollection));
+  const todosWithCheckList = derived(() => {
+    const currentTodos = todos();
+
+    return currentTodos.status === "fulfilled"
+      ? currentTodos.value.filter((todo) => Boolean(todo.checkList))
+      : [];
+  });
+  const [groceries, setGroceries] = signal(
+    firebase.getDocs(groceriesCollection)
   );
-  const groceries = signal(firebase.getDocs(groceriesCollection));
 
   cleanup(previousWeek.dispose);
   cleanup(currentWeek.dispose);
@@ -100,21 +110,20 @@ function AppContext(props: Props) {
 
   cleanup(
     firebase.onCollectionSnapshot(todosCollection, (update) => {
-      todos.value = Promise.resolve(update);
-    }),
+      setTodos(Promise.resolve(update));
+    })
   );
 
   cleanup(
     firebase.onCollectionSnapshot(dinnersCollection, (update) => {
-      dinners.value = Promise.resolve(sortByCreated(update));
-    }),
+      setDinners(Promise.resolve(sortByCreated(update)));
+    })
   );
 
   cleanup(
-    firebase.onCollectionSnapshot(
-      groceriesCollection,
-      (update) => (groceries.value = Promise.resolve(update)),
-    ),
+    firebase.onCollectionSnapshot(groceriesCollection, (update) =>
+      setGroceries(Promise.resolve(update))
+    )
   );
 
   return {
@@ -124,59 +133,37 @@ function AppContext(props: Props) {
     get family() {
       return family;
     },
-    get todosWithCheckList() {
-      return todosWithCheckList.value;
-    },
-    fetchDinners() {
-      return dinners.value;
-    },
-    fetchGroceries() {
-      return groceries.value;
-    },
-    fetchTodos() {
-      return todos.value;
-    },
+    todosWithCheckList,
+    dinners,
+    groceries,
+    todos,
     weeks: {
       previous: {
         id: previousWeekId,
-        fetchWeek() {
-          return previousWeek.week.value;
-        },
-        fetchWeekTodos() {
-          return previousWeek.weekTodos.value;
-        },
+        week: previousWeek.week,
+        weekTodos: previousWeek.weekTodos,
       },
       current: {
         id: currentWeekId,
-        fetchWeek() {
-          return currentWeek.week.value;
-        },
-        fetchWeekTodos() {
-          return currentWeek.weekTodos.value;
-        },
+        week: currentWeek.week,
+        weekTodos: currentWeek.weekTodos,
       },
       next: {
         id: nextWeekId,
-        fetchWeek() {
-          return nextWeek.week.value;
-        },
-        fetchWeekTodos() {
-          return nextWeek.weekTodos.value;
-        },
+        week: nextWeek.week,
+        weekTodos: nextWeek.weekTodos,
       },
     },
     fetchImageUrl(collection: string, id: string) {
       const ref = collection + "/" + id;
 
-      let imageUrl = imageUrls[ref];
-
-      if (!imageUrl) {
-        imageUrl = imageUrls[ref] = signal(
-          firebase.getImageUrl(ref).catch(() => null),
-        );
+      if (!imageUrls[ref]) {
+        imageUrls[ref] = signal(firebase.getImageUrl(ref).catch(() => null));
       }
 
-      return imageUrl.value;
+      const [imageUrl] = imageUrls[ref];
+
+      return imageUrl;
     },
   };
 }

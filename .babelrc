@@ -1,0 +1,3 @@
+{
+  "plugins": ["next/babel", "@impact-react/signals/transform"]
+}

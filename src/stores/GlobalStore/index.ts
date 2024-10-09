@@ -1,11 +1,11 @@
-import { context } from "impact-app";
 import { useFirebase } from "./firebase";
 import { useViews } from "./views";
 import { useAuthentication } from "./authentication";
 import { useCamera } from "./camera";
 import { useVersion } from "./version";
+import { createStore } from "@impact-react/signals";
 
-export const useGlobalContext = context(() => {
+function GlobalStore() {
   // We compose the global context using the hooks pattern
   const firebase = useFirebase();
   const views = useViews();
@@ -20,4 +20,6 @@ export const useGlobalContext = context(() => {
     camera,
     version,
   };
-});
+}
+
+export const useGlobalStore = createStore(GlobalStore);

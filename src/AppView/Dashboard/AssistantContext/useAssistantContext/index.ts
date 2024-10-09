@@ -1,4 +1,4 @@
-import { useAppContext } from "@/AppContext/useAppContext";
+import { useAppContext } from "@/App/useAppContext";
 import type {
   Action,
   RetrieveThreadResponse,
@@ -68,7 +68,7 @@ export const useAssistantContext = context(() => {
     status: "CREATING_THREAD",
   });
   const messages = signal<Array<{ text: string; role: "user" | "assistant" }>>(
-    [],
+    []
   );
 
   createThread()
@@ -86,7 +86,7 @@ export const useAssistantContext = context(() => {
     });
 
   const handleRequiresActionThread = async (
-    thread: RetrieveThreadResponse & { status: "requires_action" },
+    thread: RetrieveThreadResponse & { status: "requires_action" }
   ) => {
     if (thread.action.type === "add_groceries") {
       const addGroceryRequests = thread.action.groceries.map((name) => {
