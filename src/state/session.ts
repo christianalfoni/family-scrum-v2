@@ -1,8 +1,8 @@
 import { User } from "firebase/auth";
-import type { FamilyDTO, UserDTO } from "../utils/firebase";
+import type { FamilyDTO, UserDTO } from "../apis/firebase";
 import { reactive } from "bonsify";
 import { createFamilyScrum, FamilyScrum } from "./familyScrum";
-import { Utils } from ".";
+import { Apis } from "../apis";
 
 type AUTHENTICATED = {
   current: "AUTHENTICATED";
@@ -27,29 +27,41 @@ export type Session = {
 
 const AUTHENTICATION_CACHE_KEY = "family_scrum_authentication";
 
-export function createSession(utils: Utils) {
+export function createSession(apis: Apis) {
+  const { firebase } = apis;
+
   const UNAUTHENTICATED = (reason?: string): UNAUTHENTICATED => ({
     current: "UNAUTHENTICATED",
     reason,
     signIn() {
-      utils.firebase.signIn();
+      firebase.signIn();
     },
   });
   const AUTHENTICATING = (): AUTHENTICATING => ({ current: "AUTHENTICATING" });
   const AUTHENTICATED = (user: UserDTO, family: FamilyDTO): AUTHENTICATED => ({
     current: "AUTHENTICATED",
-    familyScrum: createFamilyScrum(utils, user, family),
+    familyScrum: createFamilyScrum(apis, user, family),
   });
 
-  const { firebase } = utils;
   const usersCollection = firebase.collections.users();
   const familiesCollection = firebase.collections.families();
 
-  // As part of being authenticated we also want to grab information
-  // about the users family reference and the family itself
+  let currentUserUid: string | null = null;
+
   firebase.onAuthChanged(async (maybeUser: User | null) => {
+    if (
+      session.state.current === "AUTHENTICATED" &&
+      maybeUser?.uid !== currentUserUid
+    ) {
+      session.state.familyScrum.dispose();
+    }
+
+    currentUserUid = maybeUser?.uid || null;
+
     if (maybeUser) {
       try {
+        // As part of being authenticated we also want to grab information
+        // about the users family reference and the family itself
         const user = await firebase.getDoc(usersCollection, maybeUser.uid);
 
         if (!user) {

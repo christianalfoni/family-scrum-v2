@@ -1,17 +1,7 @@
-import { CameraApi, createCamera } from "../utils/camera";
-import { createFirebase, type FirebaseApi } from "../utils/firebase";
-import { family } from "../utils/firebase/converters";
+import { apis } from "../apis";
 import { createSession } from "./session";
 
-export type Utils = {
-  firebase: FirebaseApi;
-  camera: CameraApi;
-};
-
-const session = createSession({
-  camera: createCamera(),
-  firebase: createFirebase(),
-});
+const session = createSession(apis);
 
 export const useSession = () => session;
 
