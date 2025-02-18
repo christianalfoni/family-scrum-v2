@@ -1,12 +1,11 @@
-import { useFamilyScrum } from "../../state";
-import { Dashboard } from "../Dashboard";
+import { FamilyScrumState } from "../../state/familyScrum";
 import { Skeleton } from "../Dashboard/Skeleton";
 
-export function FamilyScrum() {
-  const familyScrum = useFamilyScrum();
-
-  console.log(familyScrum);
-
+export function FamilyScrum({
+  familyScrum,
+}: {
+  familyScrum: FamilyScrumState;
+}) {
   switch (familyScrum.view.name) {
     case "dashboard":
       return <Skeleton />;

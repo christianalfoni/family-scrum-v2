@@ -1,11 +1,9 @@
 import { Skeleton } from "../Dashboard/Skeleton";
-import { useSession } from "../../state";
 import { SignInModal } from "./SignInModal";
 import { FamilyScrum } from "../FamilyScrum";
+import { SessionState } from "../../state/session";
 
-function Session() {
-  const session = useSession();
-
+function Session({ session }: { session: SessionState }) {
   if (session.state.current === "AUTHENTICATING") {
     return <Skeleton />;
   }
@@ -21,7 +19,7 @@ function Session() {
     );
   }
 
-  return <FamilyScrum />;
+  return <FamilyScrum familyScrum={session.state.familyScrum} />;
 }
 
 export default Session;
