@@ -2,6 +2,7 @@ import { initializeApp } from "@firebase/app";
 import { createCamera } from "./camera";
 import { createFirebasePersistence } from "./firebase";
 import { createFirebaseAuthentication } from "./authentication";
+import { createAwake } from "./awake";
 
 export type Context = ReturnType<typeof createContext>;
 
@@ -20,5 +21,6 @@ export const createContext = () => {
     camera: createCamera(),
     authentication: createFirebaseAuthentication(app),
     persistence: createFirebasePersistence(app),
+    awake: createAwake(),
   };
 };

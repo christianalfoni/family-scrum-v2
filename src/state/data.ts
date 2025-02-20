@@ -1,14 +1,13 @@
 import {
   DinnerDTO,
+  FamilyPersistence,
   GroceryDTO,
   TodoDTO,
   WeekDTO,
   WeekTodoDTO,
 } from "../context/firebase";
 import { getCurrentWeekId, getNextWeekId, getPreviousWeekId } from "../utils";
-import { Timestamp } from "firebase/firestore"; // We map over the previous, current and next week to get and subscribe to
-import { Context } from "../context";
-import { SessionAuthenticated } from "./session";
+import { Timestamp } from "firebase/firestore";
 import { reactive } from "bonsify";
 
 export type DataState = {
@@ -27,9 +26,7 @@ type WeekData = {
   unsubscribe(): void;
 };
 
-export const createData = (context: Context, session: SessionAuthenticated) => {
-  const { family } = session;
-  const familyPersistence = context.persistence.createFamilyApi(family.id);
+export const createData = (familyPersistence: FamilyPersistence) => {
   const previousWeekId = getPreviousWeekId();
   const currentWeekId = getCurrentWeekId();
   const nextWeekId = getNextWeekId();
@@ -39,7 +36,7 @@ export const createData = (context: Context, session: SessionAuthenticated) => {
     nextWeekId,
   ].map(createWeekData);
 
-  const data = reactive<DataState>({
+  const state = reactive<DataState>({
     groceries: [],
     dinners: [],
     todos: [],
@@ -51,19 +48,19 @@ export const createData = (context: Context, session: SessionAuthenticated) => {
 
   const disposeOnGroceriesCollectionSnapshot =
     familyPersistence.groceries.subscribeAll((groceries) => {
-      data.groceries = groceries;
+      state.groceries = groceries;
     });
   const disposeOnDinnersCollectionSnapshot =
     familyPersistence.dinners.subscribeAll((dinners) => {
-      data.dinners = dinners;
+      state.dinners = dinners;
     });
   const disposeOnTodosCollectionSnapshot = familyPersistence.todos.subscribeAll(
     (todos) => {
-      data.todos = todos;
+      state.todos = todos;
     }
   );
 
-  return data;
+  return state;
 
   function unsubscribe() {
     previousWeek.unsubscribe();

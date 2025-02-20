@@ -16,6 +16,7 @@
     "@tailwindcss/vite": "^4.0.6",
     "bonsify": "^0.2.2",
     "date-fns": "^4.1.0",
+    "fast-levenshtein": "^3.0.0",
     "firebase": "^11.3.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
@@ -26,6 +27,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.19.0",
+    "@types/fast-levenshtein": "^0.0.4",
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",
     "@vitejs/plugin-react": "^4.3.4",

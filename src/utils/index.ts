@@ -10,6 +10,12 @@ import {
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
+export type WithRequired<T, K extends keyof T> = Omit<T, K> & {
+  [P in K]-?: T[P];
+};
+
+// Result: { baz: number; bar: string }
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }

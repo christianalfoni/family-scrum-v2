@@ -26,7 +26,10 @@ export const createFamilyScrum = (
   context: Context,
   session: SessionAuthenticated
 ) => {
-  const data = createData(context, session);
+  const familyPersistence = context.persistence.createFamilyApi(
+    session.family.id
+  );
+  const data = createData(familyPersistence);
   const familyScrum = reactive<FamilyScrumState>({
     session,
     get view(): View {
@@ -41,7 +44,12 @@ export const createFamilyScrum = (
   });
   const viewStates = {
     dashboard: createDashboard(context, familyScrum),
-    groceries: createGroceries(context, familyScrum, data),
+    groceries: createGroceries({
+      context,
+      familyScrum,
+      data,
+      familyPersistence,
+    }),
   };
   const viewStack = reactive<View[]>([
     {

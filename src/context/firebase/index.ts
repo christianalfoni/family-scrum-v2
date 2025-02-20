@@ -38,7 +38,10 @@ export enum Collection {
   WEEKS = "weeks",
 }
 
-export type FirebaseApi = ReturnType<typeof createFirebasePersistence>;
+export type FirebasePersistence = ReturnType<typeof createFirebasePersistence>;
+export type FamilyPersistence = ReturnType<
+  FirebasePersistence["createFamilyApi"]
+>;
 
 /**
  * Creates an API specific to the collections and related functionality needed for this app,
