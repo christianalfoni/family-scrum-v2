@@ -1,24 +1,15 @@
 import { reactive } from "bonsify";
-import { createDashboard, Dashboard } from "./dashboard";
+
 import { Context } from "../context";
 import { SessionAuthenticated } from "./session";
-import { createGroceries, GroceriesState } from "./groceries";
 import { createData } from "./data";
-
-export type View =
-  | {
-      name: "dashboard";
-      state: Dashboard;
-    }
-  | {
-      name: "groceries";
-      state: GroceriesState;
-    };
+import { createGroceries, GroceriesState } from "./groceries";
+import { createTodos, TodosState } from "./todos";
 
 export type FamilyScrumState = {
   session: SessionAuthenticated;
-  view: View;
-  back(): void;
+  groceries: GroceriesState;
+  todos: TodosState;
   dispose(): void;
 };
 
@@ -32,31 +23,30 @@ export const createFamilyScrum = (
   const data = createData(familyPersistence);
   const familyScrum = reactive<FamilyScrumState>({
     session,
-    get view(): View {
-      return viewStack[viewStack.length - 1];
+    get groceries() {
+      return groceries;
     },
-    back() {
-      viewStack.pop();
+    get todos() {
+      return todos;
     },
     dispose() {
       data.unsubscribe();
     },
   });
-  const viewStates = {
-    dashboard: createDashboard(context, familyScrum),
-    groceries: createGroceries({
-      context,
-      familyScrum,
-      data,
-      familyPersistence,
-    }),
-  };
-  const viewStack = reactive<View[]>([
-    {
-      name: "dashboard",
-      state: viewStates.dashboard,
-    },
-  ]);
+
+  const groceries = createGroceries({
+    context,
+    data,
+    familyPersistence,
+    familyScrum,
+  });
+
+  const todos = createTodos({
+    context,
+    data,
+    familyScrum,
+    familyPersistence,
+  });
 
   return familyScrum;
 };

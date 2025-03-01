@@ -54,11 +54,13 @@ export function createSession(apis: Context) {
       },
     };
   }
+
   function AUTHENTICATING(): SessionAuthenticating {
     return {
       current: "AUTHENTICATING",
     };
   }
+
   function AUTHENTICATED(user: UserDTO, family: FamilyDTO) {
     const authenticated: SessionAuthenticated = reactive({
       current: "AUTHENTICATED",

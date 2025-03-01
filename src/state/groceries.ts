@@ -5,9 +5,8 @@ import { Context } from "../context";
 import { FamilyPersistence, GroceryDTO } from "../context/firebase";
 import { DataState } from "./data";
 import { Timestamp } from "firebase/firestore";
-import { Awake } from "../context/awake";
 
-export type GroceryItem = {
+export type GroceryState = {
   name: string;
   created: Timestamp;
   shop(): void;
@@ -15,9 +14,8 @@ export type GroceryItem = {
 
 export type GroceriesState = {
   familyScrum: FamilyScrumState;
-  input: string;
-  groceries: GroceryItem[];
-  awake: Awake;
+  filter: string;
+  filteredGroceries: GroceryState[];
   addGrocery(name: string): void;
 };
 
@@ -38,28 +36,25 @@ export const createGroceries = ({
   const groceriesApi = familyPersistence.groceries;
   const state = reactive<GroceriesState>({
     familyScrum,
-    input: "",
-    get groceries() {
+    filter: "",
+    get filteredGroceries() {
       return filterGroceries();
     },
     addGrocery,
-    awake: context.awake,
   });
 
   return state;
 
-  async function addGrocery() {
+  async function addGrocery(name: string) {
     await groceriesApi.set({
       id: groceriesApi.createId(),
-      name: state.input,
+      name,
       created: peristence.createServerTimestamp(),
       modified: peristence.createServerTimestamp(),
     });
-
-    state.input = "";
   }
 
-  function createGroceryItem(groceryData: GroceryDTO): GroceryItem {
+  function createGroceryItem(groceryData: GroceryDTO): GroceryState {
     return {
       get name() {
         return groceryData.name;
@@ -73,28 +68,30 @@ export const createGroceries = ({
     };
   }
 
-  function filterGroceries(): GroceryItem[] {
+  function filterGroceries(): GroceryState[] {
     const groceries = data.groceries.map(createGroceryItem);
-    const input = state.input;
-    const lowerCaseInput = input.toLowerCase();
+    const filter = state.filter;
+    const lowerCaseInput = filter.toLowerCase();
     const now = Date.now();
 
-    return input
+    return filter
       ? groceries
           .filter((grocery) => {
             const lowerCaseGroceryName = grocery.name.toLowerCase();
 
             return (
               lowerCaseGroceryName.includes(lowerCaseInput) ||
-              levenshtein.get(grocery.name.toLowerCase(), input.toLowerCase()) <
-                3
+              levenshtein.get(
+                grocery.name.toLowerCase(),
+                filter.toLowerCase()
+              ) < 3
             );
           })
           .sort((a, b) => {
-            if (a.name.startsWith(input) && !b.name.startsWith(input)) {
+            if (a.name.startsWith(filter) && !b.name.startsWith(filter)) {
               return -1;
             }
-            if (!a.name.startsWith(input) && b.name.startsWith(input)) {
+            if (!a.name.startsWith(filter) && b.name.startsWith(filter)) {
               return 1;
             }
 
