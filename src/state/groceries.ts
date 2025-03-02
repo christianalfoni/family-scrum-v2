@@ -49,8 +49,8 @@ export const createGroceries = ({
     await groceriesApi.set({
       id: groceriesApi.createId(),
       name,
-      created: peristence.createServerTimestamp(),
-      modified: peristence.createServerTimestamp(),
+      created: peristence.createTimestamp(),
+      modified: peristence.createTimestamp(),
     });
   }
 

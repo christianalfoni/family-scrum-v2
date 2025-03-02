@@ -1,30 +1,9 @@
 import { Timestamp } from "firebase/firestore";
-import { Context } from "../context";
 import { DataState } from "./data";
 import { FamilyScrumState } from "./familyScrum";
 import { CheckListItem, FamilyPersistence, TodoDTO } from "../context/firebase";
 import { reactive } from "bonsify";
-
-/**
- * Managing complexity in React
- *
- * - Component complexity: A better pattern for components (TicTacToe)
- * - State complexity: A better pattern for state managemnt
- *   - Use the same mental model as a component
- *   - Automatic observation in components
- *   - Choose whatever state primitives you want
- *   - Strong state => component contract
- * - Part two: state machines, data fetching and more
- */
-
-function App() {
-  const [state, setState] = useState(() => ({
-    count: 0,
-    increase() {
-      setState((state) => ({ ...state, count: state.count + 1 }));
-    },
-  }));
-}
+import { Context } from "../context";
 
 type CheckListItemCompleted = {
   completed: true;
@@ -49,11 +28,19 @@ type TodoState = {
   checkList?: CheckListItemState[];
   archive(): void;
   addCheckListItem(description: string): void;
+  removeCheckListItem(index: number): void;
+};
+
+export type NewTodo = {
+  description: string;
+  date?: number;
+  time?: string;
+  checkList?: string[];
 };
 
 export type TodosState = {
   todos: TodoState[];
-  addTodo(): void;
+  addTodo(newTodo: NewTodo): void;
 };
 
 type Params = {
@@ -71,7 +58,22 @@ export const createTodos = ({
 }: Params) => {
   const state = reactive<TodosState>({
     todos: data.todos.map(createTodo),
-    addTodo() {},
+    addTodo(newTodo) {
+      familyPersistence.todos.set({
+        id: familyPersistence.todos.createId(),
+        description: newTodo.description,
+        date: newTodo.date
+          ? context.persistence.createTimestamp(newTodo.date)
+          : undefined,
+        time: newTodo.time,
+        checkList: newTodo.checkList?.map((title) => ({
+          title,
+          completed: false,
+        })),
+        created: context.persistence.createTimestamp(),
+        modified: context.persistence.createTimestamp(),
+      });
+    },
   });
 
   return state;
@@ -88,12 +90,45 @@ export const createTodos = ({
         return todoData.time;
       },
       get checkList() {
-        return todoData.checkList?.map(createCheckListItem) ?? [];
+        return todoData.checkList?.map(createCheckListItem);
       },
       archive() {
         familyPersistence.todos.delete(todoData.id);
       },
-      addCheckListItem(description: string) {},
+      addCheckListItem(description: string) {
+        familyPersistence.todos.update(todoData.id, (currentData) => {
+          if (!currentData) {
+            throw new Error("Can not add check list item to non-existent todo");
+          }
+
+          const currentCheckList = currentData?.checkList ?? [];
+
+          return {
+            ...currentData,
+            checkList: [
+              ...currentCheckList,
+              { title: description, completed: false },
+            ],
+          };
+        });
+      },
+      removeCheckListItem(index: number) {
+        familyPersistence.todos.update(todoData.id, (currentData) => {
+          if (!currentData) {
+            throw new Error("Can not add check list item to non-existent todo");
+          }
+
+          const currentCheckList = currentData?.checkList ?? [];
+
+          return {
+            ...currentData,
+            checkList: [
+              ...currentCheckList.slice(0, index),
+              ...currentCheckList.slice(index + 1),
+            ],
+          };
+        });
+      },
     });
 
     return todo;

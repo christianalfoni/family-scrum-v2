@@ -66,10 +66,12 @@ export function createFirebasePersistence(app: FirebaseApp) {
   return {
     users: createCollectionApi(usersCollection),
     families: createCollectionApi(familiesCollection),
-    createServerTimestamp() {
+    createTimestamp(from?: number) {
       // We cast it as a Timestamp to avoid complicated typing. This value is only
       // used when sending data to Firestore and will be a Timestamp coming back from Firestore
-      return serverTimestamp() as Timestamp;
+      return from
+        ? Timestamp.fromMillis(from)
+        : (serverTimestamp() as Timestamp);
     },
     upload(imageRef: string, imageSrc: string) {
       const storageRef = ref(storage, imageRef + ".png");
