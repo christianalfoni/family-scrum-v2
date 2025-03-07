@@ -1,8 +1,11 @@
-import { reactive } from "bonsify";
-import { DataState } from "./Data";
-import { FamilyScrumState } from "./FamilyScrum";
-import { DinnerDTO, FamilyPersistence } from "../context/firebase";
-import { Context } from "../context";
+import { reactive, readonly } from "bonsify";
+import { FamilyScrum } from "./FamilyScrum";
+
+import { Environment } from "../environments";
+import {
+  DinnerDTO,
+  FamilyPersistence,
+} from "../environments/Browser/Persistence";
 
 export type NewDinner = {
   name: string;
@@ -12,29 +15,40 @@ export type NewDinner = {
   instructions: string[];
 };
 
-export type DinnerState = Readonly<DinnerDTO>;
+export type Dinner = DinnerDTO;
 
-export type DinnersState = {
-  dinners: DinnerState[];
+export type Dinners = {
+  familyScrum: FamilyScrum;
+  dinners: Dinner[];
   addDinner(newDinner: NewDinner): void;
 };
 
 type Params = {
-  context: Context;
+  env: Environment;
   familyPersistence: FamilyPersistence;
-  familyScrum: FamilyScrumState;
-  data: DataState;
+  familyScrum: FamilyScrum;
+  onDispose: (dispose: () => void) => void;
 };
 
-export function createDinners({ data, familyPersistence, context }: Params) {
-  const dinners = reactive<DinnersState>({
-    get dinners() {
-      return data.dinners;
-    },
+export function Dinners({
+  env,
+  familyPersistence,
+  onDispose,
+  familyScrum,
+}: Params) {
+  const dinners = reactive<Dinners>({
+    familyScrum,
+    dinners: [],
     addDinner,
   });
 
-  return dinners;
+  onDispose(
+    familyPersistence.dinners.subscribeAll((data) => {
+      dinners.dinners = data;
+    })
+  );
+
+  return readonly(dinners);
 
   function addDinner(newDinner: NewDinner) {
     familyPersistence.dinners.set({
@@ -44,8 +58,8 @@ export function createDinners({ data, familyPersistence, context }: Params) {
       groceries: newDinner.groceries,
       preparationCheckList: newDinner.preparationCheckList,
       instructions: newDinner.instructions,
-      created: context.persistence.createTimestamp(),
-      modified: context.persistence.createTimestamp(),
+      created: env.persistence.createTimestamp(),
+      modified: env.persistence.createTimestamp(),
     });
   }
 }

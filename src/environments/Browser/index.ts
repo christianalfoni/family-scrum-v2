@@ -4,9 +4,9 @@ import { Authentication } from "./Authentication";
 import { Persistence } from "./Persistence";
 import { Awake } from "./Awake";
 
-export type Environment = ReturnType<typeof Environment>;
+export type BrowserEnvironment = ReturnType<typeof BrowserEnvironment>;
 
-export const Environment = () => {
+export function BrowserEnvironment() {
   const app = initializeApp({
     apiKey: "AIzaSyAxghfnwp44VyGkJazhRvjUwbKSSAHm0oo",
     authDomain: "family-scrum-v2.vercel.app",
@@ -23,4 +23,4 @@ export const Environment = () => {
     persistence: Persistence(app),
     awake: Awake(),
   };
-};
+}

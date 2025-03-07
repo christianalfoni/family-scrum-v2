@@ -1,5 +1,8 @@
 import { reactive, readonly } from "bonsify";
-import { FamilyPersistence, GroceryDTO } from "../Environment/Persistence";
+import {
+  FamilyPersistence,
+  GroceryDTO,
+} from "../environments/Browser/Persistence";
 
 export type Grocery = GroceryDTO & {
   shop(): void;

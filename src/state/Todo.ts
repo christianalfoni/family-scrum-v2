@@ -2,7 +2,7 @@ import {
   CheckListItemDTO,
   FamilyPersistence,
   TodoDTO,
-} from "../Environment/Persistence";
+} from "../environments/Browser/Persistence";
 import { reactive, readonly } from "bonsify";
 import { FamilyScrum } from "./FamilyScrum";
 import { CheckListItem } from "./CheckListItem";

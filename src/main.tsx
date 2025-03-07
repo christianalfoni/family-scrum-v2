@@ -1,14 +1,16 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
-import { createApp } from "./State";
-import { context } from "./context";
-import Session from "./components/Session";
 
-const app = createApp(context);
+import Session from "./components/Session";
+import * as state from "./state";
+import { BrowserEnvironment } from "./environments/Browser";
+
+const env = BrowserEnvironment();
+const session = state.Session({ env });
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <Session session={app.session} />
+    <Session session={session} />
   </StrictMode>
 );

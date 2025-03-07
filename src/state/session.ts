@@ -1,8 +1,8 @@
 import { User } from "firebase/auth";
-import type { FamilyDTO, UserDTO } from "../Environment/Persistence";
+import type { FamilyDTO, UserDTO } from "../environments/Browser/Persistence";
 import { reactive, readonly } from "bonsify";
 import { FamilyScrum } from "./FamilyScrum";
-import { Environment } from "../Environment";
+import { Environment } from "../environments";
 
 export type SessionAuthenticated = {
   current: "AUTHENTICATED";

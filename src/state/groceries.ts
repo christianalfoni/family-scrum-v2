@@ -1,8 +1,11 @@
 import { reactive, readonly } from "bonsify";
 import levenshtein from "fast-levenshtein";
 import { FamilyScrum } from "./FamilyScrum";
-import { FamilyPersistence, GroceryDTO } from "../Environment/Persistence";
-import { Environment } from "../Environment";
+import {
+  FamilyPersistence,
+  GroceryDTO,
+} from "../environments/Browser/Persistence";
+import { Environment } from "../environments";
 import { Grocery } from "./Grocery";
 
 export type Groceries = {

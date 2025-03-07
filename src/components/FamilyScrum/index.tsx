@@ -1,12 +1,15 @@
-import { FamilyScrumState } from "../../State/FamilyScrum";
+import * as state from "../../state";
 import { Skeleton } from "../Dashboard/Skeleton";
+import { useViews } from "./viewsContext";
 
-export function FamilyScrum({
-  familyScrum,
-}: {
-  familyScrum: FamilyScrumState;
-}) {
-  switch (familyScrum.view.name) {
+type Props = {
+  familyScrum: state.FamilyScrum;
+};
+
+export function FamilyScrum({ familyScrum }: Props) {
+  const views = useViews();
+
+  switch (views.current.name) {
     case "dashboard":
       return <Skeleton />;
   }

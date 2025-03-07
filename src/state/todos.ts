@@ -1,10 +1,14 @@
 import { reactive } from "bonsify";
-import { Environment } from "../Environment";
-import { FamilyPersistence, TodoDTO } from "../Environment/Persistence";
+import { Environment } from "../environments";
+import {
+  FamilyPersistence,
+  TodoDTO,
+} from "../environments/Browser/Persistence";
 import { FamilyScrum } from "./FamilyScrum";
 import { Todo } from "./Todo";
 
 export type Todos = {
+  familyScrum: FamilyScrum;
   todos: Todo[];
   addTodo(description: string): void;
 };
@@ -23,6 +27,7 @@ export function Todos({
   env,
 }: Params): Todos {
   const todos = reactive<Todos>({
+    familyScrum,
     todos: [],
     addTodo,
   });

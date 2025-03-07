@@ -1,17 +1,17 @@
-import { reactive } from "bonsify";
-
-import { Environment } from "../Environment";
+import { reactive, readonly } from "bonsify";
+import { Environment } from "../environments";
 import { SessionAuthenticated } from "./Session";
-import { createData } from "./Data";
-import { createGroceries, Groceries } from "./Groceries";
-import { createTodos, TodosState } from "./todos_old";
-import { createDinners, DinnersState } from "./Dinners";
+import { Groceries } from "./Groceries";
+import { Dinners } from "./Dinners";
+import { Todos } from "./Todos";
+import { Weeks } from "./Weeks";
 
 export type FamilyScrum = {
   session: SessionAuthenticated;
   groceries: Groceries;
-  todos: TodosState;
-  dinners: DinnersState;
+  todos: Todos;
+  dinners: Dinners;
+  weeks: Weeks;
 };
 
 type Params = {
@@ -33,6 +33,9 @@ export function FamilyScrum({ env, session, onDispose }: Params): FamilyScrum {
     get dinners() {
       return dinners;
     },
+    get weeks() {
+      return weeks;
+    },
   });
 
   const groceries = Groceries({
@@ -42,19 +45,25 @@ export function FamilyScrum({ env, session, onDispose }: Params): FamilyScrum {
     familyScrum,
   });
 
-  const todos = createTodos({
-    context: env,
-    data,
+  const todos = Todos({
+    env,
     familyScrum,
     familyPersistence,
+    onDispose,
   });
 
-  const dinners = createDinners({
-    context: env,
-    data,
+  const dinners = Dinners({
+    env,
     familyScrum,
     familyPersistence,
+    onDispose,
   });
 
-  return familyScrum;
+  const weeks = Weeks({
+    familyScrum,
+    familyPersistence,
+    onDispose,
+  });
+
+  return readonly(familyScrum);
 }
