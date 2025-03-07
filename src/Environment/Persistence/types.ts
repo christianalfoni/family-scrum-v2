@@ -13,7 +13,7 @@ export type GroceryDTO = {
   name: string;
 };
 
-export type CheckListItem = {
+export type CheckListItemDTO = {
   title: string;
 } & (
   | {
@@ -32,7 +32,7 @@ export type TodoDTO = {
   description: string;
   date?: Timestamp;
   time?: string;
-  checkList?: CheckListItem[];
+  checkList?: CheckListItemDTO[];
   grocery?: string;
 };
 
@@ -45,7 +45,7 @@ export type WeekTodoActivity = [
   boolean,
   boolean,
   boolean,
-  boolean,
+  boolean
 ];
 
 export type WeekDinnersDTO = [
@@ -55,7 +55,7 @@ export type WeekDinnersDTO = [
   string | null,
   string | null,
   string | null,
-  string | null,
+  string | null
 ];
 
 export type WeekDTO = {

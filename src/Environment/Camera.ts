@@ -32,7 +32,7 @@ export type CameraApi = {
   state: CameraState;
 };
 
-export function createCamera() {
+export function Camera() {
   const NOT_STARTED = (): NOT_STARTED => ({
     current: "NOT_STARTED",
     start,

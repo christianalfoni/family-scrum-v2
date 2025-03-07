@@ -5,7 +5,7 @@ import {
   TodoDTO,
   WeekDTO,
   WeekTodoDTO,
-} from "../context/firebase";
+} from "../Environment/Persistence";
 import { getCurrentWeekId, getNextWeekId, getPreviousWeekId } from "../utils";
 import { Timestamp } from "firebase/firestore";
 import { reactive } from "bonsify";
@@ -26,7 +26,11 @@ type WeekData = {
   unsubscribe(): void;
 };
 
-export const createData = (familyPersistence: FamilyPersistence) => {
+type Params = {
+  familyPersistence: FamilyPersistence;
+};
+
+export function Data({ familyPersistence }: Params) {
   const previousWeekId = getPreviousWeekId();
   const currentWeekId = getCurrentWeekId();
   const nextWeekId = getNextWeekId();
@@ -107,16 +111,4 @@ export const createData = (familyPersistence: FamilyPersistence) => {
       return aggr;
     }, {});
   }
-
-  function sortByCreated<T extends { created: Timestamp }>(items: T[]) {
-    return items.sort((a, b) => {
-      if (a.created < b.created) {
-        return 1;
-      } else if (a.created > b.created) {
-        return -1;
-      }
-
-      return 0;
-    });
-  }
-};
+}

@@ -1,14 +1,14 @@
 import { User } from "firebase/auth";
-import type { FamilyDTO, UserDTO } from "../context/firebase";
-import { reactive } from "bonsify";
-import { createFamilyScrum, FamilyScrumState } from "./familyScrum";
-import { Context } from "../context";
+import type { FamilyDTO, UserDTO } from "../Environment/Persistence";
+import { reactive, readonly } from "bonsify";
+import { FamilyScrum } from "./FamilyScrum";
+import { Environment } from "../Environment";
 
 export type SessionAuthenticated = {
   current: "AUTHENTICATED";
   user: UserDTO;
   family: FamilyDTO;
-  familyScrum: FamilyScrumState;
+  familyScrum: FamilyScrum;
 };
 
 export type SessionAuthenticating = {
@@ -21,21 +21,24 @@ export type SessionUnauthenticated = {
   signIn(): void;
 };
 
-export type SessionState = {
+export type Session = {
   state: SessionAuthenticated | SessionAuthenticating | SessionUnauthenticated;
 };
 
 const AUTHENTICATION_CACHE_KEY = "family_scrum_authentication";
 
-export function createSession(apis: Context) {
-  const { authentication, persistence } = apis;
+export function Session({ env }: { env: Environment }) {
+  const { authentication, persistence } = env;
+
+  // We dispose of everything when signed out
+  let disposers: Array<() => void> = [];
 
   // It takes quite a long time for Firebase to evalaute the curent session, we
   // use a cached user and family to get rolling faster
   const cachedAuthentication: { user: UserDTO; family: FamilyDTO } | null =
     JSON.parse(localStorage.getItem(AUTHENTICATION_CACHE_KEY) || "null");
 
-  const session = reactive<SessionState>({
+  const session = reactive<Session>({
     state: cachedAuthentication
       ? AUTHENTICATED(cachedAuthentication.user, cachedAuthentication.family)
       : AUTHENTICATING(),
@@ -43,7 +46,7 @@ export function createSession(apis: Context) {
 
   authentication.onChanged(onAuthChanged);
 
-  return session;
+  return readonly(session);
 
   function UNAUTHENTICATED(reason?: string): SessionUnauthenticated {
     return {
@@ -71,14 +74,21 @@ export function createSession(apis: Context) {
       },
     });
 
-    const familyScrum = createFamilyScrum(apis, authenticated);
+    const familyScrum = FamilyScrum({
+      env,
+      session: authenticated,
+      onDispose(disposer) {
+        disposers.push(disposer);
+      },
+    });
 
     return authenticated;
   }
 
   async function onAuthChanged(maybeUser: User | null) {
     if (!maybeUser && session.state.current === "AUTHENTICATED") {
-      session.state.familyScrum.dispose();
+      disposers.forEach((dispose) => dispose());
+      disposers = [];
     }
 
     if (!maybeUser) {

@@ -1,9 +1,9 @@
 import { Skeleton } from "../Dashboard/Skeleton";
 import { SignInModal } from "./SignInModal";
 import { FamilyScrum } from "../FamilyScrum";
-import { SessionState } from "../../state/session";
+import { Session } from "../../State/Session";
 
-function Session({ session }: { session: SessionState }) {
+function Session({ session }: { session: Session }) {
   if (session.state.current === "AUTHENTICATING") {
     return <Skeleton />;
   }

@@ -1,7 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
-import { createApp } from "./state";
+import { createApp } from "./State";
 import { context } from "./context";
 import Session from "./components/Session";
 

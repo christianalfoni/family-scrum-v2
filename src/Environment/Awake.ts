@@ -8,7 +8,7 @@ export type Awake = {
   toggle(): void;
 };
 
-export const createAwake = () => {
+export function Awake() {
   const video = document.createElement("video");
   video.src = mp4;
 
@@ -30,4 +30,4 @@ export const createAwake = () => {
       }
     },
   });
-};
+}

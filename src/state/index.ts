@@ -1,6 +1,6 @@
-import { reactive } from "bonsify";
-import { Context } from "../context";
-import { createSession } from "./session";
+import { Session } from "./Session";
+import { Environment } from "../Environment";
 
-export const createApp = (context: Context) =>
-  reactive({ session: createSession(context) });
+export function State(env: Environment) {
+  return Session({ env });
+}

@@ -1,27 +1,28 @@
 import { reactive } from "bonsify";
 
-import { Context } from "../context";
-import { SessionAuthenticated } from "./session";
-import { createData } from "./data";
-import { createGroceries, GroceriesState } from "./groceries";
-import { createTodos, TodosState } from "./todos";
+import { Environment } from "../Environment";
+import { SessionAuthenticated } from "./Session";
+import { createData } from "./Data";
+import { createGroceries, Groceries } from "./Groceries";
+import { createTodos, TodosState } from "./todos_old";
+import { createDinners, DinnersState } from "./Dinners";
 
-export type FamilyScrumState = {
+export type FamilyScrum = {
   session: SessionAuthenticated;
-  groceries: GroceriesState;
+  groceries: Groceries;
   todos: TodosState;
-  dispose(): void;
+  dinners: DinnersState;
 };
 
-export const createFamilyScrum = (
-  context: Context,
-  session: SessionAuthenticated
-) => {
-  const familyPersistence = context.persistence.createFamilyApi(
-    session.family.id
-  );
-  const data = createData(familyPersistence);
-  const familyScrum = reactive<FamilyScrumState>({
+type Params = {
+  env: Environment;
+  session: SessionAuthenticated;
+  onDispose: (dispose: () => void) => void;
+};
+
+export function FamilyScrum({ env, session, onDispose }: Params): FamilyScrum {
+  const familyPersistence = env.persistence.createFamilyApi(session.family.id);
+  const familyScrum = reactive<FamilyScrum>({
     session,
     get groceries() {
       return groceries;
@@ -29,24 +30,31 @@ export const createFamilyScrum = (
     get todos() {
       return todos;
     },
-    dispose() {
-      data.unsubscribe();
+    get dinners() {
+      return dinners;
     },
   });
 
-  const groceries = createGroceries({
-    context,
-    data,
+  const groceries = Groceries({
+    env,
+    onDispose,
     familyPersistence,
     familyScrum,
   });
 
   const todos = createTodos({
-    context,
+    context: env,
+    data,
+    familyScrum,
+    familyPersistence,
+  });
+
+  const dinners = createDinners({
+    context: env,
     data,
     familyScrum,
     familyPersistence,
   });
 
   return familyScrum;
-};
+}

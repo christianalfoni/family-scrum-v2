@@ -1,4 +1,4 @@
-import { FamilyScrumState } from "../../state/familyScrum";
+import { FamilyScrumState } from "../../State/FamilyScrum";
 import { Skeleton } from "../Dashboard/Skeleton";
 
 export function FamilyScrum({

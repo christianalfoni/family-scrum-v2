@@ -7,6 +7,10 @@ export type View =
     }
   | {
       name: "groceries";
+    }
+  | {
+      name: "edit_dinner";
+      dinnerId: string;
     };
 
 export type Views = {

@@ -8,7 +8,7 @@ import {
 import { Drawer, DrawerContent, DrawerTrigger } from "../common/Drawer";
 
 import { MenuCard } from "./MenuCard";
-import { useDashboard, useFamilyScrum } from "../../state";
+import { useDashboard, useFamilyScrum } from "../../State";
 
 // import { CurrentWeekTodosContext } from "./CurrentWeekTodosContext";
 // import { AssistantContext } from "./AssistantContext";

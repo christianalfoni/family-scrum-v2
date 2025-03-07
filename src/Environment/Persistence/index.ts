@@ -25,7 +25,6 @@ import {
   ref,
   uploadString,
 } from "firebase/storage";
-import { UserDTO } from "./types";
 
 export * from "./types";
 
@@ -38,17 +37,15 @@ export enum Collection {
   WEEKS = "weeks",
 }
 
-export type FirebasePersistence = ReturnType<typeof createFirebasePersistence>;
-export type FamilyPersistence = ReturnType<
-  FirebasePersistence["createFamilyApi"]
->;
+export type Persistence = ReturnType<typeof Persistence>;
+export type FamilyPersistence = ReturnType<Persistence["createFamilyApi"]>;
 
 /**
  * Creates an API specific to the collections and related functionality needed for this app,
  * The API is not aware of the current session, it is part of the global context and the app
  * needs to pass user and family id for what data to consume
  */
-export function createFirebasePersistence(app: FirebaseApp) {
+export function Persistence(app: FirebaseApp) {
   initializeFirestore(app, {
     ignoreUndefinedProperties: true,
   });
@@ -144,7 +141,7 @@ export function createFirebasePersistence(app: FirebaseApp) {
       },
       update(
         id: string,
-        partialData: UpdateData<T> | ((data?: T) => T | undefined)
+        partialData: UpdateData<T> | ((data: T) => T | undefined)
       ) {
         const docRef = doc(collection, id);
 
@@ -152,11 +149,15 @@ export function createFirebasePersistence(app: FirebaseApp) {
           return runTransaction(firestore, (transaction) => {
             const docRef = doc(collection, id);
             return transaction.get(docRef).then((doc) => {
-              const data = partialData(doc.data());
+              const currentData = doc.data();
 
-              if (data) {
-                return transaction.set(docRef, data);
+              if (!currentData) {
+                throw new Error("Document does not exist");
               }
+
+              const data = partialData(currentData);
+
+              return transaction.set(docRef, data);
             });
           });
         }

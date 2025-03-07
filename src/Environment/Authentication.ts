@@ -8,7 +8,7 @@ import {
   useDeviceLanguage,
 } from "firebase/auth";
 
-export function createFirebaseAuthentication(app: FirebaseApp) {
+export function Authentication(app: FirebaseApp) {
   const provider = new GoogleAuthProvider();
   const auth = getAuth(app);
 
