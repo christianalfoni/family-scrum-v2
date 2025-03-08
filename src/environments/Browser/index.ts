@@ -3,6 +3,7 @@ import { Camera } from "./Camera";
 import { Authentication } from "./Authentication";
 import { Persistence } from "./Persistence";
 import { Awake } from "./Awake";
+import { Storage } from "./Storage";
 
 export type BrowserEnvironment = ReturnType<typeof BrowserEnvironment>;
 
@@ -20,6 +21,7 @@ export function BrowserEnvironment() {
   return {
     camera: Camera(),
     authentication: Authentication(app),
+    storage: Storage(app),
     persistence: Persistence(app),
     awake: Awake(),
   };

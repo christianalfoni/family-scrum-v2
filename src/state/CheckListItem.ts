@@ -1,4 +1,4 @@
-import { reactive, readonly } from "bonsify";
+import { reactive } from "bonsify";
 import {
   CheckListItemDTO,
   FamilyPersistence,
@@ -32,7 +32,7 @@ export function CheckListItem({
     toggle,
   });
 
-  return readonly(checkListItem);
+  return reactive.readonly(checkListItem);
 
   function remove() {
     familyPersistence.todos.update(todo.id, (data) => ({

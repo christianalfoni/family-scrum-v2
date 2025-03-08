@@ -1,11 +1,12 @@
-import { reactive, readonly } from "bonsify";
+import { reactive } from "bonsify";
 import { FamilyScrum } from "./FamilyScrum";
-
 import { Environment } from "../environments";
 import {
   DinnerDTO,
   FamilyPersistence,
 } from "../environments/Browser/Persistence";
+import { FamilyStorage } from "../environments/Browser/Storage";
+import { Dinner } from "./Dinner";
 
 export type NewDinner = {
   name: string;
@@ -13,9 +14,8 @@ export type NewDinner = {
   groceries: string[];
   preparationCheckList: string[];
   instructions: string[];
+  imageSrc?: string;
 };
-
-export type Dinner = DinnerDTO;
 
 export type Dinners = {
   familyScrum: FamilyScrum;
@@ -26,6 +26,7 @@ export type Dinners = {
 type Params = {
   env: Environment;
   familyPersistence: FamilyPersistence;
+  familyStorage: FamilyStorage;
   familyScrum: FamilyScrum;
   onDispose: (dispose: () => void) => void;
 };
@@ -33,6 +34,7 @@ type Params = {
 export function Dinners({
   env,
   familyPersistence,
+  familyStorage,
   onDispose,
   familyScrum,
 }: Params) {
@@ -44,17 +46,34 @@ export function Dinners({
 
   onDispose(
     familyPersistence.dinners.subscribeAll((data) => {
-      dinners.dinners = data;
+      dinners.dinners = data.map(createDinner);
     })
   );
 
-  return readonly(dinners);
+  return reactive.readonly(dinners);
 
-  function addDinner(newDinner: NewDinner) {
+  function createDinner(data: DinnerDTO): Dinner {
+    return Dinner({ data, familyStorage });
+  }
+
+  async function addDinner(newDinner: NewDinner) {
+    const id = familyPersistence.dinners.createId();
+
+    let imageRef: string | undefined;
+
+    if (newDinner.imageSrc) {
+      imageRef = await familyStorage.uploadImage(
+        "dinners",
+        id,
+        newDinner.imageSrc
+      );
+    }
+
     familyPersistence.dinners.set({
-      id: familyPersistence.dinners.createId(),
+      id,
       name: newDinner.name,
       description: newDinner.description,
+      imageRef,
       groceries: newDinner.groceries,
       preparationCheckList: newDinner.preparationCheckList,
       instructions: newDinner.instructions,

@@ -1,4 +1,4 @@
-import { reactive, readonly } from "bonsify";
+import { reactive } from "bonsify";
 import { Environment } from "../environments";
 import { SessionAuthenticated } from "./Session";
 import { Groceries } from "./Groceries";
@@ -24,6 +24,7 @@ type Params = {
 
 export function FamilyScrum({ env, session, onDispose }: Params): FamilyScrum {
   const familyPersistence = env.persistence.createFamilyApi(session.family.id);
+  const familyStorage = env.storage.createFamilyStorage(session.family.id);
   const familyScrum = reactive<FamilyScrum>({
     session,
     awake: env.awake,
@@ -59,6 +60,7 @@ export function FamilyScrum({ env, session, onDispose }: Params): FamilyScrum {
     env,
     familyScrum,
     familyPersistence,
+    familyStorage,
     onDispose,
   });
 
@@ -68,5 +70,5 @@ export function FamilyScrum({ env, session, onDispose }: Params): FamilyScrum {
     onDispose,
   });
 
-  return readonly(familyScrum);
+  return reactive.readonly(familyScrum);
 }

@@ -75,6 +75,7 @@ export type DinnerDTO = {
   name: string;
   description: string;
   preparationCheckList: string[];
+  imageRef?: string;
   groceries: string[];
   instructions: string[];
   created: Timestamp;

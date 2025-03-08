@@ -1,4 +1,4 @@
-import { reactive, readonly } from "bonsify";
+import { reactive } from "bonsify";
 import levenshtein from "fast-levenshtein";
 import { FamilyScrum } from "./FamilyScrum";
 import {
@@ -43,7 +43,7 @@ export function Groceries({
     })
   );
 
-  return readonly(groceries);
+  return reactive.readonly(groceries);
 
   function createGrocery(data: GroceryDTO) {
     return Grocery({ data, familyPersistence });

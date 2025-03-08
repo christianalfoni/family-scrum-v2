@@ -3,7 +3,7 @@ import {
   FamilyPersistence,
   TodoDTO,
 } from "../environments/Browser/Persistence";
-import { reactive, readonly } from "bonsify";
+import { reactive } from "bonsify";
 import { FamilyScrum } from "./FamilyScrum";
 import { CheckListItem } from "./CheckListItem";
 
@@ -31,7 +31,7 @@ export function Todo({ data, familyPersistence, familyScrum }: Params): Todo {
 
   const checkList = data.checkList?.map(createCheckListItem) ?? [];
 
-  return readonly(todo);
+  return reactive.readonly(todo);
 
   function createCheckListItem(data: CheckListItemDTO, index: number) {
     return CheckListItem({ data, index, familyPersistence, familyScrum, todo });

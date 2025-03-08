@@ -1,4 +1,4 @@
-import { reactive, readonly } from "bonsify";
+import { reactive } from "bonsify";
 import {
   FamilyPersistence,
   GroceryDTO,
@@ -19,7 +19,7 @@ export function Grocery({ data, familyPersistence }: Params): Grocery {
     shop,
   });
 
-  return readonly(grocery);
+  return reactive.readonly(grocery);
 
   function shop() {
     familyPersistence.groceries.delete(grocery.id);

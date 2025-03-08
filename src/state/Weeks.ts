@@ -1,4 +1,4 @@
-import { reactive, readonly } from "bonsify";
+import { reactive } from "bonsify";
 import {
   FamilyPersistence,
   WeekDTO,
@@ -45,7 +45,7 @@ export function Weeks({
     current,
   });
 
-  return readonly(weeks);
+  return reactive.readonly(weeks);
 
   function Week(weekId: string) {
     const week = reactive<Week>({

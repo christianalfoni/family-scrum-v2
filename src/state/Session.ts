@@ -1,6 +1,6 @@
 import { User } from "firebase/auth";
 import type { FamilyDTO, UserDTO } from "../environments/Browser/Persistence";
-import { reactive, readonly } from "bonsify";
+import { reactive } from "bonsify";
 import { FamilyScrum } from "./FamilyScrum";
 import { Environment } from "../environments";
 
@@ -51,7 +51,7 @@ export function Session({ env }: Params) {
 
   authentication.onChanged(onAuthChanged);
 
-  return readonly(session);
+  return reactive.readonly(session);
 
   function UNAUTHENTICATED(reason?: string): SessionUnauthenticated {
     disposers.forEach((dispose) => dispose());
