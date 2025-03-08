@@ -1,21 +1,19 @@
+import { Link } from "react-router";
+
 export function MenuCard({
   color,
   Icon,
   children,
-  onClick,
-  disabled = false,
+  to,
 }: {
   color: string;
   Icon: React.FC<{ className: string }>;
   children: React.ReactNode;
-  onClick: () => void;
-  disabled?: boolean;
+  to?: string;
 }) {
-  return (
-    <li
-      className="relative col-span-1 flex shadow-sm rounded-md mb-3"
-      onClick={onClick}
-    >
+  const disabled = !to;
+  const content: React.ReactNode = (
+    <>
       <div
         className={`${
           disabled ? "bg-gray-400" : color
@@ -35,6 +33,18 @@ export function MenuCard({
           {children}
         </div>
       </div>
+    </>
+  );
+
+  return (
+    <li className="relative col-span-1 flex shadow-sm rounded-md mb-3">
+      {disabled ? (
+        content
+      ) : (
+        <Link className="relative w-full flex" to={to}>
+          {content}
+        </Link>
+      )}
     </li>
   );
 }

@@ -5,6 +5,7 @@ import { Groceries } from "./Groceries";
 import { Dinners } from "./Dinners";
 import { Todos } from "./Todos";
 import { Weeks } from "./Weeks";
+import { Awake } from "../environments/Browser/Awake";
 
 export type FamilyScrum = {
   session: SessionAuthenticated;
@@ -12,6 +13,7 @@ export type FamilyScrum = {
   todos: Todos;
   dinners: Dinners;
   weeks: Weeks;
+  awake: Awake;
 };
 
 type Params = {
@@ -24,6 +26,7 @@ export function FamilyScrum({ env, session, onDispose }: Params): FamilyScrum {
   const familyPersistence = env.persistence.createFamilyApi(session.family.id);
   const familyScrum = reactive<FamilyScrum>({
     session,
+    awake: env.awake,
     get groceries() {
       return groceries;
     },

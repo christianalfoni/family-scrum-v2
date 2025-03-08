@@ -21,7 +21,7 @@ export function CurrentWeekTodosSkeleton() {
         allowTouchMove={false}
         initialSlide={0}
       >
-        {weekdays.map((weekday, index) => (
+        {weekdays.map((weekday) => (
           <SwiperSlide key={weekday}>
             {/* No title as server side caches this page */}
             <WeekdaySlideContent title="" date="">
@@ -48,37 +48,17 @@ export function Skeleton() {
   return (
     <div className="h-screen bg-gray-100">
       <ul className="flex flex-col px-6 mb-2 mt-6">
-        <MenuCard
-          disabled
-          Icon={ShoppingCartIcon}
-          onClick={() => {}}
-          color="bg-red-500"
-        >
+        <MenuCard Icon={ShoppingCartIcon} color="bg-red-500">
           Go Shopping
         </MenuCard>
-        <MenuCard
-          disabled
-          Icon={CheckIcon}
-          onClick={() => {}}
-          color="bg-blue-500"
-        >
+        <MenuCard Icon={CheckIcon} color="bg-blue-500">
           Checklists
         </MenuCard>
 
-        <MenuCard
-          disabled
-          Icon={ChatBubbleBottomCenterIcon}
-          onClick={() => {}}
-          color="bg-blue-500"
-        >
+        <MenuCard Icon={ChatBubbleBottomCenterIcon} color="bg-blue-500">
           Plan Next Week
         </MenuCard>
-        <MenuCard
-          disabled
-          Icon={HeartIcon}
-          onClick={() => {}}
-          color="bg-blue-500"
-        >
+        <MenuCard Icon={HeartIcon} color="bg-blue-500">
           Dinners
         </MenuCard>
       </ul>

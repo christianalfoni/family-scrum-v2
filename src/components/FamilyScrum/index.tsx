@@ -1,15 +1,20 @@
+import { Route, Routes } from "react-router";
 import * as state from "../../state";
-import { Skeleton } from "../Dashboard/Skeleton";
+import { Dashboard } from "../Dashboard";
+import { Groceries } from "../Groceries";
 
 type Props = {
   familyScrum: state.FamilyScrum;
 };
 
 export function FamilyScrum({ familyScrum }: Props) {
-  switch (views.current.name) {
-    case "dashboard":
-      return <Skeleton />;
-  }
-
-  return <h1 className="text-3xl font-bold underline">Hello There</h1>;
+  return (
+    <Routes>
+      <Route path="/" element={<Dashboard familyScrum={familyScrum} />} />
+      <Route
+        path="/groceries"
+        element={<Groceries groceries={familyScrum.groceries} />}
+      />
+    </Routes>
+  );
 }
