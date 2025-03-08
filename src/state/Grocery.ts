@@ -22,6 +22,6 @@ export function Grocery({ data, familyPersistence }: Params): Grocery {
   return readonly(grocery);
 
   function shop() {
-    familyPersistence.groceries.delete(data.id);
+    familyPersistence.groceries.delete(grocery.id);
   }
 }

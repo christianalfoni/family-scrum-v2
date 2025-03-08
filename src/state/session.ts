@@ -4,6 +4,8 @@ import { reactive, readonly } from "bonsify";
 import { FamilyScrum } from "./FamilyScrum";
 import { Environment } from "../environments";
 
+type CachedAuthentication = { user: UserDTO; family: FamilyDTO };
+
 export type SessionAuthenticated = {
   current: "AUTHENTICATED";
   user: UserDTO;
@@ -27,16 +29,19 @@ export type Session = {
 
 const AUTHENTICATION_CACHE_KEY = "family_scrum_authentication";
 
-export function Session({ env }: { env: Environment }) {
+type Params = { env: Environment };
+
+export function Session({ env }: Params) {
   const { authentication, persistence } = env;
 
   // We dispose of everything when signed out
-  let disposers: Array<() => void> = [];
+  const disposers = new Set<() => void>();
 
   // It takes quite a long time for Firebase to evalaute the curent session, we
   // use a cached user and family to get rolling faster
-  const cachedAuthentication: { user: UserDTO; family: FamilyDTO } | null =
-    JSON.parse(localStorage.getItem(AUTHENTICATION_CACHE_KEY) || "null");
+  const cachedAuthentication: CachedAuthentication | null = JSON.parse(
+    localStorage.getItem(AUTHENTICATION_CACHE_KEY) || "null"
+  );
 
   const session = reactive<Session>({
     state: cachedAuthentication
@@ -49,6 +54,9 @@ export function Session({ env }: { env: Environment }) {
   return readonly(session);
 
   function UNAUTHENTICATED(reason?: string): SessionUnauthenticated {
+    disposers.forEach((dispose) => dispose());
+    disposers.clear();
+
     return {
       current: "UNAUTHENTICATED",
       reason,
@@ -78,7 +86,7 @@ export function Session({ env }: { env: Environment }) {
       env,
       session: authenticated,
       onDispose(disposer) {
-        disposers.push(disposer);
+        disposers.add(disposer);
       },
     });
 
@@ -86,11 +94,6 @@ export function Session({ env }: { env: Environment }) {
   }
 
   async function onAuthChanged(maybeUser: User | null) {
-    if (!maybeUser && session.state.current === "AUTHENTICATED") {
-      disposers.forEach((dispose) => dispose());
-      disposers = [];
-    }
-
     if (!maybeUser) {
       session.state = UNAUTHENTICATED();
 

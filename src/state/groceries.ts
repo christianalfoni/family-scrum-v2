@@ -9,8 +9,8 @@ import { Environment } from "../environments";
 import { Grocery } from "./Grocery";
 
 export type Groceries = {
-  groceries: Grocery[];
   familyScrum: FamilyScrum;
+  groceries: Grocery[];
   addGrocery(name: string): void;
   filter(filter: string): Grocery[];
 };

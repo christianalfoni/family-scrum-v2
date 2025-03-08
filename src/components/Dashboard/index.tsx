@@ -16,17 +16,15 @@ type Props = {
 };
 
 export function Dashboard({ familyScrum }: Props) {
-  console.log(familyScrum);
-
   return (
     <>
       <ul className="flex flex-col px-6 mb-2 mt-6">
-        <MenuCard Icon={ShoppingCartIcon} to="/groceries" color="bg-red-500">
+        <MenuCard to="/groceries" Icon={ShoppingCartIcon} color="bg-red-500">
           Go shopping ({familyScrum.groceries.groceries.length})
         </MenuCard>
 
-        <MenuCard Icon={CheckIcon} color="bg-blue-500">
-          Checklists ( 0 )
+        <MenuCard to="/checklists" Icon={CheckIcon} color="bg-blue-500">
+          Checklists ({familyScrum.todos.todosWithCheckList.length})
         </MenuCard>
 
         <MenuCard Icon={ChatBubbleBottomCenterIcon} color="bg-green-500">

@@ -7,8 +7,8 @@ import { reactive, readonly } from "bonsify";
 import { FamilyScrum } from "./FamilyScrum";
 import { CheckListItem } from "./CheckListItem";
 
-export type Todo = TodoDTO & {
-  checkList?: CheckListItem[];
+export type Todo = Omit<TodoDTO, "checkList"> & {
+  checkList: CheckListItem[];
   archive(): void;
   addCheckListItem(description: string): void;
 };
@@ -22,14 +22,14 @@ type Params = {
 export function Todo({ data, familyPersistence, familyScrum }: Params): Todo {
   const todo = reactive<Todo>({
     ...data,
-    get checkList(): CheckListItem[] | undefined {
+    get checkList(): CheckListItem[] {
       return checkList;
     },
     archive,
     addCheckListItem,
   });
 
-  const checkList = data.checkList?.map(createCheckListItem);
+  const checkList = data.checkList?.map(createCheckListItem) ?? [];
 
   return readonly(todo);
 

@@ -6,10 +6,12 @@ import {
 } from "../environments/Browser/Persistence";
 import { FamilyScrum } from "./FamilyScrum";
 import { Todo } from "./Todo";
+import { CheckListItem } from "./CheckListItem";
 
 export type Todos = {
   familyScrum: FamilyScrum;
   todos: Todo[];
+  todosWithCheckList: Todo[];
   addTodo(description: string): void;
 };
 
@@ -29,6 +31,9 @@ export function Todos({
   const todos = reactive<Todos>({
     familyScrum,
     todos: [],
+    get todosWithCheckList(): Todo[] {
+      return todos.todos.filter((todo) => Boolean(todo.checkList.length));
+    },
     addTodo,
   });
 

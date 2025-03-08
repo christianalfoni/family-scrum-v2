@@ -6,7 +6,7 @@ import {
 } from "@heroicons/react/24/solid";
 import { LightBulbIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router";
-import * as state from "../../state";
+import * as state from "../state";
 import { useState } from "react";
 
 type Props = {
