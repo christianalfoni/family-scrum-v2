@@ -6,8 +6,10 @@ import {
   getWeekDayIndex,
   getFirstDateOfCurrentWeek,
   weekdays,
+  upperCaseFirstLetter,
 } from "../../utils";
 import * as state from "../../state";
+import { addDays } from "date-fns";
 
 import { WeekdaySlideContent } from "./WeekDaySlideContent";
 
@@ -62,8 +64,8 @@ export function CurrentWeekCalendar({ familyScrum }: Props) {
           return (
             <SwiperSlide key={index}>
               <WeekdaySlideContent
-                title={weekdays[index]}
-                date={currentWeekDate.toLocaleDateString()}
+                title={upperCaseFirstLetter(weekdays[index])}
+                date={addDays(currentWeekDate, index).toLocaleDateString()}
               >
                 {
                   <ul className="mt-2 ">

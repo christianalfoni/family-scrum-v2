@@ -136,3 +136,7 @@ export const getWeekdayIndexes = (dates: string[], weekDates: string[]) => {
     .filter((date) => weekDates.includes(date))
     .map((date) => getDay(parse(date, "yyyyMMdd", new Date())));
 };
+
+export function upperCaseFirstLetter(string: string) {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}
