@@ -8,7 +8,7 @@ import { getCurrentWeekId, getNextWeekId, getPreviousWeekId } from "../utils";
 import { FamilyScrum } from "./FamilyScrum";
 
 export type Week = WeekDTO & {
-  todos: WeekTodoDTO[];
+  todos: any;
 };
 
 export type Weeks = {

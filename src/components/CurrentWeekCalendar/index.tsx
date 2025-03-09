@@ -9,9 +9,37 @@ import {
   upperCaseFirstLetter,
 } from "../../utils";
 import * as state from "../../state";
-import { addDays } from "date-fns";
-
+import { addDays, isThisWeek } from "date-fns";
 import { WeekdaySlideContent } from "./WeekDaySlideContent";
+import { useComputed } from "../../utils/useComputed";
+
+type Assignee = { name: string; avatar: string };
+
+type EventEntry = {
+  type: "event";
+  todo: state.Todo;
+};
+
+type TodoEntry = {
+  type: "todo";
+  assignedTo: Assignee[];
+  todo: state.Todo;
+};
+
+type WeekDayEntry = {
+  entries: Array<EventEntry | TodoEntry>;
+  dinner?: state.Dinner;
+};
+
+type WeekEntries = [
+  WeekDayEntry,
+  WeekDayEntry,
+  WeekDayEntry,
+  WeekDayEntry,
+  WeekDayEntry,
+  WeekDayEntry,
+  WeekDayEntry
+];
 
 function DinnerImage({ imageUrl }: { imageUrl: Promise<string> }) {
   const src = use(imageUrl);
@@ -46,6 +74,7 @@ type Props = {
 export function CurrentWeekCalendar({ familyScrum }: Props) {
   const currentDayIndex = getWeekDayIndex();
   const currentWeekDate = getFirstDateOfCurrentWeek();
+  const weekEntries = useComputed(computeWeekEntries);
   const [slideIndex, setSlideIndex] = useState(currentDayIndex);
   const [controlledSwiper, setControlledSwiper] = useState<any>(null);
 
@@ -60,7 +89,7 @@ export function CurrentWeekCalendar({ familyScrum }: Props) {
         onSwiper={setControlledSwiper}
         initialSlide={slideIndex}
       >
-        {familyScrum.weekEntries.map((weekEntry, index) => {
+        {weekEntries.map((weekEntry, index) => {
           return (
             <SwiperSlide key={index}>
               <WeekdaySlideContent
@@ -153,4 +182,54 @@ export function CurrentWeekCalendar({ familyScrum }: Props) {
       </div>
     </>
   );
+
+  function computeWeekEntries() {
+    console.log("Calculating week entries");
+    const weekEntries = Array(7).fill({
+      entries: [],
+    }) as WeekEntries;
+
+    familyScrum.todos.todos.forEach((todo) => {
+      if (
+        todo.date &&
+        isThisWeek(todo.date.toMillis(), {
+          weekStartsOn: 1,
+        })
+      ) {
+        const weekDayIndex = getWeekDayIndex(todo.date.toMillis());
+
+        weekEntries[weekDayIndex].entries.push({
+          type: "event",
+          todo,
+        });
+      }
+
+      const weekTodo = familyScrum.weeks.current.todos.find(
+        (weekTodo) => weekTodo.id === todo.id
+      );
+
+      if (!weekTodo) {
+        return;
+      }
+
+      for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
+        const assignedTo: Assignee[] = [];
+        for (const userId in weekTodo.activityByUserId) {
+          if (weekTodo.activityByUserId[userId][dayIndex]) {
+            assignedTo.push(familyScrum.session.family.users[userId]);
+          }
+        }
+
+        if (assignedTo.length) {
+          weekEntries[dayIndex].entries.push({
+            type: "todo",
+            assignedTo,
+            todo,
+          });
+        }
+      }
+    });
+
+    return weekEntries;
+  }
 }

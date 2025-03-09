@@ -28,7 +28,11 @@ export function Dashboard({ familyScrum }: Props) {
           Checklists ({familyScrum.todos.todosWithCheckList.length})
         </MenuCard>
 
-        <MenuCard Icon={ChatBubbleBottomCenterIcon} color="bg-green-500">
+        <MenuCard
+          to="plan-next-week"
+          Icon={ChatBubbleBottomCenterIcon}
+          color="bg-green-500"
+        >
           Plan Next Week
         </MenuCard>
 
