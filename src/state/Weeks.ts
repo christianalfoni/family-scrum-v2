@@ -8,7 +8,7 @@ import { getCurrentWeekId, getNextWeekId, getPreviousWeekId } from "../utils";
 import { FamilyScrum } from "./FamilyScrum";
 
 export type Week = WeekDTO & {
-  todos: Record<string, WeekTodoDTO>;
+  todos: WeekTodoDTO[];
 };
 
 export type Weeks = {
@@ -51,7 +51,7 @@ export function Weeks({
     const week = reactive<Week>({
       id: weekId,
       dinners: [null, null, null, null, null, null, null],
-      todos: {},
+      todos: [],
     });
 
     onDispose(
@@ -63,19 +63,11 @@ export function Weeks({
     const weekTodosApi = familyPersistence.createWeekTodosApi(weekId);
 
     onDispose(
-      weekTodosApi.subscribeAll((update) => {
-        week.todos = collectionToLookupRecord(update);
+      weekTodosApi.subscribeAll((data) => {
+        week.todos = data;
       })
     );
 
     return week;
-  }
-
-  function collectionToLookupRecord<T extends { id: string }>(collection: T[]) {
-    return collection.reduce<Record<string, T>>((aggr, doc) => {
-      aggr[doc.id] = doc;
-
-      return aggr;
-    }, {});
   }
 }

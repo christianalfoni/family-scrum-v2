@@ -1,16 +1,20 @@
 import { CalendarIcon } from "@heroicons/react/24/solid";
 import { Suspense, use, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { getDayIndex, getFirstDateOfCurrentWeek, weekdays } from "../../utils";
-import { addDays } from "date-fns";
+import { Controller } from "swiper/modules";
+import {
+  getWeekDayIndex,
+  getFirstDateOfCurrentWeek,
+  weekdays,
+} from "../../utils";
 import * as state from "../../state";
 
 import { WeekdaySlideContent } from "./WeekDaySlideContent";
 
-function DinnerImage({ dinner }: { dinner: state.Dinner }) {
-  const imageUrl = use(dinner.imageUrl);
+function DinnerImage({ imageUrl }: { imageUrl: Promise<string> }) {
+  const src = use(imageUrl);
 
-  return <img className="h-16 w-16 rounded" src={imageUrl} alt="" />;
+  return <img className="h-16 w-16 rounded" src={src} alt="" />;
 }
 
 function WeekdayDinner({ dinner }: { dinner: state.Dinner }) {
@@ -18,9 +22,11 @@ function WeekdayDinner({ dinner }: { dinner: state.Dinner }) {
     <li key="DINNER">
       <div className="flex items-center space-x-3 h-20">
         <div className="flex-shrink-0 h-16 w-16">
-          <Suspense>
-            <DinnerImage dinner={dinner} />
-          </Suspense>
+          {dinner.imageUrl ? (
+            <Suspense>
+              <DinnerImage imageUrl={dinner.imageUrl} />
+            </Suspense>
+          ) : null}
         </div>
         <div className="min-w-0 flex-1">
           <p className="text-md font-medium text-gray-900">{dinner.name}</p>
@@ -31,87 +37,82 @@ function WeekdayDinner({ dinner }: { dinner: state.Dinner }) {
   );
 }
 
-function isTodo(todo?: TodoDTO): todo is TodoDTO {
-  return Boolean(todo);
-}
+type Props = {
+  familyScrum: state.FamilyScrum;
+};
 
-export function CurrentWeekCalendar() {
-  const currentDayIndex = getDayIndex();
+export function CurrentWeekCalendar({ familyScrum }: Props) {
+  const currentDayIndex = getWeekDayIndex();
   const currentWeekDate = getFirstDateOfCurrentWeek();
   const [slideIndex, setSlideIndex] = useState(currentDayIndex);
-  const [controlledSwiper, setControlledSwiper] = useState<SwiperCore | null>(
-    null
-  );
-
-  const dinners = use(fetchDinners());
-  const currentWeek = use(weeks.current.fetchWeek());
-  const todos = use(fetchTodos());
+  const [controlledSwiper, setControlledSwiper] = useState<any>(null);
 
   return (
     <>
       <Swiper
         className="w-full h-full"
+        modules={[Controller]}
         spaceBetween={50}
         slidesPerView={1}
         onSlideChange={(swiper) => setSlideIndex(swiper.activeIndex)}
         onSwiper={setControlledSwiper}
         initialSlide={slideIndex}
       >
-        {todosByWeekday.map((weekdayTodos, index) => {
-          const dinnerId = currentWeek.dinners[index];
-          const dinner = dinners.find((dinner) => dinner.id === dinnerId);
-
+        {familyScrum.weekEntries.map((weekEntry, index) => {
           return (
             <SwiperSlide key={index}>
               <WeekdaySlideContent
-                title={`${tCommon(weekdays[index])}`}
-                date={intl.formatDateTime(addDays(currentWeekDate, index), {
-                  day: "numeric",
-                  month: "long",
-                })}
+                title={weekdays[index]}
+                date={currentWeekDate.toLocaleDateString()}
               >
                 {
                   <ul className="mt-2 ">
-                    {dinner ? (
-                      <WeekdayDinner key="WEEKDAY_DINNER" dinner={dinner} />
+                    {weekEntry.dinner ? (
+                      <WeekdayDinner
+                        key="WEEKDAY_DINNER"
+                        dinner={weekEntry.dinner}
+                      />
                     ) : null}
-                    {eventsByWeekday[index].map((todo) => (
-                      <li
-                        key={todo.id}
-                        className="py-2 flex justify-between items-center"
-                      >
-                        <div className="flex items-center space-x-2">
-                          <div className="flex flex-shrink-0 -space-x-1">
-                            <CalendarIcon className="w-4 h-4 text-red-500" />
-                          </div>
-                          {todo.time ? (
-                            <span className="text-sm text-gray-500">
-                              {todo.time}
-                            </span>
-                          ) : null}
+                    {weekEntry.entries.map((weekEntry) => {
+                      const todo = weekEntry.todo;
 
-                          <p className="ml-4 text-sm font-medium text-gray-900">
-                            {todo.description}
-                          </p>
-                        </div>
-                      </li>
-                    ))}
-                    {Object.keys(weekdayTodos)
-                      .map((todoId) => todos.find((todo) => todo.id === todoId))
-                      .filter(isTodo)
-                      .map((todo) => (
+                      if (weekEntry.type === "event") {
+                        return (
+                          <li
+                            key={weekEntry.todo.id}
+                            className="py-2 flex justify-between items-center"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <div className="flex flex-shrink-0 -space-x-1">
+                                <CalendarIcon className="w-4 h-4 text-red-500" />
+                              </div>
+                              {todo.time ? (
+                                <span className="text-sm text-gray-500">
+                                  {todo.time}
+                                </span>
+                              ) : null}
+
+                              <p className="ml-4 text-sm font-medium text-gray-900">
+                                {todo.description}
+                              </p>
+                            </div>
+                          </li>
+                        );
+                      }
+
+                      return (
                         <li
                           key={todo.id}
                           className="py-2 flex justify-between items-center"
                         >
                           <div className="flex items-center space-x-2">
                             <div className="flex flex-shrink-0 -space-x-1">
-                              {weekdayTodos[todo.id].map((userId) => (
+                              {weekEntry.assignedTo.map((familyUser) => (
                                 <img
-                                  key={userId}
+                                  key={familyUser.name}
                                   className="max-w-none h-6 w-6 rounded-full ring-2 ring-white"
-                                  src={family.users[userId].avatar!}
-                                  alt={family.users[userId].name}
+                                  src={familyUser.avatar!}
+                                  alt={familyUser.name}
                                 />
                               ))}
                             </div>
@@ -120,7 +121,8 @@ export function CurrentWeekCalendar() {
                             </p>
                           </div>
                         </li>
-                      ))}
+                      );
+                    })}
                   </ul>
                 }
               </WeekdaySlideContent>
@@ -143,7 +145,7 @@ export function CurrentWeekCalendar() {
               index === slideIndex ? "font-bold" : ""
             } flex items-center mx-2 w-6 h-6 text-center text-xs`}
           >
-            {(tCommon(weekdays[index]) as string).substring(0, 2)}
+            {weekdays[index].substring(0, 2)}
           </div>
         ))}
       </div>

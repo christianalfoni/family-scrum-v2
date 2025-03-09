@@ -118,16 +118,16 @@ export const mod = (n: number, m: number) => {
   return ((n % m) + m) % m;
 };
 
-export const getDayIndex = (date: Date | number = new Date()) => {
+export const getWeekDayIndex = (date: Date | number = new Date()) => {
   return mod(
-    typeof date === "number" ? new Date(date).getDay() : date.getDay() - 1,
+    (typeof date === "number" ? new Date(date).getDay() : date.getDay()) - 1,
     7
   );
 };
 
 export const getDayName = (date: Date | number = new Date()) => {
   return weekdays[
-    getDayIndex(typeof date === "number" ? new Date(date) : date)
+    getWeekDayIndex(typeof date === "number" ? new Date(date) : date)
   ];
 };
 

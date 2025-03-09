@@ -7,7 +7,7 @@ import {
 import { Swiper, SwiperSlide } from "swiper/react";
 import { MenuCard } from "./MenuCard";
 import { weekdays } from "../../utils";
-import { WeekdaySlideContent } from "../CurrentWeekTodos/WeekDaySlideContent";
+import { WeekdaySlideContent } from "../CurrentWeekCalendar/WeekDaySlideContent";
 
 export function CurrentWeekTodosSkeleton() {
   return (

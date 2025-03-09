@@ -82,12 +82,14 @@ export type DinnerDTO = {
   modified: Timestamp;
 };
 
+export type FamilyUserDTO = {
+  name: string;
+  avatar: string;
+};
+
 export type FamilyDTO = {
   id: string;
   users: {
-    [id: string]: {
-      name: string;
-      avatar: string;
-    };
+    [id: string]: FamilyUserDTO;
   };
 };

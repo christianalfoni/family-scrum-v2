@@ -7,6 +7,7 @@ import {
 import { Drawer, DrawerContent, DrawerTrigger } from "../common/Drawer";
 import { MenuCard } from "./MenuCard";
 import * as state from "../../state";
+import { CurrentWeekCalendar } from "../CurrentWeekCalendar";
 
 // import { CurrentWeekTodosContext } from "./CurrentWeekTodosContext";
 // import { AssistantContext } from "./AssistantContext";
@@ -36,7 +37,9 @@ export function Dashboard({ familyScrum }: Props) {
         </MenuCard>
       </ul>
 
-      <div className="h-2/4">{/*<CurrentWeekTodosContext />*/}</div>
+      <div className="h-2/4">
+        <CurrentWeekCalendar familyScrum={familyScrum} />
+      </div>
 
       <button
         type="button"

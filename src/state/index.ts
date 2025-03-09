@@ -1,5 +1,6 @@
 export * from "./CheckListItem";
 export * from "./Dinners";
+export * from "./Dinner";
 export * from "./FamilyScrum";
 export * from "./Groceries";
 export * from "./Grocery";
