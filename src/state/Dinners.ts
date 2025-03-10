@@ -1,4 +1,4 @@
-import { createDataLookup, reactive } from "bonsify";
+import { reactive } from "bonsify";
 import { FamilyScrum } from "./FamilyScrum";
 import { Environment } from "../environments";
 import {
@@ -20,7 +20,6 @@ export type NewDinner = {
 export type Dinners = {
   familyScrum: FamilyScrum;
   dinners: Dinner[];
-  dinnersById: Record<string, Dinner>;
   addDinner(newDinner: NewDinner): void;
 };
 
@@ -42,14 +41,12 @@ export function Dinners({
   const dinners = reactive<Dinners>({
     familyScrum,
     dinners: [],
-    dinnersById: {},
     addDinner,
   });
 
   onDispose(
     familyPersistence.dinners.subscribeAll((data) => {
       dinners.dinners = data.map(createDinner);
-      dinners.dinnersById = createDataLookup(dinners.dinners);
     })
   );
 

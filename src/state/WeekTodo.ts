@@ -2,35 +2,59 @@ import { reactive } from "bonsify";
 import { FamilyMember } from "./Family";
 import { Todo } from "./Todo";
 import { FamilyScrum } from "./FamilyScrum";
+import {
+  WeekTodoActivityDTO,
+  WeekTodoDTO,
+} from "../environments/Browser/Persistence";
+
+export type WeekTodoAssignment = {
+  familyMember: FamilyMember;
+  activity: WeekTodoActivityDTO;
+};
 
 export type WeekTodo = {
   id: string;
   todo: Todo;
-  weekDay: number;
-  assignments: FamilyMember[];
+  assignments: WeekTodoAssignment[];
 };
 
 type Params = {
   todo: Todo;
-  weekDayIndex: number;
   familyScrum: FamilyScrum;
-  assignments: string[];
+  weekTodoData: WeekTodoDTO;
 };
 
 export function WeekTodo({
   todo,
-  weekDayIndex,
+  weekTodoData,
   familyScrum,
-  assignments,
 }: Params): WeekTodo {
   const weekTodo = reactive<WeekTodo>({
     id: todo.id,
     todo,
-    weekDay: weekDayIndex,
-    assignments: assignments.map(
-      (userId) => familyScrum.session.family.membersById[userId]
-    ),
+    assignments: deriveAssignments(),
   });
 
   return weekTodo;
+
+  function deriveAssignments() {
+    const assignments: WeekTodoAssignment[] = [];
+
+    for (const userId in weekTodoData.activityByUserId) {
+      const familyMember = familyScrum.session.family.members.find(
+        (member) => member.id === userId
+      );
+
+      if (familyMember) {
+        assignments.push({
+          familyMember,
+          activity: weekTodoData.activityByUserId[userId],
+        });
+      }
+    }
+
+    return assignments;
+  }
+
+  function toggleAssignment() {}
 }

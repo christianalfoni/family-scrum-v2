@@ -1,6 +1,5 @@
 import { reactive } from "bonsify";
 import { Dinner } from "./Dinner";
-import { FamilyScrum } from "./FamilyScrum";
 
 export type WeekDinner = {
   id: string;

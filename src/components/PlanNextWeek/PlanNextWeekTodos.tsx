@@ -2,6 +2,8 @@ import { CalendarIcon, CheckCircleIcon } from "@heroicons/react/24/solid";
 import * as state from "../../state";
 import { getDateFromWeekId, isWithinWeek } from "../../utils";
 import { differenceInDays } from "date-fns";
+import { Todo } from "../Todo";
+import { AssignmentToggler } from "./AssignmentToggler";
 
 type Props = {
   todos: state.Todos;
@@ -10,9 +12,16 @@ type Props = {
 
 export function PlanNextWeekTodos({ todos, weeks }: Props) {
   const categorisedTodos = computeCategorizedTodos();
-  const renderTodo = (todo: state.Todo) => null;
-
-  console.log("RENDER", categorisedTodos);
+  const renderTodo = (todo: state.Todo) => (
+    <Todo todo={todo}>
+      <AssignmentToggler
+        todo={todo}
+        week={weeks.current}
+        todos={todos}
+        previousWeek={weeks.previous}
+      />
+    </Todo>
+  );
 
   return (
     <ul className="relative z-0 divide-y divide-gray-200 border-b border-gray-200 overflow-y-scroll">

@@ -1,4 +1,4 @@
-import { createDataLookup, reactive } from "bonsify";
+import { reactive } from "bonsify";
 import { FamilyDTO } from "../environments/Browser/Persistence";
 
 export type FamilyMember = {
@@ -10,7 +10,6 @@ export type FamilyMember = {
 export type Family = {
   id: string;
   members: FamilyMember[];
-  membersById: Record<string, FamilyMember>;
 };
 
 type Params = {
@@ -22,10 +21,9 @@ export function Family({ data }: Params) {
   const family = reactive<Family>({
     id: data.id,
     members,
-    membersById: createDataLookup(members),
   });
 
-  return family;
+  return reactive.readonly(family);
 
   function createMembers() {
     const members: FamilyMember[] = [];

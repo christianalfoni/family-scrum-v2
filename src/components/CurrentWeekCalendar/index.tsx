@@ -67,8 +67,8 @@ export function CurrentWeekCalendar({ familyScrum }: Props) {
           const weekEvents = familyScrum.weeks.current.events.filter(
             (event) => event.weekDay === index
           );
-          const weekTodos = familyScrum.weeks.current.todos.filter(
-            (todo) => todo.weekDay === index
+          const weekTodos = familyScrum.weeks.current.todos.filter((todo) =>
+            todo.assignments.some((assignment) => assignment.activity[index])
           );
 
           return (
@@ -118,14 +118,18 @@ export function CurrentWeekCalendar({ familyScrum }: Props) {
                         >
                           <div className="flex items-center space-x-2">
                             <div className="flex flex-shrink-0 -space-x-1">
-                              {weekTodo.assignments.map((familyUser) => (
-                                <img
-                                  key={familyUser.name}
-                                  className="max-w-none h-6 w-6 rounded-full ring-2 ring-white"
-                                  src={familyUser.avatar!}
-                                  alt={familyUser.name}
-                                />
-                              ))}
+                              {weekTodo.assignments
+                                .filter(
+                                  (assignment) => assignment.activity[index]
+                                )
+                                .map((assignment) => (
+                                  <img
+                                    key={assignment.familyMember.name}
+                                    className="max-w-none h-6 w-6 rounded-full ring-2 ring-white"
+                                    src={assignment.familyMember.avatar!}
+                                    alt={assignment.familyMember.name}
+                                  />
+                                ))}
                             </div>
                             <p className="ml-4 text-sm font-medium text-gray-900">
                               {todo.description}

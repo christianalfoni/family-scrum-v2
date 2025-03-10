@@ -11,6 +11,7 @@ export type Todo = Omit<TodoDTO, "checkList"> & {
   checkList: CheckListItem[];
   archive(): void;
   addCheckListItem(description: string): void;
+  toggleAssignment(weekDay: number): void;
 };
 
 type Params = {
@@ -27,6 +28,7 @@ export function Todo({ data, familyPersistence, familyScrum }: Params): Todo {
     },
     archive,
     addCheckListItem,
+    toggleAssignment,
   });
 
   const checkList = data.checkList?.map(createCheckListItem) ?? [];
@@ -53,4 +55,6 @@ export function Todo({ data, familyPersistence, familyScrum }: Params): Todo {
       ],
     }));
   }
+
+  function toggleAssignment() {}
 }

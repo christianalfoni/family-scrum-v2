@@ -1,4 +1,4 @@
-import { createDataLookup, reactive } from "bonsify";
+import { reactive } from "bonsify";
 import {
   FamilyPersistence,
   WeekDTO,
@@ -6,7 +6,6 @@ import {
 } from "../environments/Browser/Persistence";
 import { getCurrentWeekId, getNextWeekId, getPreviousWeekId } from "../utils";
 import { FamilyScrum } from "./FamilyScrum";
-
 import { WeekDinner } from "./WeekDinner";
 import { WeekTodo } from "./WeekTodo";
 import { WeekEvent } from "./WeekEvent";
@@ -14,11 +13,8 @@ import { WeekEvent } from "./WeekEvent";
 export type Week = {
   id: string;
   dinners: WeekDinner[];
-  dinnersById: Record<string, WeekDinner>;
   todos: WeekTodo[];
-  todosById: Record<string, WeekTodo>;
   events: WeekEvent[];
-  eventsById: Record<string, WeekEvent>;
 };
 
 export type Weeks = {
@@ -62,11 +58,8 @@ export function Weeks({
     const week = reactive<Week>({
       id: weekId,
       dinners: [],
-      dinnersById: {},
       todos: [],
-      todosById: {},
       events: [],
-      eventsById: {},
     });
 
     onDispose(familyPersistence.weeks.subscribe(weekId, createWeekDinners));
@@ -78,43 +71,32 @@ export function Weeks({
     function createWeekDinners(data: WeekDTO) {
       week.dinners = data.dinners
         .map((id, index) => {
-          const dinner = id && familyScrum.dinners.dinnersById[id];
+          const dinner = familyScrum.dinners.dinners.find(
+            (dinner) => dinner.id === id
+          );
 
           return dinner ? WeekDinner({ dinner, weekDayIndex: index }) : null;
         })
-        .filter((dinner) => dinner !== null);
-      week.dinnersById = createDataLookup(week.dinners);
+        .filter((dinner) => !!dinner);
     }
 
     function createWeekTodos(data: WeekTodoDTO[]) {
       week.todos = data.flatMap(createWeekTodo).filter((todo) => todo !== null);
-      week.todosById = createDataLookup(week.todos);
     }
 
     function createWeekTodo(weekTodoData: WeekTodoDTO) {
-      let assignmentsByDay: string[][] = [[], [], [], [], [], [], []];
+      const todo = familyScrum.todos.todos.find(
+        (todo) => todo.id === weekTodoData.id
+      );
 
-      for (const userId in weekTodoData.activityByUserId) {
-        const activity = weekTodoData.activityByUserId[userId];
-
-        for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
-          if (activity[dayIndex]) {
-            assignmentsByDay[dayIndex].push(userId);
-          }
-        }
+      if (!todo) {
+        return null;
       }
 
-      return assignmentsByDay.map((assignments, index) => {
-        const todo = familyScrum.todos.todosById[weekTodoData.id];
-
-        return assignments.length && todo
-          ? WeekTodo({
-              todo,
-              weekDayIndex: index,
-              assignments,
-              familyScrum,
-            })
-          : null;
+      return WeekTodo({
+        todo,
+        familyScrum,
+        weekTodoData,
       });
     }
   }
