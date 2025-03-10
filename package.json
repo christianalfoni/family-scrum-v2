@@ -14,7 +14,7 @@
     "@headlessui/react": "^2.2.0",
     "@heroicons/react": "^2.2.0",
     "@tailwindcss/vite": "^4.0.6",
-    "bonsify": "^0.4.0",
+    "bonsify": "^0.5.1",
     "date-fns": "^4.1.0",
     "fast-levenshtein": "^3.0.0",
     "firebase": "^11.3.1",

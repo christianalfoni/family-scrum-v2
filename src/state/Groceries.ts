@@ -39,6 +39,7 @@ export function Groceries({
 
   onDispose(
     familyPersistence.groceries.subscribeAll((data) => {
+      console.log("Groceries?", data);
       groceries.groceries = data.map(createGrocery);
     })
   );

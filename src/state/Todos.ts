@@ -1,4 +1,4 @@
-import { reactive } from "bonsify";
+import { createDataLookup, reactive } from "bonsify";
 import { Environment } from "../environments";
 import {
   FamilyPersistence,
@@ -10,6 +10,7 @@ import { Todo } from "./Todo";
 export type Todos = {
   familyScrum: FamilyScrum;
   todos: Todo[];
+  todosById: Record<string, Todo>;
   todosWithCheckList: Todo[];
   addTodo(description: string): void;
 };
@@ -30,6 +31,7 @@ export function Todos({
   const todos = reactive<Todos>({
     familyScrum,
     todos: [],
+    todosById: {},
     get todosWithCheckList(): Todo[] {
       return todos.todos.filter((todo) => Boolean(todo.checkList.length));
     },
@@ -39,10 +41,11 @@ export function Todos({
   onDispose(
     familyPersistence.todos.subscribeAll((data) => {
       todos.todos = data.map(createTodo);
+      todos.todosById = createDataLookup(todos.todos);
     })
   );
 
-  return todos;
+  return reactive.readonly(todos);
 
   function createTodo(data: TodoDTO) {
     return Todo({ data, familyPersistence, familyScrum });

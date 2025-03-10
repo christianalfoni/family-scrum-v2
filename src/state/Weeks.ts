@@ -1,4 +1,4 @@
-import { reactive } from "bonsify";
+import { createDataLookup, reactive } from "bonsify";
 import {
   FamilyPersistence,
   WeekDTO,
@@ -7,8 +7,18 @@ import {
 import { getCurrentWeekId, getNextWeekId, getPreviousWeekId } from "../utils";
 import { FamilyScrum } from "./FamilyScrum";
 
-export type Week = WeekDTO & {
-  todos: any;
+import { WeekDinner } from "./WeekDinner";
+import { WeekTodo } from "./WeekTodo";
+import { WeekEvent } from "./WeekEvent";
+
+export type Week = {
+  id: string;
+  dinners: WeekDinner[];
+  dinnersById: Record<string, WeekDinner>;
+  todos: WeekTodo[];
+  todosById: Record<string, WeekTodo>;
+  events: WeekEvent[];
+  eventsById: Record<string, WeekEvent>;
 };
 
 export type Weeks = {
@@ -48,26 +58,64 @@ export function Weeks({
   return reactive.readonly(weeks);
 
   function Week(weekId: string) {
+    const weekTodosApi = familyPersistence.createWeekTodosApi(weekId);
     const week = reactive<Week>({
       id: weekId,
-      dinners: [null, null, null, null, null, null, null],
+      dinners: [],
+      dinnersById: {},
       todos: [],
+      todosById: {},
+      events: [],
+      eventsById: {},
     });
 
-    onDispose(
-      familyPersistence.weeks.subscribe(weekId, (update) => {
-        week.dinners = update.dinners;
-      })
-    );
+    onDispose(familyPersistence.weeks.subscribe(weekId, createWeekDinners));
 
-    const weekTodosApi = familyPersistence.createWeekTodosApi(weekId);
-
-    onDispose(
-      weekTodosApi.subscribeAll((data) => {
-        week.todos = data;
-      })
-    );
+    onDispose(weekTodosApi.subscribeAll(createWeekTodos));
 
     return week;
+
+    function createWeekDinners(data: WeekDTO) {
+      week.dinners = data.dinners
+        .map((id, index) => {
+          const dinner = id && familyScrum.dinners.dinnersById[id];
+
+          return dinner ? WeekDinner({ dinner, weekDayIndex: index }) : null;
+        })
+        .filter((dinner) => dinner !== null);
+      week.dinnersById = createDataLookup(week.dinners);
+    }
+
+    function createWeekTodos(data: WeekTodoDTO[]) {
+      week.todos = data.flatMap(createWeekTodo).filter((todo) => todo !== null);
+      week.todosById = createDataLookup(week.todos);
+    }
+
+    function createWeekTodo(weekTodoData: WeekTodoDTO) {
+      let assignmentsByDay: string[][] = [[], [], [], [], [], [], []];
+
+      for (const userId in weekTodoData.activityByUserId) {
+        const activity = weekTodoData.activityByUserId[userId];
+
+        for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
+          if (activity[dayIndex]) {
+            assignmentsByDay[dayIndex].push(userId);
+          }
+        }
+      }
+
+      return assignmentsByDay.map((assignments, index) => {
+        const todo = familyScrum.todos.todosById[weekTodoData.id];
+
+        return assignments.length && todo
+          ? WeekTodo({
+              todo,
+              weekDayIndex: index,
+              assignments,
+              familyScrum,
+            })
+          : null;
+      });
+    }
   }
 }

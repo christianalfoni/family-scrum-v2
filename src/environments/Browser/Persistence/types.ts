@@ -38,7 +38,7 @@ export type TodoDTO = {
 
 // Each user has an array representing each day of the week,
 // which holds a boolean if the todo is active or not
-export type WeekTodoActivity = [
+export type WeekTodoActivityDTO = [
   boolean,
   boolean,
   boolean,
@@ -66,7 +66,7 @@ export type WeekDTO = {
 export type WeekTodoDTO = {
   id: string;
   activityByUserId: {
-    [userId: string]: WeekTodoActivity;
+    [userId: string]: WeekTodoActivityDTO;
   };
 };
 

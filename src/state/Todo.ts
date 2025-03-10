@@ -7,31 +7,10 @@ import { reactive } from "bonsify";
 import { FamilyScrum } from "./FamilyScrum";
 import { CheckListItem } from "./CheckListItem";
 
-type WeekAssignment = {
-  name: string;
-  avatar: string;
-};
-
-type WeekAssignments = [
-  WeekAssignment[],
-  WeekAssignment[],
-  WeekAssignment[],
-  WeekAssignment[],
-  WeekAssignment[],
-  WeekAssignment[],
-  WeekAssignment[]
-];
-
 export type Todo = Omit<TodoDTO, "checkList"> & {
   checkList: CheckListItem[];
-  weekAssignments: {
-    previous: WeekAssignments;
-    current: WeekAssignments;
-    next: WeekAssignments;
-  };
   archive(): void;
   addCheckListItem(description: string): void;
-  assignToCurrentWeekDay(): void;
 };
 
 type Params = {

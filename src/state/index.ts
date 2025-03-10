@@ -8,3 +8,6 @@ export * from "./Session";
 export * from "./Todo";
 export * from "./Todos";
 export * from "./Weeks";
+export * from "./WeekDinner";
+export * from "./WeekTodo";
+export * from "./WeekEvent";

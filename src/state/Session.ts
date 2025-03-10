@@ -1,15 +1,17 @@
-import { User } from "firebase/auth";
+import { User as FirebaseUser } from "firebase/auth";
 import type { FamilyDTO, UserDTO } from "../environments/Browser/Persistence";
 import { reactive } from "bonsify";
 import { FamilyScrum } from "./FamilyScrum";
 import { Environment } from "../environments";
+import { Family } from "./Family";
+import { User } from "./User";
 
 type CachedAuthentication = { user: UserDTO; family: FamilyDTO };
 
 export type SessionAuthenticated = {
   current: "AUTHENTICATED";
-  user: UserDTO;
-  family: FamilyDTO;
+  user: User;
+  family: Family;
   familyScrum: FamilyScrum;
 };
 
@@ -76,7 +78,7 @@ export function Session({ env }: Params) {
     const authenticated: SessionAuthenticated = reactive({
       current: "AUTHENTICATED",
       user,
-      family,
+      family: Family({ data: family }),
       get familyScrum() {
         return familyScrum;
       },
@@ -93,7 +95,7 @@ export function Session({ env }: Params) {
     return authenticated;
   }
 
-  async function onAuthChanged(maybeUser: User | null) {
+  async function onAuthChanged(maybeUser: FirebaseUser | null) {
     if (!maybeUser) {
       session.state = UNAUTHENTICATED();
 
@@ -113,6 +115,14 @@ export function Session({ env }: Params) {
 
       if (!family) {
         throw new Error("No family doc");
+      }
+
+      if (
+        session.state.current === "AUTHENTICATED" &&
+        session.state.user.id === user.id &&
+        session.state.user.familyId === user.familyId
+      ) {
+        return;
       }
 
       // Theoretically we could already be unauthenticated by Firebase for whatever reason. Something

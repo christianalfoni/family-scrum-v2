@@ -10,9 +10,9 @@ type Props = {
 
 export function PlanNextWeekTodos({ todos, weeks }: Props) {
   const categorisedTodos = computeCategorizedTodos();
-  const renderTodo = (todo: state.Todo) => (
-    <PlanTodoItemContext key={todo.id} todo={todo} />
-  );
+  const renderTodo = (todo: state.Todo) => null;
+
+  console.log("RENDER", categorisedTodos);
 
   return (
     <ul className="relative z-0 divide-y divide-gray-200 border-b border-gray-200 overflow-y-scroll">
@@ -52,17 +52,7 @@ export function PlanNextWeekTodos({ todos, weeks }: Props) {
   );
 
   function computeCategorizedTodos() {
-    const todosInPreviousWeek = Object.values(weeks.previous.todos).filter(
-      (previousWeekTodo) => {
-        for (let userId in previousWeekTodo.activityByUserId) {
-          if (previousWeekTodo.activityByUserId[userId].includes(true)) {
-            return true;
-          }
-        }
-
-        return false;
-      }
-    );
+    const todosInPreviousWeek = weeks.previous.todos;
     const currentWeekDate = getDateFromWeekId(weeks.current.id);
     const result = todos.todos.reduce(
       (aggr, todo) => {

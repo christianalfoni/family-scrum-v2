@@ -2,7 +2,6 @@ import {
   CheckCircleIcon,
   ChevronLeftIcon,
   HeartIcon,
-  PlusIcon,
 } from "@heroicons/react/24/solid";
 import { NavLink, Outlet, useNavigate } from "react-router";
 

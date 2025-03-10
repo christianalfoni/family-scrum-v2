@@ -25,7 +25,15 @@ export function FamilyScrum({ familyScrum }: Props) {
       />
       <Route path="plan-next-week" element={<PlanNextWeek />}>
         <Route index element={<Navigate to="todos" replace />} />
-        <Route path="todos" element={<PlanNextWeekTodos />} />
+        <Route
+          path="todos"
+          element={
+            <PlanNextWeekTodos
+              weeks={familyScrum.weeks}
+              todos={familyScrum.todos}
+            />
+          }
+        />
         <Route path="dinners" element={<PlanNextWeekDinners />} />
       </Route>
     </Routes>

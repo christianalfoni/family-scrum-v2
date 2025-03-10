@@ -17,6 +17,11 @@ type Props = {
 };
 
 export function Dashboard({ familyScrum }: Props) {
+  console.log(
+    "WTF",
+    familyScrum.groceries.groceries.length,
+    familyScrum.groceries.groceries
+  );
   return (
     <>
       <ul className="flex flex-col px-6 mb-2 mt-6">

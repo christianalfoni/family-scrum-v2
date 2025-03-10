@@ -9,37 +9,8 @@ import {
   upperCaseFirstLetter,
 } from "../../utils";
 import * as state from "../../state";
-import { addDays, isThisWeek } from "date-fns";
+import { addDays } from "date-fns";
 import { WeekdaySlideContent } from "./WeekDaySlideContent";
-import { useComputed } from "../../utils/useComputed";
-
-type Assignee = { name: string; avatar: string };
-
-type EventEntry = {
-  type: "event";
-  todo: state.Todo;
-};
-
-type TodoEntry = {
-  type: "todo";
-  assignedTo: Assignee[];
-  todo: state.Todo;
-};
-
-type WeekDayEntry = {
-  entries: Array<EventEntry | TodoEntry>;
-  dinner?: state.Dinner;
-};
-
-type WeekEntries = [
-  WeekDayEntry,
-  WeekDayEntry,
-  WeekDayEntry,
-  WeekDayEntry,
-  WeekDayEntry,
-  WeekDayEntry,
-  WeekDayEntry
-];
 
 function DinnerImage({ imageUrl }: { imageUrl: Promise<string> }) {
   const src = use(imageUrl);
@@ -74,9 +45,9 @@ type Props = {
 export function CurrentWeekCalendar({ familyScrum }: Props) {
   const currentDayIndex = getWeekDayIndex();
   const currentWeekDate = getFirstDateOfCurrentWeek();
-  const weekEntries = useComputed(computeWeekEntries);
   const [slideIndex, setSlideIndex] = useState(currentDayIndex);
   const [controlledSwiper, setControlledSwiper] = useState<any>(null);
+  const weekDays = Array(7).fill(null);
 
   return (
     <>
@@ -89,7 +60,17 @@ export function CurrentWeekCalendar({ familyScrum }: Props) {
         onSwiper={setControlledSwiper}
         initialSlide={slideIndex}
       >
-        {weekEntries.map((weekEntry, index) => {
+        {weekDays.map((_, index) => {
+          const weekDinner = familyScrum.weeks.current.dinners.find(
+            (dinner) => dinner.weekDay === index
+          );
+          const weekEvents = familyScrum.weeks.current.events.filter(
+            (event) => event.weekDay === index
+          );
+          const weekTodos = familyScrum.weeks.current.todos.filter(
+            (todo) => todo.weekDay === index
+          );
+
           return (
             <SwiperSlide key={index}>
               <WeekdaySlideContent
@@ -98,38 +79,37 @@ export function CurrentWeekCalendar({ familyScrum }: Props) {
               >
                 {
                   <ul className="mt-2 ">
-                    {weekEntry.dinner ? (
+                    {weekDinner ? (
                       <WeekdayDinner
                         key="WEEKDAY_DINNER"
-                        dinner={weekEntry.dinner}
+                        dinner={weekDinner.dinner}
                       />
                     ) : null}
-                    {weekEntry.entries.map((weekEntry) => {
-                      const todo = weekEntry.todo;
-
-                      if (weekEntry.type === "event") {
-                        return (
-                          <li
-                            key={weekEntry.todo.id}
-                            className="py-2 flex justify-between items-center"
-                          >
-                            <div className="flex items-center space-x-2">
-                              <div className="flex flex-shrink-0 -space-x-1">
-                                <CalendarIcon className="w-4 h-4 text-red-500" />
-                              </div>
-                              {todo.time ? (
-                                <span className="text-sm text-gray-500">
-                                  {todo.time}
-                                </span>
-                              ) : null}
-
-                              <p className="ml-4 text-sm font-medium text-gray-900">
-                                {todo.description}
-                              </p>
+                    {weekEvents.map((weekEvent) => {
+                      return (
+                        <li
+                          key={weekEvent.id}
+                          className="py-2 flex justify-between items-center"
+                        >
+                          <div className="flex items-center space-x-2">
+                            <div className="flex flex-shrink-0 -space-x-1">
+                              <CalendarIcon className="w-4 h-4 text-red-500" />
                             </div>
-                          </li>
-                        );
-                      }
+                            {weekEvent.todo.time ? (
+                              <span className="text-sm text-gray-500">
+                                {weekEvent.todo.time}
+                              </span>
+                            ) : null}
+
+                            <p className="ml-4 text-sm font-medium text-gray-900">
+                              {weekEvent.todo.description}
+                            </p>
+                          </div>
+                        </li>
+                      );
+                    })}
+                    {weekTodos.map((weekTodo) => {
+                      const todo = weekTodo.todo;
 
                       return (
                         <li
@@ -138,7 +118,7 @@ export function CurrentWeekCalendar({ familyScrum }: Props) {
                         >
                           <div className="flex items-center space-x-2">
                             <div className="flex flex-shrink-0 -space-x-1">
-                              {weekEntry.assignedTo.map((familyUser) => (
+                              {weekTodo.assignments.map((familyUser) => (
                                 <img
                                   key={familyUser.name}
                                   className="max-w-none h-6 w-6 rounded-full ring-2 ring-white"
@@ -182,54 +162,4 @@ export function CurrentWeekCalendar({ familyScrum }: Props) {
       </div>
     </>
   );
-
-  function computeWeekEntries() {
-    console.log("Calculating week entries");
-    const weekEntries = Array(7).fill({
-      entries: [],
-    }) as WeekEntries;
-
-    familyScrum.todos.todos.forEach((todo) => {
-      if (
-        todo.date &&
-        isThisWeek(todo.date.toMillis(), {
-          weekStartsOn: 1,
-        })
-      ) {
-        const weekDayIndex = getWeekDayIndex(todo.date.toMillis());
-
-        weekEntries[weekDayIndex].entries.push({
-          type: "event",
-          todo,
-        });
-      }
-
-      const weekTodo = familyScrum.weeks.current.todos.find(
-        (weekTodo) => weekTodo.id === todo.id
-      );
-
-      if (!weekTodo) {
-        return;
-      }
-
-      for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
-        const assignedTo: Assignee[] = [];
-        for (const userId in weekTodo.activityByUserId) {
-          if (weekTodo.activityByUserId[userId][dayIndex]) {
-            assignedTo.push(familyScrum.session.family.users[userId]);
-          }
-        }
-
-        if (assignedTo.length) {
-          weekEntries[dayIndex].entries.push({
-            type: "todo",
-            assignedTo,
-            todo,
-          });
-        }
-      }
-    });
-
-    return weekEntries;
-  }
 }
