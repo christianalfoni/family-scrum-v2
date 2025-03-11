@@ -8,7 +8,7 @@ import { Weeks } from "./Weeks";
 import { Awake } from "../environments/Browser/Awake";
 import { FamilyUserDTO } from "../environments/Browser/Persistence";
 import { isThisWeek } from "date-fns";
-import { getWeekDayIndex } from "../utils";
+import { getCurrentWeekId, getWeekDayIndex } from "../utils";
 
 export type FamilyScrum = {
   session: SessionAuthenticated;
@@ -28,6 +28,7 @@ type Params = {
 export function FamilyScrum({ env, session, onDispose }: Params): FamilyScrum {
   const familyPersistence = env.persistence.createFamilyApi(session.family.id);
   const familyStorage = env.storage.createFamilyStorage(session.family.id);
+  const weekTodosApi = familyPersistence.createWeekTodosApi(getCurrentWeekId());
   const familyScrum = reactive<FamilyScrum>({
     session,
     awake: env.awake,
@@ -57,6 +58,7 @@ export function FamilyScrum({ env, session, onDispose }: Params): FamilyScrum {
     familyScrum,
     familyPersistence,
     onDispose,
+    weekTodosApi,
   });
 
   const dinners = Dinners({
@@ -70,6 +72,7 @@ export function FamilyScrum({ env, session, onDispose }: Params): FamilyScrum {
   const weeks = Weeks({
     familyScrum,
     familyPersistence,
+    weekTodosApi,
     onDispose,
   });
 

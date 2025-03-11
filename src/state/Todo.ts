@@ -2,6 +2,8 @@ import {
   CheckListItemDTO,
   FamilyPersistence,
   TodoDTO,
+  WeekTodoActivityDTO,
+  WeekTodosApi,
 } from "../environments/Browser/Persistence";
 import { reactive } from "bonsify";
 import { FamilyScrum } from "./FamilyScrum";
@@ -11,16 +13,22 @@ export type Todo = Omit<TodoDTO, "checkList"> & {
   checkList: CheckListItem[];
   archive(): void;
   addCheckListItem(description: string): void;
-  toggleAssignment(weekDay: number): void;
+  setAssignment(weekDayIndex: number, active: boolean): void;
 };
 
 type Params = {
   data: TodoDTO;
   familyPersistence: FamilyPersistence;
   familyScrum: FamilyScrum;
+  weekTodosApi: WeekTodosApi;
 };
 
-export function Todo({ data, familyPersistence, familyScrum }: Params): Todo {
+export function Todo({
+  data,
+  familyPersistence,
+  familyScrum,
+  weekTodosApi,
+}: Params): Todo {
   const todo = reactive<Todo>({
     ...data,
     get checkList(): CheckListItem[] {
@@ -28,7 +36,7 @@ export function Todo({ data, familyPersistence, familyScrum }: Params): Todo {
     },
     archive,
     addCheckListItem,
-    toggleAssignment,
+    setAssignment,
   });
 
   const checkList = data.checkList?.map(createCheckListItem) ?? [];
@@ -56,5 +64,41 @@ export function Todo({ data, familyPersistence, familyScrum }: Params): Todo {
     }));
   }
 
-  function toggleAssignment() {}
+  function setAssignment(weekDayIndex: number, active: boolean) {
+    const user = familyScrum.session.user;
+
+    weekTodosApi.upsert(todo.id, (data) => {
+      const userActivity = data?.activityByUserId[user.id] ?? [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+      ];
+      const updatedActivity = [
+        ...userActivity.slice(0, weekDayIndex),
+        active,
+        ...userActivity.slice(weekDayIndex + 1),
+      ] as WeekTodoActivityDTO;
+
+      if (!data) {
+        return {
+          id: todo.id,
+          activityByUserId: {
+            [user.id]: updatedActivity,
+          },
+        };
+      }
+
+      return {
+        ...data,
+        activityByUserId: {
+          ...data.activityByUserId,
+          [user.id]: updatedActivity,
+        },
+      };
+    });
+  }
 }

@@ -39,6 +39,7 @@ export enum Collection {
 
 export type Persistence = ReturnType<typeof Persistence>;
 export type FamilyPersistence = ReturnType<Persistence["createFamilyApi"]>;
+export type WeekTodosApi = ReturnType<FamilyPersistence["createWeekTodosApi"]>;
 
 /**
  * Creates an API specific to the collections and related functionality needed for this app,
@@ -141,13 +142,14 @@ export function Persistence(app: FirebaseApp) {
       },
       update(
         id: string,
-        partialData: UpdateData<T> | ((data: T) => T | undefined)
+        partialData: UpdateData<T> | ((data: T) => UpdateData<T>)
       ) {
         const docRef = doc(collection, id);
 
         if (typeof partialData === "function") {
           return runTransaction(firestore, (transaction) => {
             const docRef = doc(collection, id);
+
             return transaction.get(docRef).then((doc) => {
               const currentData = doc.data();
 
@@ -157,12 +159,29 @@ export function Persistence(app: FirebaseApp) {
 
               const data = partialData(currentData);
 
-              return transaction.set(docRef, data);
+              return transaction.update(docRef, data);
             });
           });
         }
 
         return updateDoc(docRef, partialData);
+      },
+      upsert(id: string, updatedData: (data: T | undefined) => T) {
+        const docRef = doc(collection, id);
+
+        if (typeof updatedData === "function") {
+          return runTransaction(firestore, (transaction) => {
+            const docRef = doc(collection, id);
+            return transaction.get(docRef).then((doc) => {
+              const currentData = doc.data();
+              const data = updatedData(currentData);
+
+              return transaction.set(docRef, data);
+            });
+          });
+        }
+
+        return updateDoc(docRef, updatedData);
       },
       delete(id: string) {
         const docRef = doc(collection, id);

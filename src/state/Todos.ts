@@ -3,6 +3,7 @@ import { Environment } from "../environments";
 import {
   FamilyPersistence,
   TodoDTO,
+  WeekTodosApi,
 } from "../environments/Browser/Persistence";
 import { FamilyScrum } from "./FamilyScrum";
 import { Todo } from "./Todo";
@@ -18,6 +19,7 @@ type Params = {
   familyPersistence: FamilyPersistence;
   familyScrum: FamilyScrum;
   env: Environment;
+  weekTodosApi: WeekTodosApi;
   onDispose: (dispose: () => void) => void;
 };
 
@@ -26,6 +28,7 @@ export function Todos({
   onDispose,
   familyScrum,
   env,
+  weekTodosApi,
 }: Params): Todos {
   const todos = reactive<Todos>({
     familyScrum,
@@ -45,7 +48,7 @@ export function Todos({
   return reactive.readonly(todos);
 
   function createTodo(data: TodoDTO) {
-    return Todo({ data, familyPersistence, familyScrum });
+    return Todo({ data, familyPersistence, familyScrum, weekTodosApi });
   }
 
   function addTodo(description: string) {

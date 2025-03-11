@@ -5,6 +5,7 @@ import { FamilyScrum } from "./FamilyScrum";
 import {
   WeekTodoActivityDTO,
   WeekTodoDTO,
+  WeekTodosApi,
 } from "../environments/Browser/Persistence";
 
 export type WeekTodoAssignment = {
@@ -22,6 +23,7 @@ type Params = {
   todo: Todo;
   familyScrum: FamilyScrum;
   weekTodoData: WeekTodoDTO;
+  weekTodosApi: WeekTodosApi;
 };
 
 export function WeekTodo({
@@ -55,6 +57,4 @@ export function WeekTodo({
 
     return assignments;
   }
-
-  function toggleAssignment() {}
 }

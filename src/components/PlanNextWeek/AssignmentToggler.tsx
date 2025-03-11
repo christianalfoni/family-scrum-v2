@@ -9,8 +9,8 @@ type Props = {
 };
 
 export function AssignmentToggler({ todo, week, previousWeek, todos }: Props) {
-  const todoAssignments =
-    week.todos.find((weekTodo) => weekTodo.id === todo.id)?.assignments ?? [];
+  const weekTodo = week.todos.find((weekTodo) => weekTodo.id === todo.id);
+  const todoAssignments = weekTodo?.assignments ?? [];
   const previousTodoAssignments =
     previousWeek.todos.find((weekTodo) => weekTodo.id === todo.id)
       ?.assignments ?? [];
@@ -42,7 +42,7 @@ export function AssignmentToggler({ todo, week, previousWeek, todos }: Props) {
               type="button"
               disabled={todos.familyScrum.session.user.id !== familyMember.id}
               onClick={() => {
-                // setNextWeekTodoActivity(index, !isActive);
+                todo.setAssignment(index, !isActive);
               }}
               className={`${
                 isActive
