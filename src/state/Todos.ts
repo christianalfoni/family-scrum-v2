@@ -7,6 +7,7 @@ import {
 } from "../environments/Browser/Persistence";
 import { FamilyScrum } from "./FamilyScrum";
 import { Todo } from "./Todo";
+import { getNextWeekId } from "../utils";
 
 export type Todos = {
   familyScrum: FamilyScrum;
@@ -19,7 +20,6 @@ type Params = {
   familyPersistence: FamilyPersistence;
   familyScrum: FamilyScrum;
   env: Environment;
-  weekTodosApi: WeekTodosApi;
   onDispose: (dispose: () => void) => void;
 };
 
@@ -28,8 +28,10 @@ export function Todos({
   onDispose,
   familyScrum,
   env,
-  weekTodosApi,
 }: Params): Todos {
+  const nextWeekTodosApi = familyPersistence.createWeekTodosApi(
+    getNextWeekId()
+  );
   const todos = reactive<Todos>({
     familyScrum,
     todos: [],
@@ -48,7 +50,7 @@ export function Todos({
   return reactive.readonly(todos);
 
   function createTodo(data: TodoDTO) {
-    return Todo({ data, familyPersistence, familyScrum, weekTodosApi });
+    return Todo({ data, familyPersistence, familyScrum, nextWeekTodosApi });
   }
 
   function addTodo(description: string) {

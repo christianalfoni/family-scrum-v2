@@ -34,7 +34,10 @@ export function FamilyScrum({ familyScrum }: Props) {
             />
           }
         />
-        <Route path="dinners" element={<PlanNextWeekDinners />} />
+        <Route
+          path="dinners"
+          element={<PlanNextWeekDinners familyScrum={familyScrum} />}
+        />
       </Route>
     </Routes>
   );

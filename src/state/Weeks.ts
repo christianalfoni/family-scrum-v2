@@ -28,7 +28,6 @@ export type Weeks = {
 type Params = {
   familyPersistence: FamilyPersistence;
   familyScrum: FamilyScrum;
-  weekTodosApi: WeekTodosApi;
   onDispose: (dispose: () => void) => void;
 };
 
@@ -36,7 +35,6 @@ export function Weeks({
   familyScrum,
   familyPersistence,
   onDispose,
-  weekTodosApi,
 }: Params): Weeks {
   const previousWeekId = getPreviousWeekId();
   const currentWeekId = getCurrentWeekId();
@@ -57,6 +55,7 @@ export function Weeks({
   return reactive.readonly(weeks);
 
   function Week(weekId: string) {
+    const weekTodosApi = familyPersistence.createWeekTodosApi(weekId);
     const week = reactive<Week>({
       id: weekId,
       dinners: [],

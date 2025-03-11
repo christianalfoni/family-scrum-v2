@@ -11,24 +11,13 @@ import {
 import * as state from "../../state";
 import { addDays } from "date-fns";
 import { WeekdaySlideContent } from "./WeekDaySlideContent";
-
-function DinnerImage({ imageUrl }: { imageUrl: Promise<string> }) {
-  const src = use(imageUrl);
-
-  return <img className="h-16 w-16 rounded" src={src} alt="" />;
-}
+import { DinnerImage } from "../common/DinnerImage";
 
 function WeekdayDinner({ dinner }: { dinner: state.Dinner }) {
   return (
     <li key="DINNER">
       <div className="flex items-center space-x-3 h-20">
-        <div className="flex-shrink-0 h-16 w-16">
-          {dinner.imageUrl ? (
-            <Suspense>
-              <DinnerImage imageUrl={dinner.imageUrl} />
-            </Suspense>
-          ) : null}
-        </div>
+        <DinnerImage dinner={dinner} />
         <div className="min-w-0 flex-1">
           <p className="text-md font-medium text-gray-900">{dinner.name}</p>
           <p className="text-sm text-gray-500">{dinner.description}</p>

@@ -8,7 +8,7 @@ type Props = {
   previousWeek: state.Week;
 };
 
-export function AssignmentToggler({ todo, week, previousWeek, todos }: Props) {
+export function TodoAssignment({ todo, week, previousWeek, todos }: Props) {
   const weekTodo = week.todos.find((weekTodo) => weekTodo.id === todo.id);
   const todoAssignments = weekTodo?.assignments ?? [];
   const previousTodoAssignments =

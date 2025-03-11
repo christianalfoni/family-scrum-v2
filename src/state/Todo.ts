@@ -20,14 +20,14 @@ type Params = {
   data: TodoDTO;
   familyPersistence: FamilyPersistence;
   familyScrum: FamilyScrum;
-  weekTodosApi: WeekTodosApi;
+  nextWeekTodosApi: WeekTodosApi;
 };
 
 export function Todo({
   data,
   familyPersistence,
   familyScrum,
-  weekTodosApi,
+  nextWeekTodosApi,
 }: Params): Todo {
   const todo = reactive<Todo>({
     ...data,
@@ -67,7 +67,7 @@ export function Todo({
   function setAssignment(weekDayIndex: number, active: boolean) {
     const user = familyScrum.session.user;
 
-    weekTodosApi.upsert(todo.id, (data) => {
+    nextWeekTodosApi.upsert(todo.id, (data) => {
       const userActivity = data?.activityByUserId[user.id] ?? [
         false,
         false,

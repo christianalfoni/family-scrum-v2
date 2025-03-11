@@ -3,7 +3,7 @@ import * as state from "../../state";
 import { getDateFromWeekId, isWithinWeek } from "../../utils";
 import { differenceInDays } from "date-fns";
 import { Todo } from "../Todo";
-import { AssignmentToggler } from "./AssignmentToggler";
+import { TodoAssignment } from "./TodoAssignment";
 
 type Props = {
   todos: state.Todos;
@@ -14,9 +14,9 @@ export function PlanNextWeekTodos({ todos, weeks }: Props) {
   const categorisedTodos = computeCategorizedTodos();
   const renderTodo = (todo: state.Todo) => (
     <Todo todo={todo}>
-      <AssignmentToggler
+      <TodoAssignment
         todo={todo}
-        week={weeks.current}
+        week={weeks.next}
         todos={todos}
         previousWeek={weeks.previous}
       />
