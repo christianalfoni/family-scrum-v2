@@ -1,14 +1,12 @@
 import { Skeleton } from "../Dashboard/Skeleton";
 import { SignInModal } from "./SignInModal";
 import { FamilyScrum } from "../FamilyScrum";
-import * as state from "../../state";
 import React from "react";
+import { useSession } from "./useSession";
 
-type Props = {
-  session: state.Session;
-};
+function Session() {
+  const session = useSession();
 
-function Session({ session }: Props) {
   let content: React.ReactNode;
 
   if (session.state.current === "AUTHENTICATING") {
@@ -23,7 +21,14 @@ function Session({ session }: Props) {
       </>
     );
   } else {
-    content = <FamilyScrum familyScrum={session.state.familyScrum} />;
+    content = (
+      <FamilyScrumContext
+        user={session.state.user}
+        family={session.state.family}
+      >
+        <FamilyScrum />
+      </FamilyScrumContext>
+    );
   }
 
   return (

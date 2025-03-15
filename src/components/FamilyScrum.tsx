@@ -6,9 +6,11 @@ import { CheckLists } from "./CheckLists";
 import { PlanNextWeek } from "./PlanNextWeek";
 import { PlanNextWeekTodos } from "./PlanNextWeek/PlanNextWeekTodos";
 import { PlanNextWeekDinners } from "./PlanNextWeek/PlanNextWeekDinners";
+import { FamilyDTO, UserDTO } from "../environments/Browser/Persistence";
 
 type Props = {
-  familyScrum: state.FamilyScrum;
+  user: UserDTO;
+  family: FamilyDTO;
 };
 
 export function FamilyScrum({ familyScrum }: Props) {

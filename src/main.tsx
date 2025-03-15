@@ -8,12 +8,14 @@ import Session from "./components/Session";
 import * as state from "./state";
 import { BrowserEnvironment } from "./environments/Browser";
 import { BrowserRouter } from "react-router";
+import { EnvProvider } from "./environments";
 
 const env = BrowserEnvironment();
-const session = state.Session({ env });
 
 createRoot(document.getElementById("root")!).render(
-  <BrowserRouter>
-    <Session session={session} />
-  </BrowserRouter>
+  <EnvProvider env={env}>
+    <BrowserRouter>
+      <Session />
+    </BrowserRouter>
+  </EnvProvider>
 );
