@@ -16,7 +16,7 @@ export type FamilyStorage = {
 };
 
 export type Storage = {
-  createFamilyStorage(familyId: string): FamilyStorage;
+  getFamilyStorage(familyId: string): FamilyStorage;
 };
 
 export function Storage(app: FirebaseApp): Storage {
@@ -24,10 +24,10 @@ export function Storage(app: FirebaseApp): Storage {
   const imageUrlCache: Record<string, Promise<string>> = {};
 
   return {
-    createFamilyStorage,
+    getFamilyStorage,
   };
 
-  function createFamilyStorage(familyId: string): FamilyStorage {
+  function getFamilyStorage(familyId: string): FamilyStorage {
     return {
       getImageUrl(imageRef: string) {
         if (imageRef in imageUrlCache) {

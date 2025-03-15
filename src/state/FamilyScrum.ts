@@ -6,9 +6,6 @@ import { Dinners } from "./Dinners";
 import { Todos } from "./Todos";
 import { Weeks } from "./Weeks";
 import { Awake } from "../environments/Browser/Awake";
-import { FamilyUserDTO } from "../environments/Browser/Persistence";
-import { isThisWeek } from "date-fns";
-import { getCurrentWeekId, getNextWeekId, getWeekDayIndex } from "../utils";
 
 export type FamilyScrum = {
   session: SessionAuthenticated;
@@ -26,8 +23,8 @@ type Params = {
 };
 
 export function FamilyScrum({ env, session, onDispose }: Params): FamilyScrum {
-  const familyPersistence = env.persistence.createFamilyApi(session.family.id);
-  const familyStorage = env.storage.createFamilyStorage(session.family.id);
+  const familyPersistence = env.persistence.getFamilyApi(session.family.id);
+  const familyStorage = env.storage.getFamilyStorage(session.family.id);
 
   const familyScrum = reactive<FamilyScrum>({
     session,

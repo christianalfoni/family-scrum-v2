@@ -55,7 +55,7 @@ export function Weeks({
   return reactive.readonly(weeks);
 
   function Week(weekId: string) {
-    const weekTodosApi = familyPersistence.createWeekTodosApi(weekId);
+    const weekTodosApi = familyPersistence.getWeekTodosApi(weekId);
     const week = reactive<Week>({
       id: weekId,
       dinners: [],

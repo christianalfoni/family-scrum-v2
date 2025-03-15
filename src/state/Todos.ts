@@ -29,9 +29,7 @@ export function Todos({
   familyScrum,
   env,
 }: Params): Todos {
-  const nextWeekTodosApi = familyPersistence.createWeekTodosApi(
-    getNextWeekId()
-  );
+  const nextWeekTodosApi = familyPersistence.getWeekTodosApi(getNextWeekId());
   const todos = reactive<Todos>({
     familyScrum,
     todos: [],

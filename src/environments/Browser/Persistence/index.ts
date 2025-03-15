@@ -38,8 +38,8 @@ export enum Collection {
 }
 
 export type Persistence = ReturnType<typeof Persistence>;
-export type FamilyPersistence = ReturnType<Persistence["createFamilyApi"]>;
-export type WeekTodosApi = ReturnType<FamilyPersistence["createWeekTodosApi"]>;
+export type FamilyPersistence = ReturnType<Persistence["getFamilyApi"]>;
+export type WeekTodosApi = ReturnType<FamilyPersistence["getWeekTodosApi"]>;
 
 /**
  * Creates an API specific to the collections and related functionality needed for this app,
@@ -81,7 +81,7 @@ export function Persistence(app: FirebaseApp) {
 
       return getDownloadURL(storageRef);
     },
-    createFamilyApi(familyId: string) {
+    getFamilyApi(familyId: string) {
       const familyDocRef = doc(firestore, Collection.FAMILY_DATA, familyId);
       const groceriesCollection = collection(
         familyDocRef,
@@ -112,7 +112,7 @@ export function Persistence(app: FirebaseApp) {
         dinners: createCollectionApi(dinnersCollection),
         todos: createCollectionApi(todosCollection),
         weeks: createCollectionApi(weeksCollection),
-        createWeekTodosApi(weekId: string) {
+        getWeekTodosApi(weekId: string) {
           const todosCollection = getWeekTodosCollection(weekId);
 
           return createCollectionApi(todosCollection);
