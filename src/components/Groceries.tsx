@@ -6,16 +6,14 @@ import {
 } from "@heroicons/react/24/solid";
 import { LightBulbIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router";
-import * as state from "../state";
 import { useState } from "react";
+import { useFamilyScrum } from "./FamilyScrum/useFamilyScrum";
 
-type Props = {
-  groceries: state.Groceries;
-};
-
-export function Groceries({ groceries }: Props) {
+export function Groceries() {
+  const familyScrum = useFamilyScrum();
+  const groceries = familyScrum.groceries;
   const navigate = useNavigate();
-  const awake = groceries.familyScrum.awake;
+  const awake = familyScrum.awake;
   const [groceryInput, setGroceryInput] = useState("");
   const filteredGroceries = groceries.filter(groceryInput);
 
@@ -37,7 +35,7 @@ export function Groceries({ groceries }: Props) {
             onClick={() => awake.toggle()}
             className="relative mx-auto inline-flex items-center justify-center border border-transparent text-sm font-medium rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
           >
-            {awake.current === "ON" ? (
+            {awake.mode === "on" ? (
               <SolidLightBulbIcon className="w-6 h-6 text-yellow-500" />
             ) : (
               <LightBulbIcon className="w-6 h-6" />
@@ -92,7 +90,7 @@ export function Groceries({ groceries }: Props) {
           return (
             <li
               key={grocery.id}
-              onClick={() => grocery.shop()}
+              onClick={() => groceries.shopGrocery(grocery.id)}
               className="relative pl-4 pr-6 py-5 hover:bg-gray-50 sm:py-6 sm:pl-6 lg:pl-8 xl:pl-6"
             >
               <div className="flex items-center">

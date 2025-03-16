@@ -1,5 +1,3 @@
-import { reactive } from "bonsify";
-
 export type NOT_STARTED = {
   current: "NOT_STARTED";
   start(elementId: string): void;
@@ -102,9 +100,9 @@ export function Camera() {
     camera.state = CAPTURED(this.stream, src);
   }
 
-  const camera = reactive<CameraApi>({
+  const camera: CameraApi = {
     state: NOT_STARTED(),
-  });
+  };
 
   return camera;
 }

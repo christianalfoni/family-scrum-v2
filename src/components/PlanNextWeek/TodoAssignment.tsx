@@ -1,21 +1,22 @@
+import { TodoDTO } from "../../environments/Browser/Persistence";
 import { weekdays } from "../../utils";
-import * as state from "../../state";
+import { useFamilyScrum } from "../FamilyScrum/useFamilyScrum";
 
 type Props = {
-  todo: state.Todo;
-  todos: state.Todos;
-  week: state.Week;
-  previousWeek: state.Week;
+  todo: TodoDTO;
 };
 
-export function TodoAssignment({ todo, week, previousWeek, todos }: Props) {
-  const weekTodo = week.todos.find((weekTodo) => weekTodo.id === todo.id);
+export function TodoAssignment({ todo }: Props) {
+  const familyScrum = useFamilyScrum();
+  const weekTodo = familyScrum.weeks.current.todos.find(
+    (weekTodo) => weekTodo.id === todo.id
+  );
   const todoAssignments = weekTodo?.assignments ?? [];
   const previousTodoAssignments =
-    previousWeek.todos.find((weekTodo) => weekTodo.id === todo.id)
+    familyScrum.weeks.previous.todos.find((weekTodo) => weekTodo.id === todo.id)
       ?.assignments ?? [];
 
-  return todos.familyScrum.session.family.members.map((familyMember) => {
+  return session.family.members.map((familyMember) => {
     const weekActivity = todoAssignments.find(
       (assignment) => assignment.familyMember.id === familyMember.id
     )?.activity ?? [false, false, false, false, false, false, false];

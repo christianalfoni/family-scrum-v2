@@ -22,12 +22,7 @@ function Session() {
     );
   } else {
     content = (
-      <FamilyScrumContext
-        user={session.state.user}
-        family={session.state.family}
-      >
-        <FamilyScrum />
-      </FamilyScrumContext>
+      <FamilyScrum user={session.state.user} family={session.state.family} />
     );
   }
 

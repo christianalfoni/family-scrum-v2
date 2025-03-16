@@ -1,6 +1,5 @@
-import { reactive } from "bonsify";
 import { useEnv } from "../../environments";
-import { useReactiveEffect } from "use-reactive-react";
+import { useReactive, useReactiveEffect } from "use-reactive-react";
 import { DinnerDTO } from "../../environments/Browser/Persistence";
 import { useRef } from "react";
 
@@ -25,7 +24,7 @@ export function useDinners(familyId: string) {
   const familyPersistence = env.persistence.getFamilyApi(familyId);
   const familyStorage = env.storage.getFamilyStorage(familyId);
   const imageUrlCache = useRef<Record<string, Promise<string>>>({});
-  const dinners = reactive<Dinners>({
+  const dinners = useReactive<Dinners>({
     dinners: [],
     addDinner,
     setImage,
@@ -38,7 +37,7 @@ export function useDinners(familyId: string) {
     })
   );
 
-  return reactive.readonly(dinners);
+  return useReactive.readonly(dinners);
 
   async function addDinner(newDinner: NewDinner) {
     const id = familyPersistence.dinners.createId();

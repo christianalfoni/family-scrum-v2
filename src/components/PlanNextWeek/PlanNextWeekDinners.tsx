@@ -1,12 +1,9 @@
 import { weekdays } from "../../utils";
-import * as state from "../../state";
+import { useFamilyScrum } from "../FamilyScrum/useFamilyScrum";
 import { DinnerAssignment } from "./DinnerAssignment";
 
-type Props = {
-  familyScrum: state.FamilyScrum;
-};
-
-export function PlanNextWeekDinners({ familyScrum }: Props) {
+export function PlanNextWeekDinners() {
+  const familyScrum = useFamilyScrum();
   const dinners = familyScrum.dinners.dinners;
   const weekDinners = familyScrum.weeks.next.dinners;
 
@@ -21,9 +18,7 @@ export function PlanNextWeekDinners({ familyScrum }: Props) {
           }}
           weekday={weekday}
           dinners={dinners}
-          activeDinner={
-            weekDinners.find((dinner) => dinner.weekDay === index)?.id ?? null
-          }
+          activeDinner={weekDinners[index]}
         />
       ))}
     </ul>

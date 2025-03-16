@@ -1,7 +1,6 @@
-import { reactive } from "bonsify";
 import levenshtein from "fast-levenshtein";
 import { useEnv } from "../../environments";
-import { useReactiveEffect } from "use-reactive-react";
+import { useReactive, useReactiveEffect } from "use-reactive-react";
 import { GroceryDTO } from "../../environments/Browser/Persistence";
 
 export type Groceries = {
@@ -15,7 +14,7 @@ export function useGroceries(familyId: string) {
   const env = useEnv();
   const familyPersistence = env.persistence.getFamilyApi(familyId);
   const groceriesApi = familyPersistence.groceries;
-  const groceries = reactive<Groceries>({
+  const groceries = useReactive<Groceries>({
     groceries: [],
     addGrocery,
     shopGrocery,
@@ -28,7 +27,7 @@ export function useGroceries(familyId: string) {
     })
   );
 
-  return reactive.readonly(groceries);
+  return useReactive.readonly(groceries);
 
   async function shopGrocery(id: string) {
     await familyPersistence.groceries.delete(id);

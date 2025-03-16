@@ -1,7 +1,10 @@
-import { reactive } from "bonsify";
 import { useEnv } from "../../environments";
 import { getNextWeekId } from "../../utils";
-import { useReactiveEffect } from "use-reactive-react";
+import {
+  useReactive,
+  useReactiveEffect,
+  useReactiveMemo,
+} from "use-reactive-react";
 import {
   TodoDTO,
   WeekTodoActivityDTO,
@@ -25,10 +28,10 @@ export function useTodos({ familyId, userId }: Params): Todos {
   const env = useEnv();
   const familyPersistence = env.persistence.getFamilyApi(familyId);
   const nextWeekTodosApi = familyPersistence.getWeekTodosApi(getNextWeekId());
-  const todos = reactive<Todos>({
+  const todos = useReactive<Todos>({
     todos: [],
     get todosWithCheckList(): TodoDTO[] {
-      return todos.todos.filter((todo) => Boolean(todo.checkList?.length));
+      return todosWithCheckListMemo.current;
     },
     add,
     archive,
@@ -36,13 +39,17 @@ export function useTodos({ familyId, userId }: Params): Todos {
     setAssignment,
   });
 
+  const todosWithCheckListMemo = useReactiveMemo(() =>
+    todos.todos.filter((todo) => Boolean(todo.checkList?.length))
+  );
+
   useReactiveEffect(() =>
     familyPersistence.todos.subscribeAll((data) => {
       todos.todos = data;
     })
   );
 
-  return reactive.readonly(todos);
+  return useReactive.readonly(todos);
 
   function add(description: string) {
     familyPersistence.todos.set({

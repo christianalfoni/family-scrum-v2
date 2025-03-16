@@ -1,13 +1,10 @@
 import { ChevronLeftIcon } from "@heroicons/react/24/solid";
-import * as state from "../state";
 import { useNavigate } from "react-router";
 import { Todo } from "./Todo";
+import { useFamilyScrum } from "./FamilyScrum/useFamilyScrum";
 
-type Props = {
-  todos: state.Todos;
-};
-
-export function CheckLists({ todos }: Props) {
+export function CheckLists() {
+  const familyScrum = useFamilyScrum();
   const navigate = useNavigate();
 
   return (
@@ -27,7 +24,7 @@ export function CheckLists({ todos }: Props) {
         </div>
       </div>
       <ul className="relative z-0 divide-y divide-gray-200 border-b border-gray-200 overflow-y-scroll">
-        {todos.todosWithCheckList.map((todo) => (
+        {familyScrum.todos.todosWithCheckList.map((todo) => (
           <Todo key={todo.id} todo={todo} />
         ))}
       </ul>

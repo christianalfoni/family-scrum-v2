@@ -1,69 +1,63 @@
 import { CalendarIcon, CheckCircleIcon } from "@heroicons/react/24/solid";
-import * as state from "../../state";
 import { getDateFromWeekId, isWithinWeek } from "../../utils";
 import { differenceInDays } from "date-fns";
 import { Todo } from "../Todo";
 import { TodoAssignment } from "./TodoAssignment";
+import { useFamilyScrum } from "../FamilyScrum/useFamilyScrum";
+import { TodoDTO } from "../../environments/Browser/Persistence";
+import { useReactiveMemo } from "use-reactive-react";
 
-type Props = {
-  todos: state.Todos;
-  weeks: state.Weeks;
-};
+export function PlanNextWeekTodos() {
+  const familyScrum = useFamilyScrum();
+  const categorisedTodosMemo = useReactiveMemo(deriveCategorizedTodos);
 
-export function PlanNextWeekTodos({ todos, weeks }: Props) {
-  const categorisedTodos = computeCategorizedTodos();
-  const renderTodo = (todo: state.Todo) => (
+  const renderTodo = (todo: TodoDTO) => (
     <Todo todo={todo}>
-      <TodoAssignment
-        todo={todo}
-        week={weeks.next}
-        todos={todos}
-        previousWeek={weeks.previous}
-      />
+      <TodoAssignment todo={todo} />
     </Todo>
   );
 
   return (
     <ul className="relative z-0 divide-y divide-gray-200 border-b border-gray-200 overflow-y-scroll">
-      {categorisedTodos.previousWeek.length ? (
+      {categorisedTodosMemo.current.previousWeek.length ? (
         <>
           <li className="p-2 bg-green-500 text-white font-bold text-sm flex items-center">
             <CheckCircleIcon className="w-4 h-4 mr-2" /> Previous Week
           </li>
-          {categorisedTodos.previousWeek.map(renderTodo)}
+          {categorisedTodosMemo.current.previousWeek.map(renderTodo)}
         </>
       ) : null}
-      {categorisedTodos.eventsThisWeek.length ? (
+      {categorisedTodosMemo.current.eventsThisWeek.length ? (
         <>
           <li className="p-2 bg-red-500 text-white font-bold text-sm flex items-center">
             <CalendarIcon className="w-4 h-4 mr-2" /> Events This Week
           </li>
-          {categorisedTodos.eventsThisWeek.map(renderTodo)}
+          {categorisedTodosMemo.current.eventsThisWeek.map(renderTodo)}
         </>
       ) : null}
-      {categorisedTodos.thisWeek.length ? (
+      {categorisedTodosMemo.current.thisWeek.length ? (
         <>
           <li className="p-2 bg-yellow-500 text-white font-bold text-sm flex items-center">
             <CheckCircleIcon className="w-4 h-4 mr-2" /> This Week
           </li>
-          {categorisedTodos.thisWeek.map(renderTodo)}
+          {categorisedTodosMemo.current.thisWeek.map(renderTodo)}
         </>
       ) : null}
-      {categorisedTodos.laterEvents.length ? (
+      {categorisedTodosMemo.current.laterEvents.length ? (
         <>
           <li className="p-2 bg-blue-500 text-white font-bold text-sm flex items-center">
             <CalendarIcon className="w-4 h-4 mr-2" /> Later Events
           </li>
-          {categorisedTodos.laterEvents.map(renderTodo)}
+          {categorisedTodosMemo.current.laterEvents.map(renderTodo)}
         </>
       ) : null}
     </ul>
   );
 
-  function computeCategorizedTodos() {
-    const todosInPreviousWeek = weeks.previous.todos;
-    const currentWeekDate = getDateFromWeekId(weeks.current.id);
-    const result = todos.todos.reduce(
+  function deriveCategorizedTodos() {
+    const todosInPreviousWeek = familyScrum.weeks.previous.todos;
+    const currentWeekDate = getDateFromWeekId(familyScrum.weeks.current.id);
+    const result = familyScrum.todos.todos.reduce(
       (aggr, todo) => {
         if (
           todosInPreviousWeek.find(
@@ -95,10 +89,10 @@ export function PlanNextWeekTodos({ todos, weeks }: Props) {
         return aggr;
       },
       {
-        previousWeek: [] as state.Todo[],
-        eventsThisWeek: [] as state.Todo[],
-        laterEvents: [] as state.Todo[],
-        thisWeek: [] as state.Todo[],
+        previousWeek: [] as TodoDTO[],
+        eventsThisWeek: [] as TodoDTO[],
+        laterEvents: [] as TodoDTO[],
+        thisWeek: [] as TodoDTO[],
       }
     );
 
