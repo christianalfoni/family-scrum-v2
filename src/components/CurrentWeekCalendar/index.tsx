@@ -7,11 +7,14 @@ import {
   getFirstDateOfCurrentWeek,
   weekdays,
   upperCaseFirstLetter,
+  isWithinWeek,
 } from "../../utils";
-import * as state from "../../state";
 import { addDays } from "date-fns";
 import { WeekdaySlideContent } from "./WeekDaySlideContent";
 import { DinnerImage } from "../common/DinnerImage";
+import { useFamilyScrum } from "../FamilyScrum/useFamilyScrum";
+import { useReactiveMemo } from "use-reactive-react";
+import { DinnerDTO, TodoDTO } from "../../environments/Browser/Persistence";
 
 function WeekdayDinner({ dinner }: { dinner: state.Dinner }) {
   return (
@@ -27,16 +30,71 @@ function WeekdayDinner({ dinner }: { dinner: state.Dinner }) {
   );
 }
 
-type Props = {
-  familyScrum: state.FamilyScrum;
-};
-
-export function CurrentWeekCalendar({ familyScrum }: Props) {
+export function CurrentWeekCalendar() {
+  const familyScrum = useFamilyScrum();
   const currentDayIndex = getWeekDayIndex();
   const currentWeekDate = getFirstDateOfCurrentWeek();
   const [slideIndex, setSlideIndex] = useState(currentDayIndex);
   const [controlledSwiper, setControlledSwiper] = useState<any>(null);
-  const weekDays = Array(7).fill(null);
+  const weekDinners = useReactiveMemo(() =>
+    familyScrum.weeks.current.dinners.map(
+      (dinnerId) =>
+        familyScrum.dinners.dinners.find((dinner) => dinner.id === dinnerId) ||
+        null
+    )
+  );
+  const weekEvents = useReactiveMemo(() => {
+    const weekDays: TodoDTO[][] = Array(7).fill([]);
+    const now = new Date();
+
+    familyScrum.todos.todos.forEach((todo) => {
+      if (todo.date && isWithinWeek(todo.date.toDate(), now)) {
+        const weekDayIndex = getWeekDayIndex(todo.date.toDate());
+        weekDays[weekDayIndex].push(todo);
+      }
+    });
+
+    return weekDays;
+  });
+  const weekTodos = useReactiveMemo(() => {
+    const weekDays: TodoDTO[][] = Array(7).fill([]);
+
+    familyScrum.weeks.current.todos.forEach((weekTodo) => {
+      const todo = familyScrum.todos.todos.find(
+        (todo) => todo.id === weekTodo.id
+      );
+
+      if (!todo) {
+        return;
+      }
+
+      const assignmentsByWeekDay = Array(7).fill([]);
+
+      for (const userId in weekTodo.activityByUserId) {
+        const familyMember = familyScrum.family.users[userId];
+        const userAssignments = weekTodo.activityByUserId[userId];
+
+        for (let weekDayIndex = 0; weekDayIndex < 7; weekDayIndex++) {
+          const assignment = userAssignments[weekDayIndex];
+
+          if (assignment) {
+            assignmentsByWeekDay[weekDayIndex].push(familyMember);
+          }
+        }
+      }
+
+      assignmentsByWeekDay.forEach((assignments, weekDayIndex) => {
+        if (assignments.length) {
+          weekDays[weekDayIndex].push({
+            todo,
+            assignments,
+          });
+        }
+      });
+    });
+
+    return weekDays;
+  });
 
   return (
     <>

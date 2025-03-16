@@ -6,22 +6,14 @@ import {
 } from "@heroicons/react/24/solid";
 import { Drawer, DrawerContent, DrawerTrigger } from "../common/Drawer";
 import { MenuCard } from "./MenuCard";
-import * as state from "../../state";
 import { CurrentWeekCalendar } from "../CurrentWeekCalendar";
+import { useFamilyScrum } from "../FamilyScrum/useFamilyScrum";
 
 // import { CurrentWeekTodosContext } from "./CurrentWeekTodosContext";
 // import { AssistantContext } from "./AssistantContext";
 
-type Props = {
-  familyScrum: state.FamilyScrum;
-};
-
-export function Dashboard({ familyScrum }: Props) {
-  console.log(
-    "WTF",
-    familyScrum.groceries.groceries.length,
-    familyScrum.groceries.groceries
-  );
+export function Dashboard() {
+  const familyScrum = useFamilyScrum();
   return (
     <>
       <ul className="flex flex-col px-6 mb-2 mt-6">
@@ -47,7 +39,7 @@ export function Dashboard({ familyScrum }: Props) {
       </ul>
 
       <div className="h-2/4">
-        <CurrentWeekCalendar familyScrum={familyScrum} />
+        <CurrentWeekCalendar />
       </div>
 
       <button
