@@ -1,4 +1,4 @@
-import { createContext, useContext } from "react";
+import { createContext, useContext, useMemo } from "react";
 import {
   DinnerDTO,
   FamilyDTO,
@@ -13,7 +13,6 @@ import { Dinners, useDinners } from "./useDinners";
 import { Weeks, useWeeks } from "./useWeeks";
 import { Awake, useAwake } from "./useAwake";
 import { getWeekDayIndex, isWithinWeek } from "../../utils";
-import { useReactiveMemo } from "use-reactive-react";
 
 export type FamilyScrum = {
   user: UserDTO;
@@ -45,8 +44,14 @@ export function FamilyScrumProvider({ user, family, children }: Props) {
   const dinners = useDinners(family.id);
   const weeks = useWeeks(family.id);
   const awake = useAwake();
-  const weekDinnersMemo = useReactiveMemo(deriveWeekDinners);
-  const weekTodosMemo = useReactiveMemo(deriveWeekTodos);
+  const weekDinners = useMemo(deriveWeekDinners, [
+    weeks.current.value,
+    dinners.dinners.value,
+  ]);
+  const weekTodos = useMemo(deriveWeekTodos, [
+    todos.todos.value,
+    weeks.current.value,
+  ]);
 
   return (
     <FamilyScrumContext.Provider
@@ -58,12 +63,8 @@ export function FamilyScrumProvider({ user, family, children }: Props) {
         todos,
         weeks,
         awake,
-        get weekDinners() {
-          return weekDinnersMemo.current;
-        },
-        get weekTodos() {
-          return weekTodosMemo.current;
-        },
+        weekDinners,
+        weekTodos,
       }}
     >
       {children}
@@ -71,9 +72,9 @@ export function FamilyScrumProvider({ user, family, children }: Props) {
   );
 
   function deriveWeekDinners() {
-    return weeks.current.dinners.map(
+    return weeks.current.value.dinners.map(
       (dinnerId) =>
-        dinners.dinners.find((dinner) => dinner.id === dinnerId) || null
+        dinners.dinners.value.find((dinner) => dinner.id === dinnerId) || null
     );
   }
 
@@ -82,8 +83,8 @@ export function FamilyScrumProvider({ user, family, children }: Props) {
       Array(7).fill([]);
     const now = new Date();
 
-    todos.todos.forEach((todo) => {
-      const weekTodo = weeks.current.todos.find(
+    todos.todos.value.forEach((todo) => {
+      const weekTodo = weeks.current.value.todos.find(
         (weekTodo) => weekTodo.id === todo.id
       );
 

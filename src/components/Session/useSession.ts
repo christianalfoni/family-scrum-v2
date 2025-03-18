@@ -1,7 +1,8 @@
 import { User as FirebaseUser } from "firebase/auth";
 import { FamilyDTO, UserDTO } from "../../environments/Browser/Persistence";
 import { useEnv } from "../../environments";
-import { useReactive, useReactiveEffect } from "use-reactive-react";
+import { useSignal } from "use-react-signal";
+import { useEffect } from "react";
 
 type CachedAuthentication = { user: UserDTO; family: FamilyDTO };
 
@@ -21,9 +22,10 @@ export type SessionUnauthenticated = {
   signIn(): void;
 };
 
-export type Session = {
-  state: SessionAuthenticated | SessionAuthenticating | SessionUnauthenticated;
-};
+export type Session =
+  | SessionAuthenticated
+  | SessionAuthenticating
+  | SessionUnauthenticated;
 
 const AUTHENTICATION_CACHE_KEY = "family_scrum_authentication";
 
@@ -37,15 +39,15 @@ export function useSession() {
     localStorage.getItem(AUTHENTICATION_CACHE_KEY) || "null"
   );
 
-  const session = useReactive<Session>({
-    state: cachedAuthentication
+  const [session, setSession] = useSignal<Session>(
+    cachedAuthentication
       ? AUTHENTICATED(cachedAuthentication.user, cachedAuthentication.family)
-      : AUTHENTICATING(),
-  });
+      : AUTHENTICATING()
+  );
 
-  useReactiveEffect(() => authentication.onChanged(onAuthChanged));
+  useEffect(() => authentication.onChanged(onAuthChanged), []);
 
-  return useReactive.readonly(session);
+  return session;
 
   function UNAUTHENTICATED(reason?: string): SessionUnauthenticated {
     return {
@@ -76,7 +78,7 @@ export function useSession() {
 
   async function onAuthChanged(maybeUser: FirebaseUser | null) {
     if (!maybeUser) {
-      session.state = UNAUTHENTICATED();
+      setSession(UNAUTHENTICATED());
 
       return;
     }
@@ -97,23 +99,23 @@ export function useSession() {
       }
 
       if (
-        session.state.current === "AUTHENTICATED" &&
-        session.state.user.id === user.id &&
-        session.state.user.familyId === user.familyId
+        session.value.current === "AUTHENTICATED" &&
+        session.value.user.id === user.id &&
+        session.value.family.id === family.id
       ) {
         return;
       }
 
       // Theoretically we could already be unauthenticated by Firebase for whatever reason. Something
       // like RxJS would be interesting to explore here.
-      session.state = AUTHENTICATED(user, family);
+      setSession(AUTHENTICATED(user, family));
 
       localStorage.setItem(
         AUTHENTICATION_CACHE_KEY,
         JSON.stringify({ user, family })
       );
     } catch (e) {
-      session.state = UNAUTHENTICATED(String(e));
+      setSession(UNAUTHENTICATED(String(e)));
     }
   }
 }

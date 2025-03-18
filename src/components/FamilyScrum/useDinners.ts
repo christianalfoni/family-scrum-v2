@@ -1,7 +1,7 @@
+import { useSignal } from "use-react-signal";
 import { useEnv } from "../../environments";
-import { useReactive, useReactiveEffect } from "use-reactive-react";
 import { DinnerDTO } from "../../environments/Browser/Persistence";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 
 export type NewDinner = {
   name: string;
@@ -12,32 +12,23 @@ export type NewDinner = {
   imageSrc?: string;
 };
 
-export type Dinners = {
-  dinners: DinnerDTO[];
-  addDinner(newDinner: NewDinner): void;
-  setImage(dinnerId: string, imageSrc: string): Promise<void>;
-  getImageUrl(imageRef: string): Promise<string>;
-};
+export type Dinners = ReturnType<typeof useDinners>;
 
 export function useDinners(familyId: string) {
   const env = useEnv();
   const familyPersistence = env.persistence.getFamilyApi(familyId);
   const familyStorage = env.storage.getFamilyStorage(familyId);
   const imageUrlCache = useRef<Record<string, Promise<string>>>({});
-  const dinners = useReactive<Dinners>({
-    dinners: [],
+  const [dinners, setDinners] = useSignal<DinnerDTO[]>([]);
+
+  useEffect(() => familyPersistence.dinners.subscribeAll(setDinners), []);
+
+  return {
+    dinners,
     addDinner,
     setImage,
     getImageUrl,
-  });
-
-  useReactiveEffect(() =>
-    familyPersistence.dinners.subscribeAll((data) => {
-      dinners.dinners = data;
-    })
-  );
-
-  return useReactive.readonly(dinners);
+  };
 
   async function addDinner(newDinner: NewDinner) {
     const id = familyPersistence.dinners.createId();

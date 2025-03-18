@@ -1542,7 +1542,7 @@ aria-hidden@^1.2.4:
   dependencies:
     tslib "^2.0.0"
 
-babel-plugin-observing-components@^0.1.0:
+babel-plugin-observing-components@^0.1.0, babel-plugin-observing-components@^0.1.8:
   version "0.1.8"
   resolved "https://registry.yarnpkg.com/babel-plugin-observing-components/-/babel-plugin-observing-components-0.1.8.tgz#93f4becea016b6ded50d74ee78212ea79e8ec357"
   integrity sha512-KAigDsYGSsskenNw8LOGSkWveKfEYQFkPC7csie527CurWpU/SCzcKN36dRIDCALmmOTjLxYHTsCMHHCOh0J6Q==
@@ -2570,7 +2570,7 @@ supports-color@^7.1.0:
   dependencies:
     has-flag "^4.0.0"
 
-swc-plugin-observing-components@^0.1.0:
+swc-plugin-observing-components@^0.1.0, swc-plugin-observing-components@^0.1.5:
   version "0.1.5"
   resolved "https://registry.yarnpkg.com/swc-plugin-observing-components/-/swc-plugin-observing-components-0.1.5.tgz#c51f7d1d48e7bc237ef4916af43976a3b7763c99"
   integrity sha512-U9U0HF23Drar9Dv5qvqF5TVtv0SyUCudn4eImqLrl0P8nbGq/IpfoU3JCv895cgXuhLUW5Byw/Y2vpwioSKXSQ==
@@ -2669,6 +2669,14 @@ use-callback-ref@^1.3.3:
   integrity sha512-jQL3lRnocaFtu3V00JToYz/4QkNWswxijDaCVNZRiRTO3HQDLsdu1ZtmIUvV4yPp+rvWm5j0y0TG/S61cuijTg==
   dependencies:
     tslib "^2.0.0"
+
+use-react-signal@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/use-react-signal/-/use-react-signal-1.0.0.tgz#3414260741d46fca9470a67ec414321b37b10d1f"
+  integrity sha512-+I8qe7aqPODJkNkcz/89EDUUxqKXpMZerJMWEji7XuBgRStdBP6QRuvSVYDpCjp53MtdQaLxm2p+WHhTJTJWlg==
+  dependencies:
+    babel-plugin-observing-components "^0.1.8"
+    swc-plugin-observing-components "^0.1.5"
 
 use-sidecar@^1.1.3:
   version "1.1.3"

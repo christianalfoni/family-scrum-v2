@@ -1,25 +1,24 @@
-import { useReactive } from "use-reactive-react";
 import { useEnv } from "../../environments";
+import { useSignal } from "use-react-signal";
 
-export type Awake = {
-  mode: "off" | "on";
-  toggle(): void;
-};
+export type Awake = ReturnType<typeof useAwake>;
 
 export function useAwake() {
   const env = useEnv();
-  const awake = useReactive<Awake>({
-    mode: "off",
-    toggle() {
-      if (awake.mode === "off") {
-        env.awake.on();
-        awake.mode = "on";
-      } else {
-        env.awake.off();
-        awake.mode = "off";
-      }
-    },
-  });
+  const [mode, setMode] = useSignal<"on" | "off">("off");
 
-  return useReactive.readonly(awake);
+  return {
+    mode,
+    toggle,
+  };
+
+  function toggle() {
+    if (mode.value === "off") {
+      env.awake.on();
+      setMode("on");
+    } else {
+      env.awake.off();
+      setMode("off");
+    }
+  }
 }

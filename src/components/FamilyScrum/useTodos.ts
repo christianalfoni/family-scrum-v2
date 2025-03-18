@@ -1,55 +1,39 @@
 import { useEnv } from "../../environments";
 import { getNextWeekId } from "../../utils";
 import {
-  useReactive,
-  useReactiveEffect,
-  useReactiveMemo,
-} from "use-reactive-react";
-import {
   TodoDTO,
   WeekTodoActivityDTO,
 } from "../../environments/Browser/Persistence";
+import { useSignal } from "use-react-signal";
+import { useEffect, useMemo } from "react";
 
-export type Todos = {
-  todos: TodoDTO[];
-  todosWithCheckList: TodoDTO[];
-  add(description: string): void;
-  archive(id: string): void;
-  addCheckListItem(id: string, description: string): void;
-  setAssignment(id: string, weekDayIndex: number, active: boolean): void;
-};
+export type Todos = ReturnType<typeof useTodos>;
 
 type Params = {
   familyId: string;
   userId: string;
 };
 
-export function useTodos({ familyId, userId }: Params): Todos {
+export function useTodos({ familyId, userId }: Params) {
   const env = useEnv();
   const familyPersistence = env.persistence.getFamilyApi(familyId);
   const nextWeekTodosApi = familyPersistence.getWeekTodosApi(getNextWeekId());
-  const todos = useReactive<Todos>({
-    todos: [],
-    get todosWithCheckList(): TodoDTO[] {
-      return todosWithCheckListMemo.current;
-    },
+  const [todos, setTodos] = useSignal<TodoDTO[]>([]);
+  const todosWithCheckList = useMemo(
+    () => todos.value.filter((todo) => Boolean(todo.checkList?.length)),
+    [todos.value]
+  );
+
+  useEffect(() => familyPersistence.todos.subscribeAll(setTodos), []);
+
+  return {
+    todos,
+    todosWithCheckList,
     add,
     archive,
     addCheckListItem,
     setAssignment,
-  });
-
-  const todosWithCheckListMemo = useReactiveMemo(() =>
-    todos.todos.filter((todo) => Boolean(todo.checkList?.length))
-  );
-
-  useReactiveEffect(() =>
-    familyPersistence.todos.subscribeAll((data) => {
-      todos.todos = data;
-    })
-  );
-
-  return useReactive.readonly(todos);
+  };
 
   function add(description: string) {
     familyPersistence.todos.set({
