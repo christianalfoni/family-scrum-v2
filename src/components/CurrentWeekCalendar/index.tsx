@@ -1,5 +1,5 @@
 import { CalendarIcon } from "@heroicons/react/24/solid";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Controller } from "swiper/modules";
 import {
@@ -7,12 +7,18 @@ import {
   getFirstDateOfCurrentWeek,
   weekdays,
   upperCaseFirstLetter,
+  isWithinWeek,
 } from "../../utils";
 import { addDays } from "date-fns";
 import { WeekdaySlideContent } from "./WeekDaySlideContent";
 import { DinnerImage } from "../common/DinnerImage";
 import { useFamilyScrum } from "../FamilyScrum/useFamilyScrum";
-import { DinnerDTO } from "../../environments/Browser/Persistence";
+import {
+  DinnerDTO,
+  FamilyUserDTO,
+  TodoDTO,
+  WeekTodoDTO,
+} from "../../environments/Browser/Persistence";
 
 function WeekdayDinner({ dinner }: { dinner: DinnerDTO }) {
   return (
@@ -35,6 +41,18 @@ export function CurrentWeekCalendar() {
   const [slideIndex, setSlideIndex] = useState(currentDayIndex);
   const [controlledSwiper, setControlledSwiper] = useState<any>(null);
   const weekDays = Array(7).fill(null);
+  const weeks = familyScrum.weeks;
+  const dinners = familyScrum.dinners;
+  const todos = familyScrum.todos;
+  const weekDinners = useMemo(deriveWeekDinners, [
+    weeks.current.value,
+    dinners.dinners.value,
+  ]);
+  const weekTodos = useMemo(deriveWeekTodos, [
+    todos.todos.value,
+    weeks.current.value,
+    familyScrum.family.users,
+  ]);
 
   return (
     <>
@@ -48,12 +66,12 @@ export function CurrentWeekCalendar() {
         initialSlide={slideIndex}
       >
         {weekDays.map((_, index) => {
-          const weekDinner = familyScrum.weekDinners[index];
-          const weekEvents = familyScrum.weekTodos[index].filter(
+          const weekDinner = weekDinners[index];
+          const weekEvents = weekTodos[index].filter(
             ({ todo, assignments }) => todo.date && !assignments.length
           );
-          const weekTodos = familyScrum.weekTodos[index].filter(
-            ({ assignments }) => Boolean(assignments.length)
+          const weekdayTodos = weekTodos[index].filter(({ assignments }) =>
+            Boolean(assignments.length)
           );
 
           return (
@@ -90,7 +108,7 @@ export function CurrentWeekCalendar() {
                         </li>
                       );
                     })}
-                    {weekTodos.map((weekTodo) => {
+                    {weekdayTodos.map((weekTodo) => {
                       const todo = weekTodo.todo;
 
                       return (
@@ -144,4 +162,67 @@ export function CurrentWeekCalendar() {
       </div>
     </>
   );
+
+  function deriveWeekDinners() {
+    return weeks.current.value.dinners.map(
+      (dinnerId) =>
+        dinners.dinners.value.find((dinner) => dinner.id === dinnerId) || null
+    );
+  }
+
+  function deriveWeekTodos() {
+    const weekDays: Array<{ todo: TodoDTO; assignments: FamilyUserDTO[] }>[] =
+      Array(7).fill([]);
+    const now = new Date();
+
+    todos.todos.value.forEach((todo) => {
+      const weekTodo = weeks.current.value.todos.find(
+        (weekTodo) => weekTodo.id === todo.id
+      );
+
+      if (weekTodo) {
+        const weekTodoAssignments = getWeekTodoAssignments(weekTodo);
+
+        weekTodoAssignments.forEach((assignments, index) => {
+          if (assignments.length) {
+            weekDays[index].push({ todo, assignments });
+          }
+        });
+
+        return;
+      }
+
+      if (todo.date && isWithinWeek(todo.date.toDate(), now)) {
+        const weekDayIndex = getWeekDayIndex(todo.date.toDate());
+
+        weekDays[weekDayIndex].push({
+          todo,
+          assignments: [],
+        });
+      }
+    });
+
+    return weekDays;
+  }
+
+  function getWeekTodoAssignments(weekTodo: WeekTodoDTO) {
+    const assignments: FamilyUserDTO[][] = Array(7).fill([]);
+
+    for (const userId in weekTodo.activityByUserId) {
+      const familyMember = familyScrum.family.users[userId];
+      const userAssignments = weekTodo.activityByUserId[userId];
+
+      for (
+        let weekDayIndex = 0;
+        weekDayIndex++;
+        weekDayIndex < userAssignments.length
+      ) {
+        if (userAssignments[weekDayIndex]) {
+          assignments[weekDayIndex].push(familyMember);
+        }
+      }
+    }
+
+    return assignments;
+  }
 }
