@@ -11,22 +11,29 @@ export function TodoAssignment({ todo }: Props) {
   const weekTodo = familyScrum.weeks.current.todos.find(
     (weekTodo) => weekTodo.id === todo.id
   );
-  const todoAssignments = weekTodo?.assignments ?? [];
-  const previousTodoAssignments =
-    familyScrum.weeks.previous.todos.find((weekTodo) => weekTodo.id === todo.id)
-      ?.assignments ?? [];
+  const previousWeekTodo = familyScrum.weeks.previous.todos.find(
+    (weekTodo) => weekTodo.id === todo.id
+  );
+  const todoAssignments = weekTodo?.activityByUserId ?? {};
+  const previousTodoAssignments = previousWeekTodo?.activityByUserId ?? {};
+  const familyUsers = Object.keys(familyScrum.family.users);
 
-  return session.family.members.map((familyMember) => {
-    const weekActivity = todoAssignments.find(
-      (assignment) => assignment.familyMember.id === familyMember.id
-    )?.activity ?? [false, false, false, false, false, false, false];
-    const previousWeekActivity = previousTodoAssignments.find(
-      (assignment) => assignment.familyMember.id === familyMember.id
-    )?.activity;
+  return familyUsers.map((familyMemberId) => {
+    const familyMember = familyScrum.family.users[familyMemberId];
+    const weekActivity = todoAssignments[familyMemberId] ?? [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+    ];
+    const previousWeekActivity = previousTodoAssignments[familyMemberId];
 
     return (
       <div
-        key={familyMember.id}
+        key={familyMemberId}
         className="flex pt-2 items-center justify-between"
       >
         <img
@@ -41,8 +48,13 @@ export function TodoAssignment({ todo }: Props) {
             <button
               key={index}
               type="button"
-              disabled={todos.familyScrum.session.user.id !== familyMember.id}
+              disabled={familyScrum.user.id !== familyMemberId}
               onClick={() => {
+                familyScrum.weeks.current.setAssignment(
+                  todo.id,
+                  index,
+                  !isActive
+                );
                 todo.setAssignment(index, !isActive);
               }}
               className={`${

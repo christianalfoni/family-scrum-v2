@@ -29,6 +29,8 @@ export function useWeeks(familyId: string): Weeks {
   const currentWeekId = getCurrentWeekId();
   const nextWeekId = getNextWeekId();
 
+  // const state = useReactive({ count: 0, increase() { state.count++ } });
+
   const weeks = useReactive<Weeks>(createWeeks);
 
   useReactiveEffect(subscribeWeekDinners);
