@@ -13,7 +13,7 @@ type Props = {
 export function PlanNextWeekTodos({ todos, weeks }: Props) {
   const categorisedTodos = computeCategorizedTodos();
   const renderTodo = (todo: state.Todo) => (
-    <Todo todo={todo}>
+    <Todo key={todo.id} todo={todo}>
       <TodoAssignment
         todo={todo}
         week={weeks.next}

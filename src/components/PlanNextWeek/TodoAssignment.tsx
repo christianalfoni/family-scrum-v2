@@ -9,6 +9,7 @@ type Props = {
 };
 
 export function TodoAssignment({ todo, week, previousWeek, todos }: Props) {
+  console.log("RENDER ASSIGNMENT");
   const weekTodo = week.todos.find((weekTodo) => weekTodo.id === todo.id);
   const todoAssignments = weekTodo?.assignments ?? [];
   const previousTodoAssignments =
