@@ -8,25 +8,25 @@ import { User } from "./User";
 
 type CachedAuthentication = { user: UserDTO; family: FamilyDTO };
 
-export type SessionAuthenticated = {
+export type AUTHENTICATED = {
   current: "AUTHENTICATED";
   user: User;
   family: Family;
   familyScrum: FamilyScrum;
 };
 
-export type SessionAuthenticating = {
+export type AUTHENTICATING = {
   current: "AUTHENTICATING";
 };
 
-export type SessionUnauthenticated = {
+export type UNAUTHENTICATED = {
   current: "UNAUTHENTICATED";
   reason?: string;
   signIn(): void;
 };
 
 export type Session = {
-  state: SessionAuthenticated | SessionAuthenticating | SessionUnauthenticated;
+  state: AUTHENTICATED | AUTHENTICATING | UNAUTHENTICATED;
 };
 
 const AUTHENTICATION_CACHE_KEY = "family_scrum_authentication";
@@ -55,7 +55,7 @@ export function Session({ env }: Params) {
 
   return reactive.readonly(session);
 
-  function UNAUTHENTICATED(reason?: string): SessionUnauthenticated {
+  function UNAUTHENTICATED(reason?: string): UNAUTHENTICATED {
     disposers.forEach((dispose) => dispose());
     disposers.clear();
 
@@ -68,14 +68,14 @@ export function Session({ env }: Params) {
     };
   }
 
-  function AUTHENTICATING(): SessionAuthenticating {
+  function AUTHENTICATING(): AUTHENTICATING {
     return {
       current: "AUTHENTICATING",
     };
   }
 
   function AUTHENTICATED(user: UserDTO, family: FamilyDTO) {
-    const authenticated: SessionAuthenticated = reactive({
+    const authenticated: AUTHENTICATED = reactive({
       current: "AUTHENTICATED",
       user,
       family: Family({ data: family }),

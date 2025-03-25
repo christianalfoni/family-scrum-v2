@@ -1555,10 +1555,10 @@ balanced-match@^1.0.0:
   resolved "https://registry.yarnpkg.com/balanced-match/-/balanced-match-1.0.2.tgz#e83e3a7e3f300b34cb9d87f615fa0cbf357690ee"
   integrity sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==
 
-bonsify@^0.5.1:
-  version "0.5.1"
-  resolved "https://registry.yarnpkg.com/bonsify/-/bonsify-0.5.1.tgz#f8e294289ecfca4b1bde89596e88fbc2de785f39"
-  integrity sha512-JYzbe3vNxjv5qeV7dgax8sKt3WvEYnUMx6TwHELn6Xns0clQShKjTVUhSeE30XLP13ONVmQzWyPXAdtEHATqdA==
+bonsify@^0.6.5:
+  version "0.6.5"
+  resolved "https://registry.yarnpkg.com/bonsify/-/bonsify-0.6.5.tgz#ef546701c40f50a7731b01ec189a4ca179392927"
+  integrity sha512-AzONLeJG1hv14h+TgeDLPazrRjn2yECvsHHGXX3GILr8k1cYZ56xny2zUbwg0PbC5oHJhzTwHdzZyaGTxxLgGw==
   dependencies:
     "@babel/core" "^7.26.7"
     "@babel/traverse" "^7.26.7"

@@ -1,6 +1,6 @@
 import { reactive } from "bonsify";
 import { Environment } from "../environments";
-import { SessionAuthenticated } from "./Session";
+import { AUTHENTICATED } from "./Session";
 import { Groceries } from "./Groceries";
 import { Dinners } from "./Dinners";
 import { Todos } from "./Todos";
@@ -11,7 +11,7 @@ import { isThisWeek } from "date-fns";
 import { getCurrentWeekId, getNextWeekId, getWeekDayIndex } from "../utils";
 
 export type FamilyScrum = {
-  session: SessionAuthenticated;
+  session: AUTHENTICATED;
   groceries: Groceries;
   todos: Todos;
   dinners: Dinners;
@@ -21,7 +21,7 @@ export type FamilyScrum = {
 
 type Params = {
   env: Environment;
-  session: SessionAuthenticated;
+  session: AUTHENTICATED;
   onDispose: (dispose: () => void) => void;
 };
 

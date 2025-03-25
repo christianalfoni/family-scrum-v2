@@ -14,8 +14,7 @@ type Params = {
 };
 
 export function Grocery({ data, familyPersistence }: Params): Grocery {
-  const grocery = reactive<Grocery>({
-    ...data,
+  const grocery: Grocery = reactive.merge(data, {
     shop,
   });
 
