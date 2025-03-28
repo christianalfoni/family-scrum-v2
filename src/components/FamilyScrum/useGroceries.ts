@@ -1,8 +1,8 @@
 import levenshtein from "fast-levenshtein";
 import { useEnv } from "../../environments";
 import { GroceryDTO } from "../../environments/Browser/Persistence";
-import { useSignal } from "use-react-signal";
-import { useEffect } from "react";
+
+import { useEffect, useState } from "react";
 
 export type Groceries = ReturnType<typeof useGroceries>;
 
@@ -10,7 +10,7 @@ export function useGroceries(familyId: string) {
   const env = useEnv();
   const familyPersistence = env.persistence.getFamilyApi(familyId);
   const groceriesApi = familyPersistence.groceries;
-  const [groceries, setGroceries] = useSignal<GroceryDTO[]>([]);
+  const [groceries, setGroceries] = useState<GroceryDTO[]>([]);
 
   useEffect(() => familyPersistence.groceries.subscribeAll(setGroceries), []);
 
@@ -39,7 +39,7 @@ export function useGroceries(familyId: string) {
     const now = Date.now();
 
     return filter
-      ? groceries.value
+      ? groceries
           .filter((grocery) => {
             const lowerCaseGroceryName = grocery.name.toLowerCase();
 
@@ -61,7 +61,7 @@ export function useGroceries(familyId: string) {
 
             return 0;
           })
-      : groceries.value.slice().sort((a, b) => {
+      : groceries.slice().sort((a, b) => {
           if (
             a.created.toMillis() > now ||
             a.name.toLowerCase() < b.name.toLowerCase()

@@ -1,31 +1,28 @@
 import { User as FirebaseUser } from "firebase/auth";
 import { FamilyDTO, UserDTO } from "../../environments/Browser/Persistence";
 import { useEnv } from "../../environments";
-import { useSignal } from "use-react-signal";
-import { useEffect } from "react";
+import { useSignals } from "use-react-signals";
+import { useEffect, useState } from "react";
 
 type CachedAuthentication = { user: UserDTO; family: FamilyDTO };
 
-export type SessionAuthenticated = {
+export type AUTHENTICATED = {
   current: "AUTHENTICATED";
   user: UserDTO;
   family: FamilyDTO;
 };
 
-export type SessionAuthenticating = {
+export type AUTHENTICATING = {
   current: "AUTHENTICATING";
 };
 
-export type SessionUnauthenticated = {
+export type UNAUTHENTICATED = {
   current: "UNAUTHENTICATED";
   reason?: string;
   signIn(): void;
 };
 
-export type Session =
-  | SessionAuthenticated
-  | SessionAuthenticating
-  | SessionUnauthenticated;
+export type Session = AUTHENTICATED | AUTHENTICATING | UNAUTHENTICATED;
 
 const AUTHENTICATION_CACHE_KEY = "family_scrum_authentication";
 
@@ -39,7 +36,7 @@ export function useSession() {
     localStorage.getItem(AUTHENTICATION_CACHE_KEY) || "null"
   );
 
-  const [session, setSession] = useSignal<Session>(
+  const [session, setSession] = useState<Session>(
     cachedAuthentication
       ? AUTHENTICATED(cachedAuthentication.user, cachedAuthentication.family)
       : AUTHENTICATING()
@@ -49,7 +46,7 @@ export function useSession() {
 
   return session;
 
-  function UNAUTHENTICATED(reason?: string): SessionUnauthenticated {
+  function UNAUTHENTICATED(reason?: string): UNAUTHENTICATED {
     return {
       current: "UNAUTHENTICATED",
       reason,
@@ -59,16 +56,13 @@ export function useSession() {
     };
   }
 
-  function AUTHENTICATING(): SessionAuthenticating {
+  function AUTHENTICATING(): AUTHENTICATING {
     return {
       current: "AUTHENTICATING",
     };
   }
 
-  function AUTHENTICATED(
-    user: UserDTO,
-    family: FamilyDTO
-  ): SessionAuthenticated {
+  function AUTHENTICATED(user: UserDTO, family: FamilyDTO): AUTHENTICATED {
     return {
       current: "AUTHENTICATED",
       user,
@@ -99,9 +93,9 @@ export function useSession() {
       }
 
       if (
-        session.value.current === "AUTHENTICATED" &&
-        session.value.user.id === user.id &&
-        session.value.family.id === family.id
+        session.current === "AUTHENTICATED" &&
+        session.user.id === user.id &&
+        session.family.id === family.id
       ) {
         return;
       }

@@ -9,21 +9,17 @@ function Session() {
 
   let content: React.ReactNode;
 
-  if (session.value.current === "AUTHENTICATING") {
+  if (session.current === "AUTHENTICATING") {
     content = <Skeleton />;
-  } else if (session.value.current === "UNAUTHENTICATED") {
-    const state = session.value;
-
+  } else if (session.current === "UNAUTHENTICATED") {
     content = (
       <>
         <Skeleton />
-        <SignInModal onLoginClick={() => state.signIn()} />
+        <SignInModal onLoginClick={session.signIn} />
       </>
     );
   } else {
-    content = (
-      <FamilyScrum user={session.value.user} family={session.value.family} />
-    );
+    content = <FamilyScrum user={session.user} family={session.family} />;
   }
 
   return (

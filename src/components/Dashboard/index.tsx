@@ -7,13 +7,16 @@ import {
 import { Drawer, DrawerContent, DrawerTrigger } from "../common/Drawer";
 import { MenuCard } from "./MenuCard";
 import { CurrentWeekCalendar } from "../CurrentWeekCalendar";
-import { useFamilyScrum } from "../FamilyScrum/useFamilyScrum";
+import { FamilyScrum, useFamilyScrum } from "../FamilyScrum/useFamilyScrum";
 
 // import { CurrentWeekTodosContext } from "./CurrentWeekTodosContext";
 // import { AssistantContext } from "./AssistantContext";
 
-export function Dashboard() {
-  const familyScrum = useFamilyScrum();
+type Props = {
+  familyScrum: FamilyScrum;
+};
+
+export function Dashboard({ familyScrum }: Props) {
   return (
     <>
       <ul className="flex flex-col px-6 mb-2 mt-6">

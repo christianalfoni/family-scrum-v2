@@ -25,6 +25,7 @@
     "tailwind-merge": "^3.0.1",
     "tailwindcss": "^4.0.6",
     "use-react-signal": "^1.0.0",
+    "use-react-signals": "^1.0.3",
     "vaul": "^1.1.2"
   },
   "devDependencies": {
