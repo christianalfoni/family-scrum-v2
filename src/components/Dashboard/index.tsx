@@ -17,16 +17,13 @@ type Props = {
 };
 
 export function Dashboard({ familyScrum }: Props) {
-  console.log(
-    "WTF",
-    familyScrum.groceries.groceries.length,
-    familyScrum.groceries.groceries
-  );
+  const groceriesCount = Object.values(familyScrum.groceries.groceries).length;
+
   return (
     <>
       <ul className="flex flex-col px-6 mb-2 mt-6">
         <MenuCard to="/groceries" Icon={ShoppingCartIcon} color="bg-red-500">
-          Go shopping ({familyScrum.groceries.groceries.length})
+          Go shopping ({groceriesCount})
         </MenuCard>
 
         <MenuCard to="/checklists" Icon={CheckIcon} color="bg-blue-500">
@@ -47,7 +44,7 @@ export function Dashboard({ familyScrum }: Props) {
       </ul>
 
       <div className="h-2/4">
-        <CurrentWeekCalendar familyScrum={familyScrum} />
+        {/*<CurrentWeekCalendar familyScrum={familyScrum} />*/}
       </div>
 
       <button

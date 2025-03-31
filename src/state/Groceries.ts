@@ -8,9 +8,25 @@ import {
 import { Environment } from "../environments";
 import { Grocery } from "./Grocery";
 
+/**
+ const state = useStore({
+   count: 0
+ })
+   
+ return {
+   ...state,
+   increase
+ }
+   
+ function increase() {
+    state.count++
+ }
+ 
+ */
+
 export type Groceries = {
   familyScrum: FamilyScrum;
-  groceries: Grocery[];
+  groceries: Record<string, Grocery>;
   addGrocery(name: string): void;
   filter(filter: string): Grocery[];
 };
@@ -32,22 +48,22 @@ export function Groceries({
   const groceriesApi = familyPersistence.groceries;
   const groceries = reactive<Groceries>({
     familyScrum,
-    groceries: [],
+    groceries: {},
     addGrocery,
     filter,
   });
 
-  onDispose(
-    familyPersistence.groceries.subscribeAll((data) => {
-      console.log("Groceries?", data);
-      groceries.groceries = data.map(createGrocery);
-    })
-  );
+  onDispose(familyPersistence.groceries.subscribeAll(createGroceries));
 
   return reactive.readonly(groceries);
 
-  function createGrocery(data: GroceryDTO) {
-    return Grocery({ data, familyPersistence });
+  function createGroceries(groceryDTOs: GroceryDTO[]) {
+    for (const groceryDTO of groceryDTOs) {
+      groceries.groceries[groceryDTO.id] = Grocery({
+        data: groceryDTO,
+        familyPersistence,
+      });
+    }
   }
 
   async function addGrocery(name: string) {
@@ -64,7 +80,7 @@ export function Groceries({
     const now = Date.now();
 
     return filter
-      ? groceries.groceries
+      ? Object.values(groceries.groceries)
           .filter((grocery) => {
             const lowerCaseGroceryName = grocery.name.toLowerCase();
 
@@ -86,7 +102,7 @@ export function Groceries({
 
             return 0;
           })
-      : groceries.groceries.slice().sort((a, b) => {
+      : Object.values(groceries.groceries).sort((a, b) => {
           if (
             a.created.toMillis() > now ||
             a.name.toLowerCase() < b.name.toLowerCase()
