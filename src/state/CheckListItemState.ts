@@ -1,32 +1,29 @@
-import { reactive } from "bonsify";
+import { reactive } from "mobx-lite";
 import {
   CheckListItemDTO,
   FamilyPersistence,
-} from "../environments/Browser/Persistence";
-import { FamilyScrum } from "./FamilyScrum";
-import { Todo } from "./Todo";
+} from "../environment/Persistence";
+import { FamilyScrumState } from "./FamilyScrumState";
+import { TodoState } from "./TodoState";
 
-export type CheckListItem = CheckListItemDTO & {
-  remove(): void;
-  toggle(): void;
-};
+export type CheckListItemState = ReturnType<typeof CheckListItemState>;
 
 type Params = {
   data: CheckListItemDTO;
-  todo: Todo;
+  todo: TodoState;
   familyPersistence: FamilyPersistence;
   familyScrum: FamilyScrum;
   index: number;
 };
 
-export function CheckListItem({
+export function CheckListItemState({
   data,
   familyPersistence,
   familyScrum,
   index,
   todo,
-}: Params): CheckListItem {
-  const checkListItem = reactive<CheckListItem>({
+}: Params) {
+  const checkListItem = reactive({
     ...data,
     remove,
     toggle,

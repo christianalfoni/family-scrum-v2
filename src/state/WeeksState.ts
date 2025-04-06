@@ -1,27 +1,22 @@
-import { reactive } from "bonsify";
-import { FamilyPersistence } from "../environments/Browser/Persistence";
+import { reactive } from "mobx-lite";
+import { FamilyPersistence } from "../environment/Persistence";
 import { getCurrentWeekId, getNextWeekId, getPreviousWeekId } from "../utils";
-import { FamilyScrum } from "./FamilyScrum";
-import { Week } from "./Week";
+import { FamilyScrumState } from "./FamilyScrumState";
+import { WeekState } from "./WeekState";
 
-export type Weeks = {
-  familyScrum: FamilyScrum;
-  previous: Week;
-  current: Week;
-  next: Week;
-};
+export type WeeksState = ReturnType<typeof WeeksState>;
 
 type Params = {
   familyPersistence: FamilyPersistence;
-  familyScrum: FamilyScrum;
+  familyScrum: FamilyScrumState;
   onDispose: (dispose: () => void) => void;
 };
 
-export function Weeks({
+export function WeeksState({
   familyScrum,
   familyPersistence,
   onDispose,
-}: Params): Weeks {
+}: Params) {
   const previousWeekId = getPreviousWeekId();
   const currentWeekId = getCurrentWeekId();
   const nextWeekId = getNextWeekId();
@@ -30,10 +25,10 @@ export function Weeks({
     currentWeekId,
     nextWeekId,
   ].map((weekId) =>
-    Week({ weekId, familyPersistence, familyScrum, onDispose })
+    WeekState({ weekId, familyPersistence, familyScrum, onDispose })
   );
 
-  const weeks = reactive<Weeks>({
+  const weeks = reactive({
     familyScrum,
     previous,
     next,

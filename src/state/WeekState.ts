@@ -1,25 +1,22 @@
-import { reactive } from "bonsify";
+import { reactive } from "mobx-lite";
 import {
   FamilyPersistence,
   WeekDTO,
   WeekTodoActivityDTO,
   WeekTodoDTO,
-} from "../environments/Browser/Persistence";
-import { FamilyScrum } from "./FamilyScrum";
-import { FamilyMember } from "./Family";
-import { Dinner } from "./Dinner";
-import { Todo } from "./Todo";
-import { DocumentChange } from "firebase/firestore";
+} from "../environment/Persistence";
+import { FamilyScrumState } from "./FamilyScrumState";
+import { FamilyMember } from "./FamilyState";
 
-export type Week = {
-  id: string;
-  dinners: WeekDinner[];
-  todos: WeekTodo[];
-};
+import { DocumentChange } from "firebase/firestore";
+import { DinnerState } from "./DinnerState";
+import { TodoState } from "./TodoState";
+
+export type WeekState = ReturnType<typeof WeekState>;
 
 export type WeekDinner = {
   id: string;
-  dinner: Dinner;
+  dinner: DinnerState;
   weekDay: number;
 };
 
@@ -30,7 +27,7 @@ export type WeekTodoAssignment = {
 
 export type WeekTodo = {
   id: string;
-  todo: Todo;
+  todo: TodoState;
   assignments: WeekTodoAssignment[];
 };
 
@@ -41,17 +38,17 @@ type Params = {
   onDispose: (dispose: () => void) => void;
 };
 
-export function Week({
+export function WeekState({
   weekId,
   familyPersistence,
   familyScrum,
   onDispose,
 }: Params) {
   const weekTodosApi = familyPersistence.createWeekTodosApi(weekId);
-  const week = reactive<Week>({
+  const week = reactive({
     id: weekId,
-    dinners: [],
-    todos: [],
+    dinners: [] as WeekDinner[],
+    todos: [] as WeekTodo[],
   });
 
   onDispose(familyPersistence.weeks.subscribe(weekId, createWeekDinners));

@@ -1,5 +1,5 @@
 import { CalendarIcon } from "@heroicons/react/24/solid";
-import { Suspense, use, useState } from "react";
+import { useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Controller } from "swiper/modules";
 import {
@@ -8,12 +8,13 @@ import {
   weekdays,
   upperCaseFirstLetter,
 } from "../../utils";
-import * as state from "../../state";
 import { addDays } from "date-fns";
 import { WeekdaySlideContent } from "./WeekDaySlideContent";
 import { DinnerImage } from "../common/DinnerImage";
+import { DinnerState } from "../../state/DinnerState";
+import { FamilyScrumState } from "../../state/FamilyScrumState";
 
-function WeekdayDinner({ dinner }: { dinner: state.Dinner }) {
+function WeekdayDinner({ dinner }: { dinner: DinnerState }) {
   return (
     <li key="DINNER">
       <div className="flex items-center space-x-3 h-20">
@@ -28,7 +29,7 @@ function WeekdayDinner({ dinner }: { dinner: state.Dinner }) {
 }
 
 type Props = {
-  familyScrum: state.FamilyScrum;
+  familyScrum: FamilyScrumState;
 };
 
 export function CurrentWeekCalendar({ familyScrum }: Props) {

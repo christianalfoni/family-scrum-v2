@@ -1,20 +1,18 @@
-import { reactive } from "bonsify";
-import { DinnerDTO } from "../environments/Browser/Persistence";
-import { FamilyStorage } from "../environments/Browser/Storage";
+import { reactive } from "mobx-lite";
+import { DinnerDTO } from "../environment/Persistence";
+import { FamilyStorage } from "../environment/Storage";
 
-export type Dinner = Omit<DinnerDTO, "imageRef"> & {
-  imageUrl?: Promise<string>;
-  setImage(imageSrc: string): Promise<void>;
-};
+export type DinnerState = ReturnType<typeof DinnerState>;
 
 type Params = {
   data: DinnerDTO;
   familyStorage: FamilyStorage;
 };
 
-export function Dinner({ data, familyStorage }: Params): Dinner {
-  const dinner = reactive<Dinner>({
-    ...data,
+export function DinnerState({ data, familyStorage }: Params) {
+  const { imageRef, ...rest } = data;
+  const dinner = reactive({
+    ...rest,
     imageUrl: data.imageRef
       ? familyStorage.getImageUrl(data.imageRef)
       : undefined,

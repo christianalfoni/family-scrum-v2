@@ -1,9 +1,9 @@
 import { weekdays } from "../../utils";
-import * as state from "../../state";
 import { DinnerAssignment } from "./DinnerAssignment";
+import { FamilyScrumState } from "../../state/FamilyScrumState";
 
 type Props = {
-  familyScrum: state.FamilyScrum;
+  familyScrum: FamilyScrumState;
 };
 
 export function PlanNextWeekDinners({ familyScrum }: Props) {

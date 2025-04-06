@@ -6,7 +6,7 @@ import "swiper/css";
 
 import Session from "./components/Session";
 import * as state from "./state";
-import { BrowserEnvironment } from "./environments/Browser";
+import { BrowserEnvironment } from "./environment/Browser";
 import { BrowserRouter } from "react-router";
 
 const env = BrowserEnvironment();

@@ -1,41 +1,32 @@
-import { reactive } from "bonsify";
-import { Environment } from "../environments";
-import {
-  FamilyPersistence,
-  TodoDTO,
-  WeekTodosApi,
-} from "../environments/Browser/Persistence";
-import { FamilyScrum } from "./FamilyScrum";
-import { Todo } from "./Todo";
+import { reactive } from "mobx-lite";
+import { Environment } from "../environment";
+import { FamilyPersistence, TodoDTO } from "../environment/Persistence";
+import { FamilyScrumState } from "./FamilyScrumState";
+import { TodoState } from "./TodoState";
 import { getNextWeekId } from "../utils";
 
-export type Todos = {
-  familyScrum: FamilyScrum;
-  todos: Todo[];
-  todosWithCheckList: Todo[];
-  addTodo(description: string): void;
-};
+export type TodosState = ReturnType<typeof TodosState>;
 
 type Params = {
   familyPersistence: FamilyPersistence;
-  familyScrum: FamilyScrum;
+  familyScrum: FamilyScrumState;
   env: Environment;
   onDispose: (dispose: () => void) => void;
 };
 
-export function Todos({
+export function TodosState({
   familyPersistence,
   onDispose,
   familyScrum,
   env,
-}: Params): Todos {
+}: Params) {
   const nextWeekTodosApi = familyPersistence.createWeekTodosApi(
     getNextWeekId()
   );
-  const todos = reactive<Todos>({
+  const todos = reactive({
     familyScrum,
-    todos: [],
-    get todosWithCheckList(): Todo[] {
+    todos: [] as TodoState[],
+    get todosWithCheckList(): TodoState[] {
       return todos.todos.filter((todo) => Boolean(todo.checkList.length));
     },
     addTodo,
@@ -50,7 +41,12 @@ export function Todos({
   return reactive.readonly(todos);
 
   function createTodo(data: TodoDTO) {
-    return Todo({ data, familyPersistence, familyScrum, nextWeekTodosApi });
+    return TodoState({
+      data,
+      familyPersistence,
+      familyScrum,
+      nextWeekTodosApi,
+    });
   }
 
   function addTodo(description: string) {

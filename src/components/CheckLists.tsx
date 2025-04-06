@@ -1,10 +1,10 @@
 import { ChevronLeftIcon } from "@heroicons/react/24/solid";
-import * as state from "../state";
+import { TodosState } from "../state/TodosState";
 import { useNavigate } from "react-router";
 import { Todo } from "./Todo";
 
 type Props = {
-  todos: state.Todos;
+  todos: TodosState;
 };
 
 export function CheckLists({ todos }: Props) {

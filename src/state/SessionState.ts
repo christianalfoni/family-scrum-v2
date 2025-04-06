@@ -1,17 +1,17 @@
 import { User as FirebaseUser } from "firebase/auth";
-import type { FamilyDTO, UserDTO } from "../environments/Browser/Persistence";
-import { reactive } from "bonsify";
-import { FamilyScrum } from "./FamilyScrum";
-import { Environment } from "../environments";
-import { Family } from "./Family";
-import { User } from "./User";
+import type { FamilyDTO, UserDTO } from "../environment/Persistence";
+import { reactive } from "mobx-lite";
+import { FamilyScrumState } from "./FamilyScrumState";
+import { Environment } from "../environment";
+import { FamilyState } from "./FamilyState";
+import { UserState } from "./UserState";
 
 type CachedAuthentication = { user: UserDTO; family: FamilyDTO };
 
 export type AUTHENTICATED = {
   current: "AUTHENTICATED";
-  user: User;
-  family: Family;
+  user: UserState;
+  family: FamilyState;
   familyScrum: FamilyScrum;
 };
 
@@ -25,15 +25,13 @@ export type UNAUTHENTICATED = {
   signIn(): void;
 };
 
-export type Session = {
-  state: AUTHENTICATED | AUTHENTICATING | UNAUTHENTICATED;
-};
-
 const AUTHENTICATION_CACHE_KEY = "family_scrum_authentication";
+
+export type SessionState = ReturnType<typeof SessionState>;
 
 type Params = { env: Environment };
 
-export function Session({ env }: Params) {
+export function SessionState({ env }: Params) {
   const { authentication, persistence } = env;
 
   // We dispose of everything when signed out
@@ -45,10 +43,10 @@ export function Session({ env }: Params) {
     localStorage.getItem(AUTHENTICATION_CACHE_KEY) || "null"
   );
 
-  const session = reactive<Session>({
-    state: cachedAuthentication
+  const session = reactive({
+    state: (cachedAuthentication
       ? AUTHENTICATED(cachedAuthentication.user, cachedAuthentication.family)
-      : AUTHENTICATING(),
+      : AUTHENTICATING()) as AUTHENTICATED | AUTHENTICATING | UNAUTHENTICATED,
   });
 
   authentication.onChanged(onAuthChanged);
@@ -78,13 +76,13 @@ export function Session({ env }: Params) {
     const authenticated: AUTHENTICATED = reactive({
       current: "AUTHENTICATED",
       user,
-      family: Family({ data: family }),
+      family: FamilyState({ data: family }),
       get familyScrum() {
         return familyScrum;
       },
     });
 
-    const familyScrum = FamilyScrum({
+    const familyScrum = FamilyScrumState({
       env,
       session: authenticated,
       onDispose(disposer) {

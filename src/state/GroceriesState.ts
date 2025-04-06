@@ -1,44 +1,20 @@
-import { reactive } from "bonsify";
+import { reactive } from "mobx-lite";
 import levenshtein from "fast-levenshtein";
-import { FamilyScrum } from "./FamilyScrum";
-import {
-  FamilyPersistence,
-  GroceryDTO,
-} from "../environments/Browser/Persistence";
-import { Environment } from "../environments";
-import { Grocery } from "./Grocery";
+import { FamilyScrumState } from "./FamilyScrumState";
+import { FamilyPersistence, GroceryDTO } from "../environment/Persistence";
+import { Environment } from "../environment";
+import { GroceryState } from "./GroceryState";
 
-/**
- const state = useStore({
-   count: 0
- })
-   
- return {
-   ...state,
-   increase
- }
-   
- function increase() {
-    state.count++
- }
- 
- */
-
-export type Groceries = {
-  familyScrum: FamilyScrum;
-  groceries: Record<string, Grocery>;
-  addGrocery(name: string): void;
-  filter(filter: string): Grocery[];
-};
+export type GroceriesState = ReturnType<typeof GroceriesState>;
 
 type Params = {
-  familyScrum: FamilyScrum;
+  familyScrum: FamilyScrumState;
   familyPersistence: FamilyPersistence;
   env: Environment;
   onDispose: (dispose: () => void) => void;
 };
 
-export function Groceries({
+export function GroceriesState({
   env,
   familyPersistence,
   familyScrum,
@@ -46,9 +22,9 @@ export function Groceries({
 }: Params) {
   const peristence = env.persistence;
   const groceriesApi = familyPersistence.groceries;
-  const groceries = reactive<Groceries>({
+  const groceries = reactive({
     familyScrum,
-    groceries: {},
+    groceries: {} as Record<string, GroceryState>,
     addGrocery,
     filter,
   });
@@ -59,7 +35,7 @@ export function Groceries({
 
   function createGroceries(groceryDTOs: GroceryDTO[]) {
     for (const groceryDTO of groceryDTOs) {
-      groceries.groceries[groceryDTO.id] = Grocery({
+      groceries.groceries[groceryDTO.id] = GroceryState({
         data: groceryDTO,
         familyPersistence,
       });
@@ -75,7 +51,7 @@ export function Groceries({
     });
   }
 
-  function filter(filter: string): Grocery[] {
+  function filter(filter: string): GroceryState[] {
     const lowerCaseInput = filter.toLowerCase();
     const now = Date.now();
 

@@ -1,10 +1,11 @@
 import React from "react";
 import { AddCheckListItem } from "./AddCheckListItem";
 import { TrashIcon } from "@heroicons/react/24/solid";
-import * as state from "../../state";
+import { CheckListItemState } from "../../state/CheckListItemState";
+import { TodoState } from "../../state/TodoState";
 
 type CheckListItemProps = {
-  item: state.CheckListItem;
+  item: CheckListItemState;
   index: number;
 };
 
@@ -29,7 +30,7 @@ function CheckListItem({ item, index }: CheckListItemProps) {
 }
 
 type Props = {
-  todo: state.Todo;
+  todo: TodoState;
 };
 
 export function CheckList({ todo }: Props) {

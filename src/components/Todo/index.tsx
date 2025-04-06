@@ -7,15 +7,14 @@ import {
   ChevronUpIcon,
   ClockIcon,
 } from "@heroicons/react/24/solid";
-import * as state from "../../state";
-
+import { TodoState } from "../../state/TodoState";
 import { Confirmed } from "./Confirmed";
 import { getDayName } from "../../utils";
 import { CheckList } from "./CheckList";
 import { Link } from "react-router";
 
 type Props = {
-  todo: state.Todo;
+  todo: TodoState;
   children?: React.ReactNode;
 };
 

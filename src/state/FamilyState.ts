@@ -1,5 +1,5 @@
-import { reactive } from "bonsify";
-import { FamilyDTO } from "../environments/Browser/Persistence";
+import { reactive } from "mobx-lite";
+import { FamilyDTO } from "../environment/Persistence";
 
 export type FamilyMember = {
   id: string;
@@ -7,18 +7,15 @@ export type FamilyMember = {
   avatar: string;
 };
 
-export type Family = {
-  id: string;
-  members: FamilyMember[];
-};
+export type FamilyState = ReturnType<typeof FamilyState>;
 
 type Params = {
   data: FamilyDTO;
 };
 
-export function Family({ data }: Params) {
+export function FamilyState({ data }: Params) {
   const members = createMembers();
-  const family = reactive<Family>({
+  const family = reactive({
     id: data.id,
     members,
   });

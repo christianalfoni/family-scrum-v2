@@ -4,17 +4,12 @@ import {
   TodoDTO,
   WeekTodoActivityDTO,
   WeekTodosApi,
-} from "../environments/Browser/Persistence";
-import { reactive } from "bonsify";
-import { FamilyScrum } from "./FamilyScrum";
-import { CheckListItem } from "./CheckListItem";
+} from "../environment/Persistence";
+import { reactive } from "mobx-lite";
+import { FamilyScrumState } from "./FamilyScrumState";
+import { CheckListItemState } from "./CheckListItemState";
 
-export type Todo = Omit<TodoDTO, "checkList"> & {
-  checkList: CheckListItem[];
-  archive(): void;
-  addCheckListItem(description: string): void;
-  setAssignment(weekDayIndex: number, active: boolean): void;
-};
+export type TodoState = ReturnType<typeof TodoState>;
 
 type Params = {
   data: TodoDTO;
@@ -23,15 +18,15 @@ type Params = {
   nextWeekTodosApi: WeekTodosApi;
 };
 
-export function Todo({
+export function TodoState({
   data,
   familyPersistence,
   familyScrum,
   nextWeekTodosApi,
-}: Params): Todo {
-  const todo = reactive<Todo>({
+}: Params) {
+  const todo = reactive({
     ...data,
-    get checkList(): CheckListItem[] {
+    get checkList(): CheckListItemState[] {
       return checkList;
     },
     archive,
@@ -44,7 +39,13 @@ export function Todo({
   return reactive.readonly(todo);
 
   function createCheckListItem(data: CheckListItemDTO, index: number) {
-    return CheckListItem({ data, index, familyPersistence, familyScrum, todo });
+    return CheckListItemState({
+      data,
+      index,
+      familyPersistence,
+      familyScrum,
+      todo,
+    });
   }
 
   function archive() {

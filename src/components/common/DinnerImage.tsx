@@ -1,8 +1,8 @@
 import { Suspense, use } from "react";
-import * as state from "../../state";
+import { DinnerState } from "../../state/DinnerState";
 
 type Props = {
-  dinner: state.Dinner;
+  dinner: DinnerState;
 };
 
 function DinnerImageElement({ imageUrl }: { imageUrl: Promise<string> }) {

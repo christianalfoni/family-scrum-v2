@@ -6,11 +6,11 @@ import {
 } from "@heroicons/react/24/solid";
 import { LightBulbIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router";
-import * as state from "../state";
+import { FamilyScrumState } from "../state/FamilyScrumState";
 import { useState } from "react";
 
 type Props = {
-  groceries: state.Groceries;
+  groceries: FamilyScrumState["groceries"];
 };
 
 export function Groceries({ groceries }: Props) {

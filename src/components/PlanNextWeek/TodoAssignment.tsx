@@ -1,11 +1,13 @@
 import { weekdays } from "../../utils";
-import * as state from "../../state";
+import { TodoState } from "../../state/TodoState";
+import { WeekState } from "../../state/WeekState";
+import { TodosState } from "../../state/TodosState";
 
 type Props = {
-  todo: state.Todo;
-  todos: state.Todos;
-  week: state.Week;
-  previousWeek: state.Week;
+  todo: TodoState;
+  todos: TodosState;
+  week: WeekState;
+  previousWeek: WeekState;
 };
 
 export function TodoAssignment({ todo, week, previousWeek, todos }: Props) {

@@ -1,11 +1,11 @@
 import { Skeleton } from "../Dashboard/Skeleton";
 import { SignInModal } from "./SignInModal";
 import { FamilyScrum } from "../FamilyScrum";
-import * as state from "../../state";
+import { SessionState } from "../../state/SessionState";
 import React from "react";
 
 type Props = {
-  session: state.Session;
+  session: SessionState;
 };
 
 function Session({ session }: Props) {

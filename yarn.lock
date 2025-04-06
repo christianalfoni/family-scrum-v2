@@ -1555,18 +1555,6 @@ balanced-match@^1.0.0:
   resolved "https://registry.yarnpkg.com/balanced-match/-/balanced-match-1.0.2.tgz#e83e3a7e3f300b34cb9d87f615fa0cbf357690ee"
   integrity sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==
 
-bonsify@^0.7.0:
-  version "0.7.0"
-  resolved "https://registry.yarnpkg.com/bonsify/-/bonsify-0.7.0.tgz#3493c35a631d7002dfc5d4c8a63536e6edceaf59"
-  integrity sha512-6GsclJzWQlGx3QL2OgOHYHFh0M9Mq/XwpVbcgc3PU2ymetWz2gerU7d53iPJZAovaT2k3QUOjyvbrxW3LBxmag==
-  dependencies:
-    "@babel/core" "^7.26.7"
-    "@babel/traverse" "^7.26.7"
-    "@babel/types" "^7.26.7"
-    babel-plugin-observing-components "^0.1.0"
-    react "^19.0.0"
-    swc-plugin-observing-components "^0.1.0"
-
 brace-expansion@^1.1.7:
   version "1.1.11"
   resolved "https://registry.yarnpkg.com/brace-expansion/-/brace-expansion-1.1.11.tgz#3c7fcbf529d87226f3d2f52b966ff5271eb441dd"
@@ -2281,6 +2269,32 @@ minimatch@^9.0.4:
   dependencies:
     brace-expansion "^2.0.1"
 
+mobx-lite@^0.1.0:
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/mobx-lite/-/mobx-lite-0.1.0.tgz#0396db374527dc4def0d794dd6d81e02ba9ec613"
+  integrity sha512-+xQKPBzEgB0bJseDkQikl9x1nmKRywe1wyX1s6J5kx2EqTfa/QyEYJcAnZlCAafryYDh5xLffLZnN39YqFsCiw==
+  dependencies:
+    "@babel/core" "^7.26.7"
+    "@babel/traverse" "^7.26.7"
+    "@babel/types" "^7.26.7"
+    babel-plugin-observing-components "^0.1.0"
+    mobx "^6.13.7"
+    mobx-react-lite "^4.1.0"
+    react "^19.0.0"
+    swc-plugin-observing-components "^0.1.0"
+
+mobx-react-lite@^4.1.0:
+  version "4.1.0"
+  resolved "https://registry.yarnpkg.com/mobx-react-lite/-/mobx-react-lite-4.1.0.tgz#6a03ed2d94150848213cfebd7d172e123528a972"
+  integrity sha512-QEP10dpHHBeQNv1pks3WnHRCem2Zp636lq54M2nKO2Sarr13pL4u6diQXf65yzXUn0mkk18SyIDCm9UOJYTi1w==
+  dependencies:
+    use-sync-external-store "^1.4.0"
+
+mobx@^6.13.7:
+  version "6.13.7"
+  resolved "https://registry.yarnpkg.com/mobx/-/mobx-6.13.7.tgz#70e5dda7a45da947f773b3cd3b065dfe7c8a75de"
+  integrity sha512-aChaVU/DO5aRPmk1GX8L+whocagUUpBQqoPtJk+cm7UOXUk87J4PeWCh6nNmTTIfEhiR9DI/+FnA8dln/hTK7g==
+
 ms@^2.1.3:
   version "2.1.3"
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.1.3.tgz#574c8138ce1d2b5861f0b44579dbadd60c6615b2"
@@ -2677,6 +2691,11 @@ use-sidecar@^1.1.3:
   dependencies:
     detect-node-es "^1.1.0"
     tslib "^2.0.0"
+
+use-sync-external-store@^1.4.0:
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/use-sync-external-store/-/use-sync-external-store-1.5.0.tgz#55122e2a3edd2a6c106174c27485e0fd59bcfca0"
+  integrity sha512-Rb46I4cGGVBmjamjphe8L/UnvJD+uPPtTkNvX5mZgqdbavhI4EbgIWJiIHXJ8bc/i9EQGPRh4DwEURJ552Do0A==
 
 vaul@^1.1.2:
   version "1.1.2"

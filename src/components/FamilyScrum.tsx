@@ -1,14 +1,14 @@
 import { Navigate, Route, Routes } from "react-router";
-import * as state from "../state";
 import { Dashboard } from "./Dashboard";
 import { Groceries } from "./Groceries";
 import { CheckLists } from "./CheckLists";
 import { PlanNextWeek } from "./PlanNextWeek";
 import { PlanNextWeekTodos } from "./PlanNextWeek/PlanNextWeekTodos";
 import { PlanNextWeekDinners } from "./PlanNextWeek/PlanNextWeekDinners";
+import { FamilyScrumState } from "../state/FamilyScrumState";
 
 type Props = {
-  familyScrum: state.FamilyScrum;
+  familyScrum: FamilyScrumState;
 };
 
 export function FamilyScrum({ familyScrum }: Props) {

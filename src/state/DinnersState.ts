@@ -1,12 +1,9 @@
-import { reactive } from "bonsify";
-import { FamilyScrum } from "./FamilyScrum";
-import { Environment } from "../environments";
-import {
-  DinnerDTO,
-  FamilyPersistence,
-} from "../environments/Browser/Persistence";
-import { FamilyStorage } from "../environments/Browser/Storage";
-import { Dinner } from "./Dinner";
+import { reactive } from "mobx-lite";
+import { FamilyScrumState } from "./FamilyScrumState";
+import { Environment } from "../environment";
+import { DinnerDTO, FamilyPersistence } from "../environment/Persistence";
+import { FamilyStorage } from "../environment/Storage";
+import { DinnerState } from "./DinnerState";
 
 export type NewDinner = {
   name: string;
@@ -17,11 +14,7 @@ export type NewDinner = {
   imageSrc?: string;
 };
 
-export type Dinners = {
-  familyScrum: FamilyScrum;
-  dinners: Dinner[];
-  addDinner(newDinner: NewDinner): void;
-};
+export type DinnersState = ReturnType<typeof DinnersState>;
 
 type Params = {
   env: Environment;
@@ -31,16 +24,16 @@ type Params = {
   onDispose: (dispose: () => void) => void;
 };
 
-export function Dinners({
+export function DinnersState({
   env,
   familyPersistence,
   familyStorage,
   onDispose,
   familyScrum,
 }: Params) {
-  const dinners = reactive<Dinners>({
+  const dinners = reactive({
     familyScrum,
-    dinners: [],
+    dinners: [] as DinnerState[],
     addDinner,
   });
 
@@ -52,8 +45,8 @@ export function Dinners({
 
   return reactive.readonly(dinners);
 
-  function createDinner(data: DinnerDTO): Dinner {
-    return Dinner({ data, familyStorage });
+  function createDinner(data: DinnerDTO): DinnerState {
+    return DinnerState({ data, familyStorage });
   }
 
   async function addDinner(newDinner: NewDinner) {

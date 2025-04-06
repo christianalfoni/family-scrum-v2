@@ -4,16 +4,15 @@ import {
   ChatBubbleBottomCenterIcon,
   HeartIcon,
 } from "@heroicons/react/24/solid";
-import { Drawer, DrawerContent, DrawerTrigger } from "../common/Drawer";
+
 import { MenuCard } from "./MenuCard";
-import * as state from "../../state";
-import { CurrentWeekCalendar } from "../CurrentWeekCalendar";
+import { FamilyScrumState } from "../../state/FamilyScrumState";
 
 // import { CurrentWeekTodosContext } from "./CurrentWeekTodosContext";
 // import { AssistantContext } from "./AssistantContext";
 
 type Props = {
-  familyScrum: state.FamilyScrum;
+  familyScrum: FamilyScrumState;
 };
 
 export function Dashboard({ familyScrum }: Props) {

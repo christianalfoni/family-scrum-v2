@@ -1,18 +1,19 @@
 import { CalendarIcon, CheckCircleIcon } from "@heroicons/react/24/solid";
-import * as state from "../../state";
 import { getDateFromWeekId, isWithinWeek } from "../../utils";
 import { differenceInDays } from "date-fns";
 import { Todo } from "../Todo";
 import { TodoAssignment } from "./TodoAssignment";
-
+import { TodosState } from "../../state/TodosState";
+import { WeeksState } from "../../state/WeeksState";
+import { TodoState } from "../../state/TodoState";
 type Props = {
-  todos: state.Todos;
-  weeks: state.Weeks;
+  todos: TodosState;
+  weeks: WeeksState;
 };
 
 export function PlanNextWeekTodos({ todos, weeks }: Props) {
   const categorisedTodos = computeCategorizedTodos();
-  const renderTodo = (todo: state.Todo) => (
+  const renderTodo = (todo: TodoState) => (
     <Todo key={todo.id} todo={todo}>
       <TodoAssignment
         todo={todo}
@@ -95,10 +96,10 @@ export function PlanNextWeekTodos({ todos, weeks }: Props) {
         return aggr;
       },
       {
-        previousWeek: [] as state.Todo[],
-        eventsThisWeek: [] as state.Todo[],
-        laterEvents: [] as state.Todo[],
-        thisWeek: [] as state.Todo[],
+        previousWeek: [] as TodoState[],
+        eventsThisWeek: [] as TodoState[],
+        laterEvents: [] as TodoState[],
+        thisWeek: [] as TodoState[],
       }
     );
 
