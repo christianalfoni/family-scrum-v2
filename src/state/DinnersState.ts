@@ -20,7 +20,7 @@ type Params = {
   env: Environment;
   familyPersistence: FamilyPersistence;
   familyStorage: FamilyStorage;
-  familyScrum: FamilyScrum;
+  familyScrum: FamilyScrumState;
   onDispose: (dispose: () => void) => void;
 };
 

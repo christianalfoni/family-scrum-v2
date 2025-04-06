@@ -12,7 +12,7 @@ export type AUTHENTICATED = {
   current: "AUTHENTICATED";
   user: UserState;
   family: FamilyState;
-  familyScrum: FamilyScrum;
+  familyScrum: FamilyScrumState;
 };
 
 export type AUTHENTICATING = {

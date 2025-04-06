@@ -14,7 +14,7 @@ export type TodoState = ReturnType<typeof TodoState>;
 type Params = {
   data: TodoDTO;
   familyPersistence: FamilyPersistence;
-  familyScrum: FamilyScrum;
+  familyScrum: FamilyScrumState;
   nextWeekTodosApi: WeekTodosApi;
 };
 

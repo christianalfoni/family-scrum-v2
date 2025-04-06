@@ -34,7 +34,7 @@ export type WeekTodo = {
 type Params = {
   weekId: string;
   familyPersistence: FamilyPersistence;
-  familyScrum: FamilyScrum;
+  familyScrum: FamilyScrumState;
   onDispose: (dispose: () => void) => void;
 };
 

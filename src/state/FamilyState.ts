@@ -14,10 +14,9 @@ type Params = {
 };
 
 export function FamilyState({ data }: Params) {
-  const members = createMembers();
   const family = reactive({
     id: data.id,
-    members,
+    members: createMembers(),
   });
 
   return reactive.readonly(family);

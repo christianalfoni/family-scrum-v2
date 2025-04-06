@@ -12,7 +12,7 @@ type Params = {
   data: CheckListItemDTO;
   todo: TodoState;
   familyPersistence: FamilyPersistence;
-  familyScrum: FamilyScrum;
+  familyScrum: FamilyScrumState;
   index: number;
 };
 
