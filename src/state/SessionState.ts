@@ -42,11 +42,12 @@ export function SessionState({ env }: Params) {
   const cachedAuthentication: CachedAuthentication | null = JSON.parse(
     localStorage.getItem(AUTHENTICATION_CACHE_KEY) || "null"
   );
+  const initialState = cachedAuthentication
+    ? AUTHENTICATED(cachedAuthentication.user, cachedAuthentication.family)
+    : AUTHENTICATING();
 
   const session = reactive({
-    state: (cachedAuthentication
-      ? AUTHENTICATED(cachedAuthentication.user, cachedAuthentication.family)
-      : AUTHENTICATING()) as AUTHENTICATED | AUTHENTICATING | UNAUTHENTICATED,
+    state: initialState as AUTHENTICATED | AUTHENTICATING | UNAUTHENTICATED,
   });
 
   authentication.onChanged(onAuthChanged);
