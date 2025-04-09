@@ -6,18 +6,19 @@ import {
 } from "@heroicons/react/24/solid";
 import { LightBulbIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router";
-import { FamilyScrumState } from "../state/FamilyScrumState";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useFamilyScrum } from "./FamilyScrumContext";
 
-type Props = {
-  groceries: FamilyScrumState["groceries"];
-};
-
-export function Groceries({ groceries }: Props) {
+export function Groceries() {
+  const familyScrum = useFamilyScrum();
   const navigate = useNavigate();
-  const awake = groceries.familyScrum.awake;
-  const [groceryInput, setGroceryInput] = useState("");
-  const filteredGroceries = groceries.filter(groceryInput);
+  const awake = familyScrum.awake;
+  const groceries = familyScrum.groceries;
+  const [filter, setFilter] = useState("");
+  const pendingGroceryName = groceries.addGrocery.pendingParams?.[0];
+  const shoppingGroceryId = groceries.shopGrocery.pendingParams?.[0];
+
+  useEffect(groceries.subscribe, []);
 
   return (
     <div className="bg-white flex flex-col h-screen">
@@ -57,8 +58,8 @@ export function Groceries({ groceries }: Props) {
             <input
               id="search"
               name="search"
-              value={groceryInput}
-              onChange={(event) => setGroceryInput(event.target.value)}
+              value={filter}
+              onChange={(event) => setFilter(event.target.value)}
               className="block w-full bg-white border border-gray-300 rounded-md py-2 pl-10 pr-3 text-sm placeholder-gray-500 focus:outline-none focus:text-gray-900 focus:placeholder-gray-400 focus:ring-1 focus:ring-rose-500 focus:border-rose-500 sm:text-sm"
               placeholder="Add/Filter grocery..."
               type="search"
@@ -69,12 +70,12 @@ export function Groceries({ groceries }: Props) {
           <button
             type="button"
             className="disabled:opacity-50 bg-white whitespace-nowrap inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-light-blue-500"
-            {...(groceryInput.length
+            {...(filter.length && !pendingGroceryName
               ? {
                   disabled: false,
                   onClick: () => {
-                    groceries.addGrocery(groceryInput);
-                    setGroceryInput("");
+                    groceries.addGrocery.mutate(filter);
+                    setFilter("");
                   },
                 }
               : { disabled: true, onClick: undefined })}
@@ -88,25 +89,39 @@ export function Groceries({ groceries }: Props) {
         </span>
       </div>
       <ul className="relative z-0 divide-y divide-gray-200 border-b border-gray-200 overflow-y-scroll">
-        {filteredGroceries.map((grocery) => {
-          return (
-            <li
-              key={grocery.id}
-              onClick={() => grocery.shop()}
-              className="relative pl-4 pr-6 py-5 hover:bg-gray-50 sm:py-6 sm:pl-6 lg:pl-8 xl:pl-6"
-            >
-              <div className="flex items-center">
-                <span className="block">
-                  <h2 className="font-medium">
-                    <span className="absolute inset-0" aria-hidden="true" />
-                    {grocery.name}
-                  </h2>
-                </span>
-              </div>
-            </li>
-          );
-        })}
+        {pendingGroceryName ? (
+          <Grocery name={pendingGroceryName} onClick={() => {}} />
+        ) : null}
+        {groceries
+          .filterGroceries(filter)
+          .map((grocery) =>
+            shoppingGroceryId === grocery.id ? null : (
+              <Grocery
+                key={grocery.id}
+                name={grocery.name}
+                onClick={() => groceries.shopGrocery.mutate(grocery.id)}
+              />
+            )
+          )}
       </ul>
     </div>
+  );
+}
+
+function Grocery({ name, onClick }: { name: string; onClick: () => void }) {
+  return (
+    <li
+      onClick={onClick}
+      className="relative pl-4 pr-6 py-5 hover:bg-gray-50 sm:py-6 sm:pl-6 lg:pl-8 xl:pl-6"
+    >
+      <div className="flex items-center">
+        <span className="block">
+          <h2 className="font-medium">
+            <span className="absolute inset-0" aria-hidden="true" />
+            {name}
+          </h2>
+        </span>
+      </div>
+    </li>
   );
 }

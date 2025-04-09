@@ -3,39 +3,15 @@ import type { FamilyDTO, UserDTO } from "../environment/Persistence";
 import { reactive } from "mobx-lite";
 import { FamilyScrumState } from "./FamilyScrumState";
 import { Environment } from "../environment";
-import { FamilyState } from "./FamilyState";
-import { UserState } from "./UserState";
 
 type CachedAuthentication = { user: UserDTO; family: FamilyDTO };
 
-export type AUTHENTICATED = {
-  current: "AUTHENTICATED";
-  user: UserState;
-  family: FamilyState;
-  familyScrum: FamilyScrumState;
-};
-
-export type AUTHENTICATING = {
-  current: "AUTHENTICATING";
-};
-
-export type UNAUTHENTICATED = {
-  current: "UNAUTHENTICATED";
-  reason?: string;
-  signIn(): void;
-};
-
 const AUTHENTICATION_CACHE_KEY = "family_scrum_authentication";
-
-export type SessionState = ReturnType<typeof SessionState>;
 
 type Params = { env: Environment };
 
 export function SessionState({ env }: Params) {
   const { authentication, persistence } = env;
-
-  // We dispose of everything when signed out
-  const disposers = new Set<() => void>();
 
   // It takes quite a long time for Firebase to evalaute the curent session, we
   // use a cached user and family to get rolling faster
@@ -46,20 +22,20 @@ export function SessionState({ env }: Params) {
     ? AUTHENTICATED(cachedAuthentication.user, cachedAuthentication.family)
     : AUTHENTICATING();
 
-  const session = reactive({
-    state: initialState as AUTHENTICATED | AUTHENTICATING | UNAUTHENTICATED,
+  const state = reactive({
+    state: initialState as
+      | ReturnType<typeof AUTHENTICATED>
+      | ReturnType<typeof AUTHENTICATING>
+      | ReturnType<typeof UNAUTHENTICATED>,
   });
 
   authentication.onChanged(onAuthChanged);
 
-  return reactive.readonly(session);
+  return reactive.readonly(state);
 
-  function UNAUTHENTICATED(reason?: string): UNAUTHENTICATED {
-    disposers.forEach((dispose) => dispose());
-    disposers.clear();
-
+  function UNAUTHENTICATED(reason?: string) {
     return {
-      current: "UNAUTHENTICATED",
+      current: "UNAUTHENTICATED" as const,
       reason,
       signIn() {
         authentication.signIn();
@@ -67,28 +43,22 @@ export function SessionState({ env }: Params) {
     };
   }
 
-  function AUTHENTICATING(): AUTHENTICATING {
+  function AUTHENTICATING() {
     return {
-      current: "AUTHENTICATING",
+      current: "AUTHENTICATING" as const,
     };
   }
 
   function AUTHENTICATED(user: UserDTO, family: FamilyDTO) {
-    const authenticated: AUTHENTICATED = reactive({
-      current: "AUTHENTICATED",
+    const authenticated = reactive({
+      current: "AUTHENTICATED" as const,
       user,
-      family: FamilyState({ data: family }),
-      get familyScrum() {
-        return familyScrum;
-      },
-    });
-
-    const familyScrum = FamilyScrumState({
-      env,
-      session: authenticated,
-      onDispose(disposer) {
-        disposers.add(disposer);
-      },
+      family,
+      familyScrum: FamilyScrumState({
+        env,
+        user,
+        family,
+      }),
     });
 
     return authenticated;
@@ -96,7 +66,7 @@ export function SessionState({ env }: Params) {
 
   async function onAuthChanged(maybeUser: FirebaseUser | null) {
     if (!maybeUser) {
-      session.state = UNAUTHENTICATED();
+      state.state = UNAUTHENTICATED();
 
       return;
     }
@@ -117,23 +87,23 @@ export function SessionState({ env }: Params) {
       }
 
       if (
-        session.state.current === "AUTHENTICATED" &&
-        session.state.user.id === user.id &&
-        session.state.user.familyId === user.familyId
+        state.state.current === "AUTHENTICATED" &&
+        state.state.user.id === user.id &&
+        state.state.user.familyId === user.familyId
       ) {
         return;
       }
 
       // Theoretically we could already be unauthenticated by Firebase for whatever reason. Something
       // like RxJS would be interesting to explore here.
-      session.state = AUTHENTICATED(user, family);
+      state.state = AUTHENTICATED(user, family);
 
       localStorage.setItem(
         AUTHENTICATION_CACHE_KEY,
         JSON.stringify({ user, family })
       );
     } catch (e) {
-      session.state = UNAUTHENTICATED(String(e));
+      state.state = UNAUTHENTICATED(String(e));
     }
   }
 }

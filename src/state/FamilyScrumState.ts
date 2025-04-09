@@ -1,67 +1,43 @@
 import { reactive } from "mobx-lite";
 import { Environment } from "../environment";
-import { AUTHENTICATED } from "./SessionState";
 import { GroceriesState } from "./GroceriesState";
 import { DinnersState } from "./DinnersState";
 import { TodosState } from "./TodosState";
 import { WeeksState } from "./WeeksState";
-
-export type FamilyScrumState = ReturnType<typeof FamilyScrumState>;
+import { FamilyDTO, UserDTO } from "../environment/Persistence";
 
 type Params = {
   env: Environment;
-  session: AUTHENTICATED;
-  onDispose: (dispose: () => void) => void;
+  user: UserDTO;
+  family: FamilyDTO;
 };
 
-export function FamilyScrumState({ env, session, onDispose }: Params) {
-  const familyPersistence = env.persistence.createFamilyApi(session.family.id);
-  const familyStorage = env.storage.createFamilyStorage(session.family.id);
+export function FamilyScrumState({ env, user, family }: Params) {
+  const familyPersistence = env.persistence.createFamilyApi(family.id);
+  const familyStorage = env.storage.createFamilyStorage(family.id);
 
-  const familyScrum = reactive({
-    session,
+  const state = reactive({
+    user,
+    family,
     awake: env.awake,
-    get groceries() {
-      return groceries;
-    },
-    get todos() {
-      return todos;
-    },
-    get dinners() {
-      return dinners;
-    },
-    get weeks() {
-      return weeks;
-    },
+    groceries: GroceriesState({
+      env,
+      familyPersistence,
+    }),
+    todos: TodosState({
+      env,
+      familyPersistence,
+      user,
+    }),
+    dinners: DinnersState({
+      env,
+      familyPersistence,
+      familyStorage,
+    }),
+    weeks: WeeksState({
+      familyPersistence,
+    }),
   });
 
-  const groceries = GroceriesState({
-    env,
-    onDispose,
-    familyPersistence,
-    familyScrum,
-  });
-
-  const todos = TodosState({
-    env,
-    familyScrum,
-    familyPersistence,
-    onDispose,
-  });
-
-  const dinners = DinnersState({
-    env,
-    familyScrum,
-    familyPersistence,
-    familyStorage,
-    onDispose,
-  });
-
-  const weeks = WeeksState({
-    familyScrum,
-    familyPersistence,
-    onDispose,
-  });
-
-  return reactive.readonly(familyScrum);
+  return reactive.readonly(state);
 }

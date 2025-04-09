@@ -2269,10 +2269,10 @@ minimatch@^9.0.4:
   dependencies:
     brace-expansion "^2.0.1"
 
-mobx-lite@^0.1.0:
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/mobx-lite/-/mobx-lite-0.1.0.tgz#0396db374527dc4def0d794dd6d81e02ba9ec613"
-  integrity sha512-+xQKPBzEgB0bJseDkQikl9x1nmKRywe1wyX1s6J5kx2EqTfa/QyEYJcAnZlCAafryYDh5xLffLZnN39YqFsCiw==
+mobx-lite@^0.1.8:
+  version "0.1.8"
+  resolved "https://registry.yarnpkg.com/mobx-lite/-/mobx-lite-0.1.8.tgz#8f7b3aa639675df96e9791f29d4ef3feb77669af"
+  integrity sha512-VtgM5/eKugevZ2CxzQFVgWSggOHbCTSrBiGFYMkQ7nOlz38aiMZC7OFCxydI/QuIfhZVEmhEHRQCAyzpcHo+vg==
   dependencies:
     "@babel/core" "^7.26.7"
     "@babel/traverse" "^7.26.7"

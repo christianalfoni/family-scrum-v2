@@ -1,9 +1,7 @@
 import { reactive } from "mobx-lite";
-import { FamilyScrumState } from "./FamilyScrumState";
 import { Environment } from "../environment";
 import { DinnerDTO, FamilyPersistence } from "../environment/Persistence";
 import { FamilyStorage } from "../environment/Storage";
-import { DinnerState } from "./DinnerState";
 
 export type NewDinner = {
   name: string;
@@ -14,39 +12,66 @@ export type NewDinner = {
   imageSrc?: string;
 };
 
-export type DinnersState = ReturnType<typeof DinnersState>;
-
 type Params = {
   env: Environment;
   familyPersistence: FamilyPersistence;
   familyStorage: FamilyStorage;
-  familyScrum: FamilyScrumState;
-  onDispose: (dispose: () => void) => void;
 };
 
 export function DinnersState({
   env,
   familyPersistence,
   familyStorage,
-  onDispose,
-  familyScrum,
 }: Params) {
-  const dinners = reactive({
-    familyScrum,
-    dinners: [] as DinnerState[],
-    addDinner,
+  const dinnerImageQueries: Record<string, reactive.Query<string>> = {};
+  const dinnerQueries: Record<string, reactive.Query<DinnerDTO>> = {};
+
+  const state = reactive({
+    dinnersQuery: reactive.query(familyPersistence.dinners.getAll),
+    queryDinnerImage,
+    queryDinner,
+    addDinnerMutation: reactive.mutation(addDinner),
+    setDinnerImageMutation: reactive.mutation(setDinnerImage),
+    subscribe,
   });
 
-  onDispose(
-    familyPersistence.dinners.subscribeAll((data) => {
-      dinners.dinners = data.map(createDinner);
-    })
-  );
+  return reactive.readonly(state);
 
-  return reactive.readonly(dinners);
+  function subscribe() {
+    // TODO: Pass ids to the callback so we can invalidate individual queries
+    return familyPersistence.dinners.subscribeChanges(() => {
+      state.dinnersQuery.revalidate();
+    });
+  }
 
-  function createDinner(data: DinnerDTO): DinnerState {
-    return DinnerState({ data, familyStorage });
+  function queryDinner(id: string) {
+    if (!dinnerQueries[id]) {
+      dinnerQueries[id] = reactive.query(() =>
+        familyPersistence.dinners.get(id)
+      );
+    }
+
+    return dinnerQueries[id];
+  }
+
+  function queryDinnerImage(imageRef: string) {
+    if (!dinnerImageQueries[imageRef]) {
+      dinnerImageQueries[imageRef] = reactive.query(() =>
+        familyStorage.getImageUrl(imageRef)
+      );
+    }
+
+    return dinnerImageQueries[imageRef];
+  }
+
+  async function setDinnerImage({
+    id,
+    imageSrc,
+  }: {
+    id: string;
+    imageSrc: string;
+  }): Promise<void> {
+    await familyStorage.uploadImage("dinners", id, imageSrc);
   }
 
   async function addDinner(newDinner: NewDinner) {
@@ -62,7 +87,7 @@ export function DinnersState({
       );
     }
 
-    familyPersistence.dinners.set({
+    await familyPersistence.dinners.set({
       id,
       name: newDinner.name,
       description: newDinner.description,
@@ -73,5 +98,7 @@ export function DinnersState({
       created: env.persistence.createTimestamp(),
       modified: env.persistence.createTimestamp(),
     });
+
+    await state.dinnersQuery.revalidate();
   }
 }

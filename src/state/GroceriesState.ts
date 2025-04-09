@@ -1,45 +1,39 @@
 import { reactive } from "mobx-lite";
 import levenshtein from "fast-levenshtein";
 import { FamilyScrumState } from "./FamilyScrumState";
-import { FamilyPersistence, GroceryDTO } from "../environment/Persistence";
+import { FamilyPersistence } from "../environment/Persistence";
 import { Environment } from "../environment";
-import { GroceryState } from "./GroceryState";
 
 export type GroceriesState = ReturnType<typeof GroceriesState>;
 
 type Params = {
-  familyScrum: FamilyScrumState;
   familyPersistence: FamilyPersistence;
   env: Environment;
-  onDispose: (dispose: () => void) => void;
 };
 
-export function GroceriesState({
-  env,
-  familyPersistence,
-  familyScrum,
-  onDispose,
-}: Params) {
+export function GroceriesState({ env, familyPersistence }: Params) {
   const peristence = env.persistence;
   const groceriesApi = familyPersistence.groceries;
-  const groceries = reactive({
-    familyScrum,
-    groceries: {} as Record<string, GroceryState>,
-    addGrocery,
-    filter,
+  const state = reactive({
+    groceries: reactive.query(groceriesApi.getAll),
+    filterGroceries,
+    addGrocery: reactive.mutation(addGrocery),
+    shopGrocery: reactive.mutation(shopGrocery),
+    subscribe,
   });
 
-  onDispose(familyPersistence.groceries.subscribeAll(createGroceries));
+  return reactive.readonly(state);
 
-  return reactive.readonly(groceries);
+  function subscribe() {
+    return groceriesApi.subscribeChanges(() => {
+      console.log("Revalidating!");
+      state.groceries.revalidate();
+    });
+  }
 
-  function createGroceries(groceryDTOs: GroceryDTO[]) {
-    for (const groceryDTO of groceryDTOs) {
-      groceries.groceries[groceryDTO.id] = GroceryState({
-        data: groceryDTO,
-        familyPersistence,
-      });
-    }
+  async function shopGrocery(id: string) {
+    await familyPersistence.groceries.delete(id);
+    await state.groceries.revalidate();
   }
 
   async function addGrocery(name: string) {
@@ -49,14 +43,17 @@ export function GroceriesState({
       created: peristence.createTimestamp(),
       modified: peristence.createTimestamp(),
     });
+
+    await state.groceries.revalidate();
   }
 
-  function filter(filter: string): GroceryState[] {
+  function filterGroceries(filter: string) {
     const lowerCaseInput = filter.toLowerCase();
     const now = Date.now();
+    const groceries = state.groceries.value || [];
 
     return filter
-      ? Object.values(groceries.groceries)
+      ? groceries
           .filter((grocery) => {
             const lowerCaseGroceryName = grocery.name.toLowerCase();
 
@@ -78,14 +75,14 @@ export function GroceriesState({
 
             return 0;
           })
-      : Object.values(groceries.groceries).sort((a, b) => {
+      : groceries.slice().sort((a, b) => {
           if (
             a.created.toMillis() > now ||
             a.name.toLowerCase() < b.name.toLowerCase()
           ) {
-            return -1;
-          } else if (a.name.toLowerCase() > b.name.toLowerCase()) {
             return 1;
+          } else if (a.name.toLowerCase() > b.name.toLowerCase()) {
+            return -1;
           }
 
           return 0;

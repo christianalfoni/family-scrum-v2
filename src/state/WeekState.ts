@@ -5,12 +5,9 @@ import {
   WeekTodoActivityDTO,
   WeekTodoDTO,
 } from "../environment/Persistence";
-import { FamilyScrumState } from "./FamilyScrumState";
 import { FamilyMember } from "./FamilyState";
 
 import { DocumentChange } from "firebase/firestore";
-import { DinnerState } from "./DinnerState";
-import { TodoState } from "./TodoState";
 
 export type WeekState = ReturnType<typeof WeekState>;
 
@@ -34,16 +31,9 @@ export type WeekTodo = {
 type Params = {
   weekId: string;
   familyPersistence: FamilyPersistence;
-  familyScrum: FamilyScrumState;
-  onDispose: (dispose: () => void) => void;
 };
 
-export function WeekState({
-  weekId,
-  familyPersistence,
-  familyScrum,
-  onDispose,
-}: Params) {
+export function WeekState({ weekId, familyPersistence }: Params) {
   const weekTodosApi = familyPersistence.createWeekTodosApi(weekId);
   const week = reactive({
     id: weekId,
@@ -141,5 +131,29 @@ export function WeekState({
     }
 
     return assignments;
+  }
+
+  async function setAssignments(
+    todoId: string,
+    assignments: WeekTodoActivityDTO
+  ) {
+    nextWeekTodosApi.upsert(todoId, (data) => {
+      if (!data) {
+        return {
+          id: todoId,
+          activityByUserId: {
+            [user.id]: assignments,
+          },
+        };
+      }
+
+      return {
+        ...data,
+        activityByUserId: {
+          ...data.activityByUserId,
+          [user.id]: assignments,
+        },
+      };
+    });
   }
 }

@@ -1,4 +1,4 @@
-import { reactive } from "bonsify";
+import { reactive } from "mobx-lite";
 
 export type NOT_STARTED = {
   current: "NOT_STARTED";

@@ -5,12 +5,13 @@ import "./index.css";
 import "swiper/css";
 
 import Session from "./components/Session";
-import * as state from "./state";
-import { BrowserEnvironment } from "./environment/Browser";
-import { BrowserRouter } from "react-router";
 
-const env = BrowserEnvironment();
-const session = state.Session({ env });
+import { Environment } from "./environment";
+import { BrowserRouter } from "react-router";
+import { SessionState } from "./state/SessionState";
+
+const env = Environment();
+const session = SessionState({ env });
 
 createRoot(document.getElementById("root")!).render(
   <BrowserRouter>

@@ -1,60 +1,115 @@
 import { reactive } from "mobx-lite";
 import { Environment } from "../environment";
-import { FamilyPersistence, TodoDTO } from "../environment/Persistence";
-import { FamilyScrumState } from "./FamilyScrumState";
-import { TodoState } from "./TodoState";
-import { getNextWeekId } from "../utils";
+import {
+  CheckListItemDTO,
+  FamilyPersistence,
+  TodoDTO,
+  UserDTO,
+} from "../environment/Persistence";
 
-export type TodosState = ReturnType<typeof TodosState>;
+type TodoDTOWithCheckList = Omit<TodoDTO, "checkList"> & {
+  checkList: CheckListItemDTO[];
+};
 
 type Params = {
   familyPersistence: FamilyPersistence;
-  familyScrum: FamilyScrumState;
   env: Environment;
-  onDispose: (dispose: () => void) => void;
+  user: UserDTO;
 };
 
-export function TodosState({
-  familyPersistence,
-  onDispose,
-  familyScrum,
-  env,
-}: Params) {
-  const nextWeekTodosApi = familyPersistence.createWeekTodosApi(
-    getNextWeekId()
-  );
-  const todos = reactive({
-    familyScrum,
-    todos: [] as TodoState[],
-    get todosWithCheckList(): TodoState[] {
-      return todos.todos.filter((todo) => Boolean(todo.checkList.length));
+export function TodosState({ familyPersistence, env, user }: Params) {
+  const todoQueries = {} as Record<string, reactive.Query<TodoDTO>>;
+  const state = reactive({
+    todosQuery: reactive.query(familyPersistence.todos.getAll),
+    get todosWithCheckList() {
+      return (state.todosQuery.value || []).filter(
+        (todo): todo is TodoDTOWithCheckList => Boolean(todo.checkList)
+      );
     },
-    addTodo,
+    queryTodo,
+    addTodoMutation: reactive.mutation(addTodo),
+    archiveTodoMutation: reactive.mutation(archiveTodo),
+    addCheckListItemMutation: reactive.mutation(addCheckListItem),
+    removeCheckListItemMutation: reactive.mutation(removeCheckListItem),
+    toggleCheckListItemMutation: reactive.mutation(toggleCheckListItem),
+    subscribe,
   });
 
-  onDispose(
-    familyPersistence.todos.subscribeAll((data) => {
-      todos.todos = data.map(createTodo);
-    })
-  );
+  return reactive.readonly(state);
 
-  return reactive.readonly(todos);
-
-  function createTodo(data: TodoDTO) {
-    return TodoState({
-      data,
-      familyPersistence,
-      familyScrum,
-      nextWeekTodosApi,
+  function subscribe() {
+    return familyPersistence.todos.subscribeChanges(() => {
+      state.todosQuery.revalidate();
     });
   }
 
-  function addTodo(description: string) {
-    familyPersistence.todos.set({
+  function queryTodo(todoId: string) {
+    if (!todoQueries[todoId]) {
+      todoQueries[todoId] = reactive.query(() =>
+        familyPersistence.todos.get(todoId)
+      );
+    }
+
+    return todoQueries[todoId];
+  }
+
+  async function archiveTodo(todoId: string) {
+    await familyPersistence.todos.delete(todoId);
+    await state.todosQuery.revalidate();
+  }
+
+  async function addTodo(description: string) {
+    await familyPersistence.todos.set({
       id: familyPersistence.todos.createId(),
       description,
       created: env.persistence.createTimestamp(),
       modified: env.persistence.createTimestamp(),
     });
+    await state.todosQuery.revalidate();
+  }
+
+  async function addCheckListItem(todoId: string, description: string) {
+    await familyPersistence.todos.update(todoId, (data) => ({
+      ...data,
+      checkList: [
+        ...(data.checkList || []),
+        {
+          title: description,
+          completed: false,
+        },
+      ],
+    }));
+    await state.todosQuery.revalidate();
+  }
+
+  async function removeCheckListItem(todoId: string, index: number) {
+    await familyPersistence.todos.update(todoId, (data) => ({
+      ...data,
+      checkList: data.checkList?.filter((_, itemIndex) => itemIndex !== index),
+    }));
+    await state.todosQuery.revalidate();
+  }
+
+  async function toggleCheckListItem(todoId: string, index: number) {
+    await familyPersistence.todos.update(todoId, (data) => ({
+      ...data,
+      checkList: data.checkList?.map((checkListItem, i) => {
+        if (i !== index) return checkListItem;
+
+        const completed = !checkListItem.completed;
+
+        return completed
+          ? {
+              completed: true,
+              completedByUserId: user.id,
+              title: checkListItem.title,
+            }
+          : {
+              completed: false,
+              title: checkListItem.title,
+            };
+      }),
+    }));
+    await state.todosQuery.revalidate();
   }
 }

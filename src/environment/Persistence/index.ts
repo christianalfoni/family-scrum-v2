@@ -15,7 +15,6 @@ import {
   updateDoc,
   UpdateData,
   runTransaction,
-  DocumentChange,
 } from "firebase/firestore";
 import * as converters from "./converters";
 
@@ -40,6 +39,53 @@ export enum Collection {
 export type Persistence = ReturnType<typeof Persistence>;
 export type FamilyPersistence = ReturnType<Persistence["createFamilyApi"]>;
 export type WeekTodosApi = ReturnType<FamilyPersistence["createWeekTodosApi"]>;
+
+/**
+ * Performs deep equality comparison between two values with special handling for Timestamp objects
+ */
+function isEqualData(a: any, b: any): boolean {
+  // Handle null/undefined cases
+  if (a === b) return true;
+  if (a == null || b == null) return false;
+
+  // Handle Timestamp objects
+  if (a instanceof Timestamp && b instanceof Timestamp) {
+    return a.isEqual(b);
+  }
+
+  // Handle Date objects
+  if (a instanceof Date && b instanceof Date) {
+    return a.getTime() === b.getTime();
+  }
+
+  // Check if both are objects
+  if (typeof a !== "object" || typeof b !== "object") return a === b;
+
+  // Handle arrays
+  if (Array.isArray(a) && Array.isArray(b)) {
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) {
+      if (!isEqualData(a[i], b[i])) return false;
+    }
+    return true;
+  }
+
+  // If one is array but other is not
+  if (Array.isArray(a) !== Array.isArray(b)) return false;
+
+  // Handle objects
+  const keysA = Object.keys(a);
+  const keysB = Object.keys(b);
+
+  if (keysA.length !== keysB.length) return false;
+
+  for (const key of keysA) {
+    if (!keysB.includes(key)) return false;
+    if (!isEqualData(a[key], b[key])) return false;
+  }
+
+  return true;
+}
 
 /**
  * Creates an API specific to the collections and related functionality needed for this app,
@@ -124,19 +170,27 @@ export function Persistence(app: FirebaseApp) {
   function createCollectionApi<T extends { id: string }>(
     collection: CollectionReference<T>
   ) {
+    const pendingIds = new Set<string>();
+
     return {
       createId() {
-        return collection.id;
+        return doc(collection).id;
       },
       async get(id: string) {
         const docRef = doc(collection, id);
         const document = await getDoc(docRef);
         const data = document.data();
 
+        if (!data) {
+          throw new Error("can not find document");
+        }
+
         return data;
       },
       set(data: T) {
         const docRef = doc(collection, data.id);
+
+        pendingIds.add(data.id);
 
         return setDoc(docRef, data);
       },
@@ -145,6 +199,8 @@ export function Persistence(app: FirebaseApp) {
         partialData: UpdateData<T> | ((data: T) => UpdateData<T>)
       ) {
         const docRef = doc(collection, id);
+
+        pendingIds.add(id);
 
         if (typeof partialData === "function") {
           return runTransaction(firestore, (transaction) => {
@@ -169,6 +225,8 @@ export function Persistence(app: FirebaseApp) {
       upsert(id: string, updatedData: (data: T | undefined) => T) {
         const docRef = doc(collection, id);
 
+        pendingIds.add(id);
+
         if (typeof updatedData === "function") {
           return runTransaction(firestore, (transaction) => {
             const docRef = doc(collection, id);
@@ -186,6 +244,8 @@ export function Persistence(app: FirebaseApp) {
       delete(id: string) {
         const docRef = doc(collection, id);
 
+        pendingIds.add(id);
+
         return deleteDoc(docRef);
       },
       async getAll() {
@@ -193,24 +253,37 @@ export function Persistence(app: FirebaseApp) {
 
         return querySnapshot.docs.map((doc) => doc.data());
       },
-      subscribe(id: string, cb: (data: T) => void) {
-        const docRef = doc(collection, id);
-        return onSnapshot(docRef, (snapshot) => {
-          const data = snapshot.data();
+      subscribeChanges(cb: () => void) {
+        let hasAppliedInitialSnapshot = false;
 
-          if (data) {
-            cb(data);
+        return onSnapshot(collection, (snapshot) => {
+          if (!hasAppliedInitialSnapshot) {
+            hasAppliedInitialSnapshot = true;
+            return;
           }
-        });
-      },
-      subscribeAll(cb: (data: T[]) => void) {
-        return onSnapshot(collection, (snapshot) => {
-          cb(snapshot.docs.map((doc) => doc.data()));
-        });
-      },
-      subscribeChanges(cb: (changes: DocumentChange<T>[]) => void) {
-        return onSnapshot(collection, (snapshot) => {
-          cb(snapshot.docChanges());
+
+          const changes = snapshot.docChanges();
+
+          let hasRemoteChanges = false;
+
+          changes.forEach((change) => {
+            if (change.doc.metadata.hasPendingWrites) {
+              pendingIds.add(change.doc.id);
+
+              return;
+            }
+
+            if (pendingIds.has(change.doc.id)) {
+              pendingIds.delete(change.doc.id);
+              return;
+            }
+
+            hasRemoteChanges = true;
+          });
+
+          if (hasRemoteChanges) {
+            cb();
+          }
         });
       },
     };

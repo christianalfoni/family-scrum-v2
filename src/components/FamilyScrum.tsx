@@ -1,11 +1,9 @@
-import { Navigate, Route, Routes } from "react-router";
+import { Route, Routes } from "react-router";
 import { Dashboard } from "./Dashboard";
 import { Groceries } from "./Groceries";
 import { CheckLists } from "./CheckLists";
-import { PlanNextWeek } from "./PlanNextWeek";
-import { PlanNextWeekTodos } from "./PlanNextWeek/PlanNextWeekTodos";
-import { PlanNextWeekDinners } from "./PlanNextWeek/PlanNextWeekDinners";
 import { FamilyScrumState } from "../state/FamilyScrumState";
+import { FamilyScrumContext } from "./FamilyScrumContext";
 
 type Props = {
   familyScrum: FamilyScrumState;
@@ -13,16 +11,12 @@ type Props = {
 
 export function FamilyScrum({ familyScrum }: Props) {
   return (
-    <Routes>
-      <Route path="/" element={<Dashboard familyScrum={familyScrum} />} />
-      <Route
-        path="/groceries"
-        element={<Groceries groceries={familyScrum.groceries} />}
-      />
-      <Route
-        path="/checklists"
-        element={<CheckLists todos={familyScrum.todos} />}
-      />
+    <FamilyScrumContext.Provider value={familyScrum}>
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/groceries" element={<Groceries />} />
+        <Route path="/checklists" element={<CheckLists />} />
+        {/*
       <Route path="plan-next-week" element={<PlanNextWeek />}>
         <Route index element={<Navigate to="todos" replace />} />
         <Route
@@ -39,6 +33,8 @@ export function FamilyScrum({ familyScrum }: Props) {
           element={<PlanNextWeekDinners familyScrum={familyScrum} />}
         />
       </Route>
-    </Routes>
+      */}
+      </Routes>
+    </FamilyScrumContext.Provider>
   );
 }

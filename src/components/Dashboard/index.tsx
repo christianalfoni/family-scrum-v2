@@ -6,16 +6,14 @@ import {
 } from "@heroicons/react/24/solid";
 
 import { MenuCard } from "./MenuCard";
-import { FamilyScrumState } from "../../state/FamilyScrumState";
+
+import { useFamilyScrum } from "../FamilyScrumContext";
 
 // import { CurrentWeekTodosContext } from "./CurrentWeekTodosContext";
 // import { AssistantContext } from "./AssistantContext";
 
-type Props = {
-  familyScrum: FamilyScrumState;
-};
-
-export function Dashboard({ familyScrum }: Props) {
+export function Dashboard() {
+  const familyScrum = useFamilyScrum();
   const groceriesCount = Object.values(familyScrum.groceries.groceries).length;
 
   return (

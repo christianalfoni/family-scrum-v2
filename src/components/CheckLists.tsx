@@ -1,13 +1,10 @@
 import { ChevronLeftIcon } from "@heroicons/react/24/solid";
-import { TodosState } from "../state/TodosState";
 import { useNavigate } from "react-router";
 import { Todo } from "./Todo";
+import { useFamilyScrum } from "./FamilyScrumContext";
 
-type Props = {
-  todos: TodosState;
-};
-
-export function CheckLists({ todos }: Props) {
+export function CheckLists() {
+  const { todos } = useFamilyScrum();
   const navigate = useNavigate();
 
   return (
