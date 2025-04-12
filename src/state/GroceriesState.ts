@@ -1,6 +1,5 @@
 import { reactive } from "mobx-lite";
 import levenshtein from "fast-levenshtein";
-import { FamilyScrumState } from "./FamilyScrumState";
 import { FamilyPersistence } from "../environment/Persistence";
 import { Environment } from "../environment";
 

@@ -1,14 +1,13 @@
 import { weekdays } from "../../utils";
 import { DinnerAssignment } from "./DinnerAssignment";
-import { FamilyScrumState } from "../../state/FamilyScrumState";
+import { useFamilyScrum } from "../FamilyScrumContext";
 
-type Props = {
-  familyScrum: FamilyScrumState;
-};
-
-export function PlanNextWeekDinners({ familyScrum }: Props) {
-  const dinners = familyScrum.dinners.dinners;
-  const weekDinners = familyScrum.weeks.next.dinners;
+export function PlanNextWeekDinners() {
+  const familyScrum = useFamilyScrum();
+  const nextWeekQuery = familyScrum.weeks.next.weekQuery;
+  const dinnersQuery = familyScrum.dinners.dinnersQuery;
+  const dinners = dinnersQuery.value || [];
+  const weekDinners = nextWeekQuery.value?.dinners || [];
 
   return (
     <ul className="relative z-0 divide-y divide-gray-200 border-b border-gray-200 overflow-y-scroll">
@@ -21,9 +20,7 @@ export function PlanNextWeekDinners({ familyScrum }: Props) {
           }}
           weekday={weekday}
           dinners={dinners}
-          activeDinner={
-            weekDinners.find((dinner) => dinner.weekDay === index)?.id ?? null
-          }
+          activeDinner={weekDinners[index] ?? null}
         />
       ))}
     </ul>
