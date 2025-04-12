@@ -12,6 +12,8 @@ type Params = {
   family: FamilyDTO;
 };
 
+export type FamilyScrumState = ReturnType<typeof FamilyScrumState>;
+
 export function FamilyScrumState({ env, user, family }: Params) {
   const familyPersistence = env.persistence.createFamilyApi(family.id);
   const familyStorage = env.storage.createFamilyStorage(family.id);
@@ -36,6 +38,7 @@ export function FamilyScrumState({ env, user, family }: Params) {
     }),
     weeks: WeeksState({
       familyPersistence,
+      user,
     }),
   });
 

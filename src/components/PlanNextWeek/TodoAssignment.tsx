@@ -1,69 +1,87 @@
+import { TodoDTO, WeekTodoActivityDTO } from "../../environment/Persistence";
 import { weekdays } from "../../utils";
-import { TodoState } from "../../state/TodoState";
-import { WeekState } from "../../state/WeekState";
-import { TodosState } from "../../state/TodosState";
+import { useFamilyScrum } from "../FamilyScrumContext";
 
 type Props = {
-  todo: TodoState;
-  todos: TodosState;
-  week: WeekState;
-  previousWeek: WeekState;
+  todo: TodoDTO;
 };
 
-export function TodoAssignment({ todo, week, previousWeek, todos }: Props) {
-  console.log("RENDER ASSIGNMENT");
-  const weekTodo = week.todos.find((weekTodo) => weekTodo.id === todo.id);
-  const todoAssignments = weekTodo?.assignments ?? [];
+export function TodoAssignment({ todo }: Props) {
+  const { weeks, family, user } = useFamilyScrum();
+
+  const setAssigmentsMutation = weeks.current.setAssignmentsMutation;
+  const weekTodo = weeks.current.queryWeekTodo(todo.id);
+  const previousWeekTodo = weeks.previous.queryWeekTodo(todo.id);
+  const todoAssignments = weekTodo.value?.activityByUserId ?? {};
   const previousTodoAssignments =
-    previousWeek.todos.find((weekTodo) => weekTodo.id === todo.id)
-      ?.assignments ?? [];
+    previousWeekTodo.value?.activityByUserId ?? {};
 
-  return todos.familyScrum.session.family.members.map((familyMember) => {
-    const weekActivity = todoAssignments.find(
-      (assignment) => assignment.familyMember.id === familyMember.id
-    )?.activity ?? [false, false, false, false, false, false, false];
-    const previousWeekActivity = previousTodoAssignments.find(
-      (assignment) => assignment.familyMember.id === familyMember.id
-    )?.activity;
+  return Object.entries(family.users)
+    .sort(([a]) => (a === user.id ? -1 : 1))
+    .map(([familyUserId, familyUser]) => {
+      const weekActivity =
+        familyUserId === user.id &&
+        setAssigmentsMutation.pendingParams &&
+        todo.id === setAssigmentsMutation.pendingParams[0]
+          ? setAssigmentsMutation.pendingParams[1]
+          : todoAssignments[familyUserId] || [
+              false,
+              false,
+              false,
+              false,
+              false,
+              false,
+              false,
+            ];
+      const previousWeekActivity = previousTodoAssignments[familyUserId] || [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+      ];
 
-    return (
-      <div
-        key={familyMember.id}
-        className="flex pt-2 items-center justify-between"
-      >
-        <img
-          className="max-w-none h-6 w-6 rounded-full ring-2 ring-white"
-          src={familyMember.avatar!}
-          alt={familyMember.name}
-        />
-        {weekActivity.map((isActive, index) => {
-          const activePreviousWeek = Boolean(previousWeekActivity?.[index]);
+      return (
+        <div
+          key={familyUserId}
+          className="flex pt-2 items-center justify-between"
+        >
+          <img
+            className="max-w-none h-6 w-6 rounded-full ring-2 ring-white"
+            src={familyUser.avatar!}
+            alt={familyUser.name}
+          />
+          {weekActivity.map((isActive, index) => {
+            const activePreviousWeek = Boolean(previousWeekActivity?.[index]);
 
-          return (
-            <button
-              key={index}
-              type="button"
-              disabled={todos.familyScrum.session.user.id !== familyMember.id}
-              onClick={() => {
-                todo.setAssignment(index, !isActive);
-              }}
-              className={`${
-                isActive
-                  ? "text-white bg-red-500"
-                  : activePreviousWeek
-                  ? "text-gray-700 bg-gray-200"
-                  : "text-gray-700 bg-white"
-              } ${
-                todos.familyScrum.session.user.id === familyMember.id
-                  ? ""
-                  : "opacity-50"
-              } order-1 w-10 h-8 justify-center inline-flex items-center px-2 py-1 border border-gray-300 shadow-sm text-xs font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500`}
-            >
-              {weekdays[index].substr(0, 2)}
-            </button>
-          );
-        })}
-      </div>
-    );
-  });
+            return (
+              <button
+                key={index}
+                type="button"
+                disabled={user.id !== familyUserId}
+                onClick={() => {
+                  const newWeekActivity =
+                    weekActivity.slice() as WeekTodoActivityDTO;
+                  newWeekActivity[index] = !isActive;
+                  setAssigmentsMutation.mutate(todo.id, newWeekActivity);
+                }}
+                className={`${
+                  isActive
+                    ? "text-white bg-red-500"
+                    : activePreviousWeek
+                    ? "text-gray-700 bg-gray-200"
+                    : "text-gray-700 bg-white"
+                } ${
+                  user.id === familyUserId ? "" : "opacity-50"
+                } order-1 w-10 h-8 justify-center inline-flex items-center px-2 py-1 border border-gray-300 shadow-sm text-xs font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500`}
+              >
+                {weekdays[index].substring(0, 2)}
+              </button>
+            );
+          })}
+        </div>
+      );
+    });
 }

@@ -2,10 +2,13 @@ import { ChevronLeftIcon } from "@heroicons/react/24/solid";
 import { useNavigate } from "react-router";
 import { Todo } from "./Todo";
 import { useFamilyScrum } from "./FamilyScrumContext";
+import { useEffect } from "react";
 
 export function CheckLists() {
   const { todos } = useFamilyScrum();
   const navigate = useNavigate();
+
+  useEffect(todos.subscribe, []);
 
   return (
     <div className="bg-white flex flex-col h-screen">

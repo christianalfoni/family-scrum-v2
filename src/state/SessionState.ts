@@ -10,6 +10,8 @@ const AUTHENTICATION_CACHE_KEY = "family_scrum_authentication";
 
 type Params = { env: Environment };
 
+export type SessionState = ReturnType<typeof SessionState>;
+
 export function SessionState({ env }: Params) {
   const { authentication, persistence } = env;
 

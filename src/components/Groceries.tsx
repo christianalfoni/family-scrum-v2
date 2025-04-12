@@ -89,9 +89,7 @@ export function Groceries() {
         </span>
       </div>
       <ul className="relative z-0 divide-y divide-gray-200 border-b border-gray-200 overflow-y-scroll">
-        {pendingGroceryName ? (
-          <Grocery name={pendingGroceryName} onClick={() => {}} />
-        ) : null}
+        {pendingGroceryName ? <Grocery name={pendingGroceryName} /> : null}
         {groceries
           .filterGroceries(filter)
           .map((grocery) =>
@@ -108,7 +106,7 @@ export function Groceries() {
   );
 }
 
-function Grocery({ name, onClick }: { name: string; onClick: () => void }) {
+function Grocery({ name, onClick }: { name: string; onClick?: () => void }) {
   return (
     <li
       onClick={onClick}

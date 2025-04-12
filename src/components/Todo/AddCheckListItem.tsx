@@ -16,7 +16,7 @@ export function AddCheckListItem({ onAdd }: Props) {
           type="text"
           value={title}
           onChange={(event) => setTitle(event.target.value)}
-          className="block w-full shadow-sm focus:ring-light-blue-500 focus:border-light-blue-500 sm:text-sm border-gray-300 rounded-md"
+          className="block px-2 h-full w-full shadow-sm focus:ring-light-blue-500 focus:border-light-blue-500 sm:text-sm border-gray-300 rounded-md"
           placeholder="Title..."
           aria-describedby="add_team_members_helper"
         />

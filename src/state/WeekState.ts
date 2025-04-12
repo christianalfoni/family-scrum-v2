@@ -1,143 +1,62 @@
 import { reactive } from "mobx-lite";
 import {
   FamilyPersistence,
-  WeekDTO,
+  UserDTO,
   WeekTodoActivityDTO,
   WeekTodoDTO,
 } from "../environment/Persistence";
-import { FamilyMember } from "./FamilyState";
-
-import { DocumentChange } from "firebase/firestore";
-
-export type WeekState = ReturnType<typeof WeekState>;
-
-export type WeekDinner = {
-  id: string;
-  dinner: DinnerState;
-  weekDay: number;
-};
-
-export type WeekTodoAssignment = {
-  familyMember: FamilyMember;
-  activity: WeekTodoActivityDTO;
-};
-
-export type WeekTodo = {
-  id: string;
-  todo: TodoState;
-  assignments: WeekTodoAssignment[];
-};
 
 type Params = {
   weekId: string;
+  user: UserDTO;
   familyPersistence: FamilyPersistence;
 };
 
-export function WeekState({ weekId, familyPersistence }: Params) {
+export function WeekState({ weekId, user, familyPersistence }: Params) {
   const weekTodosApi = familyPersistence.createWeekTodosApi(weekId);
-  const week = reactive({
+  const weekTodoQueries: Record<string, reactive.Query<WeekTodoDTO>> = {};
+
+  const state = reactive({
     id: weekId,
-    dinners: [] as WeekDinner[],
-    todos: [] as WeekTodo[],
+    weekQuery: reactive.query(() => familyPersistence.weeks.get(weekId)),
+    weekTodosQuery: reactive.query(weekTodosApi.getAll),
+    queryWeekTodo,
+    subscribe,
+    setAssignmentsMutation: reactive.mutation(setAssignments),
   });
 
-  onDispose(familyPersistence.weeks.subscribe(weekId, createWeekDinners));
+  return state;
 
-  onDispose(weekTodosApi.subscribeChanges(createWeekTodos));
-
-  return week;
-
-  function createWeekDinners(data: WeekDTO) {
-    week.dinners = data.dinners
-      .map((id, index): WeekDinner | null => {
-        const dinner = familyScrum.dinners.dinners.find(
-          (dinner) => dinner.id === id
-        );
-
-        return dinner ? { id: dinner.id, dinner, weekDay: index } : null;
-      })
-      .filter((dinner) => !!dinner);
-  }
-
-  function createWeekTodos(changes: DocumentChange<WeekTodoDTO>[]) {
-    for (const change of changes) {
-      switch (change.type) {
-        case "added": {
-          const weekTodo = createWeekTodo(change.doc.data());
-
-          if (!weekTodo) {
-            return;
-          }
-
-          week.todos.push(weekTodo);
-          break;
-        }
-        case "modified": {
-          const weekTodo = week.todos.find((todo) => todo.id === change.doc.id);
-
-          if (!weekTodo) {
-            return;
-          }
-
-          weekTodo.assignments = deriveAssignments(change.doc.data());
-
-          break;
-        }
-        case "removed": {
-          const weekTodoIndex = week.todos.findIndex(
-            (todo) => todo.id === change.doc.id
-          );
-
-          week.todos.splice(weekTodoIndex, 1);
-
-          break;
-        }
+  function subscribe() {
+    const disposeWeekTodosSubscription = weekTodosApi.subscribeChanges(() => {
+      state.weekTodosQuery.revalidate();
+    });
+    // TODO: When we get the IDs here, check the actual ID
+    const disposeWeekSubscription = familyPersistence.weeks.subscribeChanges(
+      () => {
+        state.weekTodosQuery.revalidate();
       }
-    }
-  }
-
-  function createWeekTodo(weekTodoData: WeekTodoDTO) {
-    const todo = familyScrum.todos.todos.find(
-      (todo) => todo.id === weekTodoData.id
     );
 
-    if (!todo) {
-      return null;
-    }
-
-    const weekTodo = reactive<WeekTodo>({
-      id: todo.id,
-      todo,
-      assignments: deriveAssignments(weekTodoData),
-    });
-
-    return weekTodo;
+    return () => {
+      disposeWeekTodosSubscription();
+      disposeWeekSubscription();
+    };
   }
 
-  function deriveAssignments(weekTodoData: WeekTodoDTO) {
-    const assignments: WeekTodoAssignment[] = [];
-
-    for (const userId in weekTodoData.activityByUserId) {
-      const familyMember = familyScrum.session.family.members.find(
-        (member) => member.id === userId
-      );
-
-      if (familyMember) {
-        assignments.push({
-          familyMember,
-          activity: weekTodoData.activityByUserId[userId],
-        });
-      }
+  function queryWeekTodo(id: string) {
+    if (!weekTodoQueries[id]) {
+      weekTodoQueries[id] = reactive.query(() => weekTodosApi.get(id));
     }
 
-    return assignments;
+    return weekTodoQueries[id];
   }
 
   async function setAssignments(
     todoId: string,
     assignments: WeekTodoActivityDTO
   ) {
-    nextWeekTodosApi.upsert(todoId, (data) => {
+    await weekTodosApi.upsert(todoId, (data) => {
       if (!data) {
         return {
           id: todoId,
@@ -155,5 +74,7 @@ export function WeekState({ weekId, familyPersistence }: Params) {
         },
       };
     });
+
+    await weekTodoQueries[todoId].revalidate();
   }
 }

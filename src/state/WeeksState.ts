@@ -1,13 +1,14 @@
 import { reactive } from "mobx-lite";
-import { FamilyPersistence } from "../environment/Persistence";
+import { FamilyPersistence, UserDTO } from "../environment/Persistence";
 import { getCurrentWeekId, getNextWeekId, getPreviousWeekId } from "../utils";
 import { WeekState } from "./WeekState";
 
 type Params = {
   familyPersistence: FamilyPersistence;
+  user: UserDTO;
 };
 
-export function WeeksState({ familyPersistence }: Params) {
+export function WeeksState({ familyPersistence, user }: Params) {
   const previousWeekId = getPreviousWeekId();
   const currentWeekId = getCurrentWeekId();
   const nextWeekId = getNextWeekId();
@@ -15,7 +16,7 @@ export function WeeksState({ familyPersistence }: Params) {
     previousWeekId,
     currentWeekId,
     nextWeekId,
-  ].map((weekId) => WeekState({ weekId, familyPersistence }));
+  ].map((weekId) => WeekState({ weekId, user, familyPersistence }));
 
   const weeks = reactive({
     previous,

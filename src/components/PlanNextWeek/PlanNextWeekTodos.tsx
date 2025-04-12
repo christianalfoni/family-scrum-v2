@@ -3,24 +3,16 @@ import { getDateFromWeekId, isWithinWeek } from "../../utils";
 import { differenceInDays } from "date-fns";
 import { Todo } from "../Todo";
 import { TodoAssignment } from "./TodoAssignment";
-import { TodosState } from "../../state/TodosState";
-import { WeeksState } from "../../state/WeeksState";
-import { TodoState } from "../../state/TodoState";
-type Props = {
-  todos: TodosState;
-  weeks: WeeksState;
-};
+import { useFamilyScrum } from "../FamilyScrumContext";
+import { TodoDTO } from "../../environment/Persistence";
 
-export function PlanNextWeekTodos({ todos, weeks }: Props) {
-  const categorisedTodos = computeCategorizedTodos();
-  const renderTodo = (todo: TodoState) => (
+export function PlanNextWeekTodos() {
+  const { todos, weeks } = useFamilyScrum();
+
+  const categorisedTodos = getCategorizedTodos();
+  const renderTodo = (todo: TodoDTO) => (
     <Todo key={todo.id} todo={todo}>
-      <TodoAssignment
-        todo={todo}
-        week={weeks.next}
-        todos={todos}
-        previousWeek={weeks.previous}
-      />
+      <TodoAssignment todo={todo} />
     </Todo>
   );
 
@@ -61,13 +53,14 @@ export function PlanNextWeekTodos({ todos, weeks }: Props) {
     </ul>
   );
 
-  function computeCategorizedTodos() {
-    const todosInPreviousWeek = weeks.previous.todos;
+  function getCategorizedTodos() {
+    const previousWeekTodos = weeks.previous.weekTodosQuery.value || [];
+    const allTodos = todos.todosQuery.value || [];
     const currentWeekDate = getDateFromWeekId(weeks.current.id);
-    const result = todos.todos.reduce(
+    const result = allTodos.reduce(
       (aggr, todo) => {
         if (
-          todosInPreviousWeek.find(
+          previousWeekTodos.find(
             (previousWeekTodo) => previousWeekTodo.id === todo.id
           )
         ) {
@@ -75,6 +68,7 @@ export function PlanNextWeekTodos({ todos, weeks }: Props) {
 
           return aggr;
         }
+
         if (todo.date && isWithinWeek(todo.date.toMillis(), currentWeekDate)) {
           aggr.eventsThisWeek.push(todo);
           return aggr;
@@ -96,10 +90,10 @@ export function PlanNextWeekTodos({ todos, weeks }: Props) {
         return aggr;
       },
       {
-        previousWeek: [] as TodoState[],
-        eventsThisWeek: [] as TodoState[],
-        laterEvents: [] as TodoState[],
-        thisWeek: [] as TodoState[],
+        previousWeek: [] as TodoDTO[],
+        eventsThisWeek: [] as TodoDTO[],
+        laterEvents: [] as TodoDTO[],
+        thisWeek: [] as TodoDTO[],
       }
     );
 

@@ -7,24 +7,31 @@ import {
   ChevronUpIcon,
   ClockIcon,
 } from "@heroicons/react/24/solid";
-import { TodoState } from "../../state/TodoState";
 import { Confirmed } from "./Confirmed";
 import { getDayName } from "../../utils";
 import { CheckList } from "./CheckList";
 import { Link } from "react-router";
+import { useFamilyScrum } from "../FamilyScrumContext";
+import { TodoDTOWithCheckList } from "../../state/TodosState";
+import { TodoDTO } from "../../environment/Persistence";
 
 type Props = {
-  todo: TodoState;
+  todo: TodoDTO;
   children?: React.ReactNode;
 };
 
 export function Todo({ todo, children }: Props) {
+  const familyScrum = useFamilyScrum();
+  const { todos } = familyScrum;
   const [isCollapsed, setCollapsed] = React.useState(true);
   const [archiving, setArchiving] = React.useState(false);
 
   React.useEffect(() => {
     if (archiving) {
-      const id = setTimeout(todo.archive, 1500);
+      const id = setTimeout(
+        () => todos.archiveTodoMutation.mutate(todo.id),
+        1500
+      );
 
       return () => clearTimeout(id);
     }
@@ -70,8 +77,8 @@ export function Todo({ todo, children }: Props) {
           onClick={() => setCollapsed((current) => !current)}
         >
           <ClipboardDocumentCheckIcon className="w-4 h-4 mr-1" />
-          {todo.checkList.filter((item) => item.completed).length} /{" "}
-          {todo.checkList.length}
+          {todo.checkList?.filter((item) => item.completed).length ?? 0} /{" "}
+          {todo.checkList?.length ?? 0}
           {isCollapsed ? (
             <ChevronUpIcon className="w-4 h-4 ml-auto" />
           ) : (

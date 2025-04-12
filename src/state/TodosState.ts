@@ -7,7 +7,7 @@ import {
   UserDTO,
 } from "../environment/Persistence";
 
-type TodoDTOWithCheckList = Omit<TodoDTO, "checkList"> & {
+export type TodoDTOWithCheckList = Omit<TodoDTO, "checkList"> & {
   checkList: CheckListItemDTO[];
 };
 

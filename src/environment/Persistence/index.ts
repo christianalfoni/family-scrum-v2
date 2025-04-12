@@ -4,8 +4,6 @@ import {
   collection,
   deleteDoc,
   doc,
-  getDoc,
-  getDocs,
   getFirestore,
   initializeFirestore,
   onSnapshot,
@@ -15,6 +13,8 @@ import {
   updateDoc,
   UpdateData,
   runTransaction,
+  getDocsFromServer,
+  getDocFromServer,
 } from "firebase/firestore";
 import * as converters from "./converters";
 
@@ -24,6 +24,7 @@ import {
   ref,
   uploadString,
 } from "firebase/storage";
+import { add } from "date-fns";
 
 export * from "./types";
 
@@ -40,51 +41,18 @@ export type Persistence = ReturnType<typeof Persistence>;
 export type FamilyPersistence = ReturnType<Persistence["createFamilyApi"]>;
 export type WeekTodosApi = ReturnType<FamilyPersistence["createWeekTodosApi"]>;
 
-/**
- * Performs deep equality comparison between two values with special handling for Timestamp objects
- */
-function isEqualData(a: any, b: any): boolean {
-  // Handle null/undefined cases
-  if (a === b) return true;
-  if (a == null || b == null) return false;
+type BlockingMutation = { resolve: () => void; promise: Promise<void> };
 
-  // Handle Timestamp objects
-  if (a instanceof Timestamp && b instanceof Timestamp) {
-    return a.isEqual(b);
-  }
+function createBlockingMutation() {
+  let resolve: () => void;
+  const promise = new Promise<void>((r) => {
+    resolve = r;
+  });
 
-  // Handle Date objects
-  if (a instanceof Date && b instanceof Date) {
-    return a.getTime() === b.getTime();
-  }
-
-  // Check if both are objects
-  if (typeof a !== "object" || typeof b !== "object") return a === b;
-
-  // Handle arrays
-  if (Array.isArray(a) && Array.isArray(b)) {
-    if (a.length !== b.length) return false;
-    for (let i = 0; i < a.length; i++) {
-      if (!isEqualData(a[i], b[i])) return false;
-    }
-    return true;
-  }
-
-  // If one is array but other is not
-  if (Array.isArray(a) !== Array.isArray(b)) return false;
-
-  // Handle objects
-  const keysA = Object.keys(a);
-  const keysB = Object.keys(b);
-
-  if (keysA.length !== keysB.length) return false;
-
-  for (const key of keysA) {
-    if (!keysB.includes(key)) return false;
-    if (!isEqualData(a[key], b[key])) return false;
-  }
-
-  return true;
+  return {
+    resolve: resolve!,
+    promise,
+  };
 }
 
 /**
@@ -170,7 +138,36 @@ export function Persistence(app: FirebaseApp) {
   function createCollectionApi<T extends { id: string }>(
     collection: CollectionReference<T>
   ) {
-    const pendingIds = new Set<string>();
+    let blockingMutationsSnapshotDisposer: () => void;
+    const blockingMutations: Record<string, BlockingMutation> = {};
+
+    function addBlockingMutation(id: string) {
+      if (!blockingMutations[id]) {
+        blockingMutations[id] = createBlockingMutation();
+      }
+
+      if (Object.keys(blockingMutations).length === 1) {
+        blockingMutationsSnapshotDisposer = onSnapshot(
+          collection,
+          (snapshot) => {
+            snapshot.docChanges().forEach((change) => {
+              const id = change.doc.id;
+              if (
+                id in blockingMutations &&
+                !change.doc.metadata.hasPendingWrites
+              ) {
+                blockingMutations[id].resolve();
+                delete blockingMutations[id];
+              }
+
+              if (Object.keys(blockingMutations).length === 0) {
+                blockingMutationsSnapshotDisposer();
+              }
+            });
+          }
+        );
+      }
+    }
 
     return {
       createId() {
@@ -178,19 +175,21 @@ export function Persistence(app: FirebaseApp) {
       },
       async get(id: string) {
         const docRef = doc(collection, id);
-        const document = await getDoc(docRef);
+        const document = await getDocFromServer(docRef);
         const data = document.data();
 
         if (!data) {
           throw new Error("can not find document");
         }
 
+        console.log(data);
+
         return data;
       },
       set(data: T) {
         const docRef = doc(collection, data.id);
 
-        pendingIds.add(data.id);
+        addBlockingMutation(data.id);
 
         return setDoc(docRef, data);
       },
@@ -200,7 +199,7 @@ export function Persistence(app: FirebaseApp) {
       ) {
         const docRef = doc(collection, id);
 
-        pendingIds.add(id);
+        addBlockingMutation(id);
 
         if (typeof partialData === "function") {
           return runTransaction(firestore, (transaction) => {
@@ -225,7 +224,7 @@ export function Persistence(app: FirebaseApp) {
       upsert(id: string, updatedData: (data: T | undefined) => T) {
         const docRef = doc(collection, id);
 
-        pendingIds.add(id);
+        addBlockingMutation(id);
 
         if (typeof updatedData === "function") {
           return runTransaction(firestore, (transaction) => {
@@ -244,12 +243,16 @@ export function Persistence(app: FirebaseApp) {
       delete(id: string) {
         const docRef = doc(collection, id);
 
-        pendingIds.add(id);
+        addBlockingMutation(id);
 
         return deleteDoc(docRef);
       },
       async getAll() {
-        const querySnapshot = await getDocs(collection);
+        await Promise.all(
+          Object.values(blockingMutations).map((mutation) => mutation.promise)
+        );
+
+        const querySnapshot = await getDocsFromServer(collection);
 
         return querySnapshot.docs.map((doc) => doc.data());
       },
@@ -267,14 +270,7 @@ export function Persistence(app: FirebaseApp) {
           let hasRemoteChanges = false;
 
           changes.forEach((change) => {
-            if (change.doc.metadata.hasPendingWrites) {
-              pendingIds.add(change.doc.id);
-
-              return;
-            }
-
-            if (pendingIds.has(change.doc.id)) {
-              pendingIds.delete(change.doc.id);
+            if (change.doc.id in blockingMutations) {
               return;
             }
 
