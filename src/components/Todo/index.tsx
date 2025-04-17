@@ -12,7 +12,6 @@ import { getDayName } from "../../utils";
 import { CheckList } from "./CheckList";
 import { Link } from "react-router";
 import { useFamilyScrum } from "../FamilyScrumContext";
-import { TodoDTOWithCheckList } from "../../state/TodosState";
 import { TodoDTO } from "../../environment/Persistence";
 
 type Props = {

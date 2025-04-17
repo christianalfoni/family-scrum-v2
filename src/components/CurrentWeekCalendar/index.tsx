@@ -7,14 +7,20 @@ import {
   getFirstDateOfCurrentWeek,
   weekdays,
   upperCaseFirstLetter,
+  isWithinWeek,
 } from "../../utils";
 import { addDays } from "date-fns";
 import { WeekdaySlideContent } from "./WeekDaySlideContent";
 import { DinnerImage } from "../common/DinnerImage";
-import { DinnerState } from "../../state/DinnerState";
-import { FamilyScrumState } from "../../state/FamilyScrumState";
+import { useFamilyScrum } from "../FamilyScrumContext";
+import {
+  DinnerDTO,
+  TodoDTO,
+  TodoDTOWithDate,
+  WeekTodoDTO,
+} from "../../environment/Persistence";
 
-function WeekdayDinner({ dinner }: { dinner: DinnerState }) {
+function WeekdayDinner({ dinner }: { dinner: DinnerDTO }) {
   return (
     <li key="DINNER">
       <div className="flex items-center space-x-3 h-20">
@@ -28,11 +34,124 @@ function WeekdayDinner({ dinner }: { dinner: DinnerState }) {
   );
 }
 
-type Props = {
-  familyScrum: FamilyScrumState;
-};
+function WeekDayEvent({ todo }: { todo: TodoDTOWithDate }) {
+  return (
+    <li className="py-2 flex justify-between items-center">
+      <div className="flex items-center space-x-2">
+        <div className="flex flex-shrink-0 -space-x-1">
+          <CalendarIcon className="w-4 h-4 text-red-500" />
+        </div>
+        {todo.time ? (
+          <span className="text-sm text-gray-500">{todo.time}</span>
+        ) : null}
 
-export function CurrentWeekCalendar({ familyScrum }: Props) {
+        <p className="ml-4 text-sm font-medium text-gray-900">
+          {todo.description}
+        </p>
+      </div>
+    </li>
+  );
+}
+
+function WeekDayAssignment({
+  weekTodo,
+  weekDayIndex,
+}: {
+  weekTodo: WeekTodoDTO;
+  weekDayIndex: number;
+}) {
+  const familyScrum = useFamilyScrum();
+  const todo = familyScrum.todos.queryTodo(weekTodo.id);
+
+  return (
+    <li className="py-2 flex justify-between items-center">
+      <div className="flex items-center space-x-2">
+        <div className="flex flex-shrink-0 -space-x-1">
+          {Object.entries(weekTodo.activityByUserId).map(
+            ([userId, assignments]) => {
+              const user = familyScrum.family.users[userId];
+
+              if (!assignments[weekDayIndex]) {
+                return null;
+              }
+
+              return (
+                <img
+                  key={userId}
+                  className="max-w-none h-6 w-6 rounded-full ring-2 ring-white"
+                  src={user.avatar!}
+                  alt={user.name}
+                />
+              );
+            }
+          )}
+        </div>
+        <p className="ml-4 text-sm font-medium text-gray-900">
+          {todo.value?.description}
+        </p>
+      </div>
+    </li>
+  );
+}
+
+function WeekDay({
+  weekDayIndex,
+  currentWeekDate,
+}: {
+  weekDayIndex: number;
+  currentWeekDate: Date;
+}) {
+  const familyScrum = useFamilyScrum();
+  const todos = familyScrum.todos.todosQuery.value || [];
+  const weekTodosThisWeek = (
+    familyScrum.weeks.current.weekTodosQuery.value || []
+  ).filter(filterWeekTodosThisWeekDay);
+  const events = todos.filter(filterTodosWithDateThisWeekDay);
+  const currentWeek = familyScrum.weeks.current.weekQuery;
+  const dinnerId = currentWeek.value?.dinners[weekDayIndex];
+  const dinner = dinnerId
+    ? familyScrum.dinners.queryDinner(dinnerId).value
+    : null;
+
+  return (
+    <ul className="mt-2 ">
+      {dinner ? <WeekdayDinner dinner={dinner} /> : null}
+      {events.map((todo) => {
+        return <WeekDayEvent key={todo.id} todo={todo} />;
+      })}
+      {weekTodosThisWeek.map((weekTodo) => {
+        return (
+          <WeekDayAssignment
+            key={weekTodo.id}
+            weekTodo={weekTodo}
+            weekDayIndex={weekDayIndex}
+          />
+        );
+      })}
+    </ul>
+  );
+
+  function filterWeekTodosThisWeekDay(weekTodo: WeekTodoDTO) {
+    for (const userId in weekTodo.activityByUserId) {
+      if (weekTodo.activityByUserId[userId][weekDayIndex]) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function filterTodosWithDateThisWeekDay(
+    todo: TodoDTO
+  ): todo is TodoDTOWithDate {
+    return Boolean(
+      todo.date &&
+        isWithinWeek(todo.date.toDate(), currentWeekDate) &&
+        getWeekDayIndex(todo.date.toDate()) === weekDayIndex
+    );
+  }
+}
+
+export function CurrentWeekCalendar() {
   const currentDayIndex = getWeekDayIndex();
   const currentWeekDate = getFirstDateOfCurrentWeek();
   const [slideIndex, setSlideIndex] = useState(currentDayIndex);
@@ -50,90 +169,20 @@ export function CurrentWeekCalendar({ familyScrum }: Props) {
         onSwiper={setControlledSwiper}
         initialSlide={slideIndex}
       >
-        {weekDays.map((_, index) => {
-          const weekDinner = familyScrum.weeks.current.dinners.find(
-            (dinner) => dinner.weekDay === index
-          );
-          const weekEvents = familyScrum.weeks.current.events.filter(
-            (event) => event.weekDay === index
-          );
-          const weekTodos = familyScrum.weeks.current.todos.filter((todo) =>
-            todo.assignments.some((assignment) => assignment.activity[index])
-          );
-
-          return (
-            <SwiperSlide key={index}>
-              <WeekdaySlideContent
-                title={upperCaseFirstLetter(weekdays[index])}
-                date={addDays(currentWeekDate, index).toLocaleDateString()}
-              >
-                {
-                  <ul className="mt-2 ">
-                    {weekDinner ? (
-                      <WeekdayDinner
-                        key="WEEKDAY_DINNER"
-                        dinner={weekDinner.dinner}
-                      />
-                    ) : null}
-                    {weekEvents.map((weekEvent) => {
-                      return (
-                        <li
-                          key={weekEvent.id}
-                          className="py-2 flex justify-between items-center"
-                        >
-                          <div className="flex items-center space-x-2">
-                            <div className="flex flex-shrink-0 -space-x-1">
-                              <CalendarIcon className="w-4 h-4 text-red-500" />
-                            </div>
-                            {weekEvent.todo.time ? (
-                              <span className="text-sm text-gray-500">
-                                {weekEvent.todo.time}
-                              </span>
-                            ) : null}
-
-                            <p className="ml-4 text-sm font-medium text-gray-900">
-                              {weekEvent.todo.description}
-                            </p>
-                          </div>
-                        </li>
-                      );
-                    })}
-                    {weekTodos.map((weekTodo) => {
-                      const todo = weekTodo.todo;
-
-                      return (
-                        <li
-                          key={todo.id}
-                          className="py-2 flex justify-between items-center"
-                        >
-                          <div className="flex items-center space-x-2">
-                            <div className="flex flex-shrink-0 -space-x-1">
-                              {weekTodo.assignments
-                                .filter(
-                                  (assignment) => assignment.activity[index]
-                                )
-                                .map((assignment) => (
-                                  <img
-                                    key={assignment.familyMember.name}
-                                    className="max-w-none h-6 w-6 rounded-full ring-2 ring-white"
-                                    src={assignment.familyMember.avatar!}
-                                    alt={assignment.familyMember.name}
-                                  />
-                                ))}
-                            </div>
-                            <p className="ml-4 text-sm font-medium text-gray-900">
-                              {todo.description}
-                            </p>
-                          </div>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                }
-              </WeekdaySlideContent>
-            </SwiperSlide>
-          );
-        })}
+        {weekDays.map((_, index) => (
+          <SwiperSlide key={index}>
+            <WeekdaySlideContent
+              title={upperCaseFirstLetter(weekdays[index])}
+              date={addDays(currentWeekDate, index).toLocaleDateString()}
+            >
+              <WeekDay
+                key={index}
+                weekDayIndex={index}
+                currentWeekDate={currentWeekDate}
+              />
+            </WeekdaySlideContent>
+          </SwiperSlide>
+        ))}
       </Swiper>
       <div className="absolute bottom-4 left-0 right-0 flex justify-center">
         {weekdays.map((weekday, index) => (

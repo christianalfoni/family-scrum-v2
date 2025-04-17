@@ -9,12 +9,11 @@ type Props = {
 export function TodoAssignment({ todo }: Props) {
   const { weeks, family, user } = useFamilyScrum();
 
-  const setAssigmentsMutation = weeks.current.setAssignmentsMutation;
-  const weekTodo = weeks.current.queryWeekTodo(todo.id);
-  const previousWeekTodo = weeks.previous.queryWeekTodo(todo.id);
+  const setAssigmentsMutation = weeks.next.setAssignmentsMutation;
+  const weekTodo = weeks.next.queryWeekTodo(todo.id);
+  const currentWeekTodo = weeks.current.queryWeekTodo(todo.id);
   const todoAssignments = weekTodo.value?.activityByUserId ?? {};
-  const previousTodoAssignments =
-    previousWeekTodo.value?.activityByUserId ?? {};
+  const currentTodoAssignments = currentWeekTodo.value?.activityByUserId ?? {};
 
   return Object.entries(family.users)
     .sort(([a]) => (a === user.id ? -1 : 1))
@@ -33,7 +32,7 @@ export function TodoAssignment({ todo }: Props) {
               false,
               false,
             ];
-      const previousWeekActivity = previousTodoAssignments[familyUserId] || [
+      const previousWeekActivity = currentTodoAssignments[familyUserId] || [
         false,
         false,
         false,

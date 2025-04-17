@@ -1,54 +1,47 @@
 import { reactive } from "mobx-lite";
 
-export type NOT_STARTED = {
-  current: "NOT_STARTED";
-  start(elementId: string): void;
-};
-
-export type STARTING = {
-  current: "STARTING";
-};
-
-export type STARTED = {
-  current: "STARTED";
-  stream: MediaStream;
-  capture(elementId: string, width: number, height: number): void;
-};
-
-export type CAPTURED = {
-  current: "CAPTURED";
-  stream: MediaStream;
-  src: string;
-};
-
-export type ERROR = {
-  current: "ERROR";
-  error: string;
-};
-
-export type CameraState = NOT_STARTED | STARTING | STARTED | CAPTURED | ERROR;
-
-export type CameraApi = {
-  state: CameraState;
-};
-
 export function Camera() {
-  const NOT_STARTED = (): NOT_STARTED => ({
-    current: "NOT_STARTED",
-    start,
+  const camera = reactive({
+    state: NOT_STARTED() as
+      | ReturnType<typeof NOT_STARTED>
+      | ReturnType<typeof STARTING>
+      | ReturnType<typeof STARTED>
+      | ReturnType<typeof CAPTURED>
+      | ReturnType<typeof ERROR>,
   });
-  const STARTING = (): STARTING => ({ current: "STARTING" });
-  const STARTED = (stream: MediaStream): STARTED => ({
-    current: "STARTED",
-    stream,
-    capture,
-  });
-  const CAPTURED = (stream: MediaStream, src: string): CAPTURED => ({
-    current: "CAPTURED",
-    stream,
-    src,
-  });
-  const ERROR = (error: string): ERROR => ({ current: "ERROR", error });
+
+  return camera;
+
+  function NOT_STARTED() {
+    return {
+      current: "NOT_STARTED" as const,
+      start,
+    };
+  }
+  function STARTING() {
+    return {
+      current: "STARTING" as const,
+    };
+  }
+  function STARTED() {
+    return {
+      current: "STARTED" as const,
+      capture,
+    };
+  }
+  function CAPTURED(src: string) {
+    return {
+      current: "CAPTURED" as const,
+      src,
+    };
+  }
+  function ERROR(error: string) {
+    return {
+      current: "ERROR" as const,
+      error,
+      start,
+    };
+  }
 
   function start(elementId: string) {
     const video = document.querySelector<HTMLVideoElement>(`#${elementId}`);
@@ -66,7 +59,7 @@ export function Camera() {
         .getUserMedia({ video: { facingMode: "environment" } })
         .then((stream) => {
           video.srcObject = stream;
-          camera.state = STARTED(stream);
+          camera.state = STARTED();
         })
         .catch((error) => {
           camera.state = ERROR(String(error));
@@ -76,12 +69,7 @@ export function Camera() {
     }
   }
 
-  function capture(
-    this: STARTED,
-    elementId: string,
-    width: number,
-    height: number
-  ) {
+  function capture(elementId: string, width: number, height: number) {
     const video = document.querySelector<HTMLVideoElement>(`#${elementId}`);
     const canvas = document.createElement("canvas");
     const context = canvas.getContext("2d");
@@ -99,12 +87,6 @@ export function Camera() {
 
     const src = canvas.toDataURL("image/png");
 
-    camera.state = CAPTURED(this.stream, src);
+    camera.state = CAPTURED(src);
   }
-
-  const camera = reactive<CameraApi>({
-    state: NOT_STARTED(),
-  });
-
-  return camera;
 }

@@ -31,6 +31,7 @@ export function DinnersState({
     queryDinnerImage,
     queryDinner,
     addDinnerMutation: reactive.mutation(addDinner),
+    updateDinnerMutation: reactive.mutation(updateDinner),
     setDinnerImageMutation: reactive.mutation(setDinnerImage),
     subscribe,
   });
@@ -62,6 +63,11 @@ export function DinnersState({
     }
 
     return dinnerImageQueries[imageRef];
+  }
+
+  async function updateDinner(id: string, update: NewDinner) {
+    await familyPersistence.dinners.update(id, update);
+    await state.dinnersQuery.revalidate();
   }
 
   async function setDinnerImage({

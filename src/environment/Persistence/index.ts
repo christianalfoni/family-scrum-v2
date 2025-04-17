@@ -13,8 +13,8 @@ import {
   updateDoc,
   UpdateData,
   runTransaction,
-  getDocsFromServer,
-  getDocFromServer,
+  getDocs,
+  getDoc,
 } from "firebase/firestore";
 import * as converters from "./converters";
 
@@ -24,7 +24,6 @@ import {
   ref,
   uploadString,
 } from "firebase/storage";
-import { add } from "date-fns";
 
 export * from "./types";
 
@@ -175,14 +174,12 @@ export function Persistence(app: FirebaseApp) {
       },
       async get(id: string) {
         const docRef = doc(collection, id);
-        const document = await getDocFromServer(docRef);
+        const document = await getDoc(docRef);
         const data = document.data();
 
         if (!data) {
           throw new Error("can not find document");
         }
-
-        console.log(data);
 
         return data;
       },
@@ -252,7 +249,7 @@ export function Persistence(app: FirebaseApp) {
           Object.values(blockingMutations).map((mutation) => mutation.promise)
         );
 
-        const querySnapshot = await getDocsFromServer(collection);
+        const querySnapshot = await getDocs(collection);
 
         return querySnapshot.docs.map((doc) => doc.data());
       },

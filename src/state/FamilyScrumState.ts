@@ -21,6 +21,7 @@ export function FamilyScrumState({ env, user, family }: Params) {
   const state = reactive({
     user,
     family,
+    camera: env.camera,
     awake: env.awake,
     groceries: GroceriesState({
       env,

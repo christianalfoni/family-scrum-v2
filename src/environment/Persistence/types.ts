@@ -36,6 +36,8 @@ export type TodoDTO = {
   grocery?: string;
 };
 
+export type TodoDTOWithDate = Omit<TodoDTO, "date"> & { date: Timestamp };
+
 // Each user has an array representing each day of the week,
 // which holds a boolean if the todo is active or not
 export type WeekTodoActivityDTO = [

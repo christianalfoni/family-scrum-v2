@@ -9,7 +9,7 @@ import { MenuCard } from "./MenuCard";
 
 import { useFamilyScrum } from "../FamilyScrumContext";
 
-// import { CurrentWeekTodosContext } from "./CurrentWeekTodosContext";
+import { CurrentWeekCalendar } from "../CurrentWeekCalendar";
 // import { AssistantContext } from "./AssistantContext";
 
 export function Dashboard() {
@@ -28,20 +28,20 @@ export function Dashboard() {
         </MenuCard>
 
         <MenuCard
-          to="plan-next-week"
+          to="/plan-next-week"
           Icon={ChatBubbleBottomCenterIcon}
           color="bg-green-500"
         >
           Plan Next Week
         </MenuCard>
 
-        <MenuCard Icon={HeartIcon} color="bg-purple-500">
+        <MenuCard to="/dinners" Icon={HeartIcon} color="bg-purple-500">
           Dinners
         </MenuCard>
       </ul>
 
       <div className="h-2/4">
-        {/*<CurrentWeekCalendar familyScrum={familyScrum} />*/}
+        <CurrentWeekCalendar />
       </div>
 
       <button
