@@ -14,10 +14,10 @@ import {
   FamilyDTO,
 } from "./types";
 
-function ensureTimestamp(timestamp: Timestamp | number): Timestamp {
+function ensureDate(timestamp: Timestamp | number): Date {
   return timestamp instanceof Timestamp
-    ? timestamp
-    : Timestamp.fromMillis(timestamp);
+    ? timestamp.toDate()
+    : new Date(timestamp);
 }
 
 export const user = {
@@ -26,7 +26,7 @@ export const user = {
   },
   fromFirestore(
     snapshot: QueryDocumentSnapshot,
-    options: SnapshotOptions,
+    options: SnapshotOptions
   ): UserDTO {
     const data = snapshot.data({
       ...options,
@@ -49,7 +49,7 @@ export const grocery = {
   },
   fromFirestore(
     snapshot: QueryDocumentSnapshot,
-    options: SnapshotOptions,
+    options: SnapshotOptions
   ): GroceryDTO {
     const data = snapshot.data({
       ...options,
@@ -60,8 +60,8 @@ export const grocery = {
       id: snapshot.id,
       name: data.name,
       dinnerId: data.dinnerId,
-      created: ensureTimestamp(data.created),
-      modified: ensureTimestamp(data.modified),
+      created: ensureDate(data.created),
+      modified: ensureDate(data.modified),
     };
   },
 };
@@ -75,7 +75,7 @@ export const todos = {
   },
   fromFirestore(
     snapshot: QueryDocumentSnapshot,
-    options: SnapshotOptions,
+    options: SnapshotOptions
   ): TodoDTO {
     const data = snapshot.data({
       ...options,
@@ -84,8 +84,8 @@ export const todos = {
 
     const todo: TodoDTO = {
       id: snapshot.id,
-      created: ensureTimestamp(data.created),
-      modified: ensureTimestamp(data.modified),
+      created: ensureDate(data.created),
+      modified: ensureDate(data.modified),
       description: data.description,
     };
 
@@ -94,7 +94,7 @@ export const todos = {
     }
 
     if (data.date !== undefined) {
-      todo.date = ensureTimestamp(data.date);
+      todo.date = ensureDate(data.date);
     }
 
     if (data.time !== undefined) {
@@ -118,7 +118,7 @@ export const week = {
   },
   fromFirestore(
     snapshot: QueryDocumentSnapshot,
-    options: SnapshotOptions,
+    options: SnapshotOptions
   ): WeekDTO {
     const data = snapshot.data({
       ...options,
@@ -141,7 +141,7 @@ export const weekTodo = {
   },
   fromFirestore(
     snapshot: QueryDocumentSnapshot,
-    options: SnapshotOptions,
+    options: SnapshotOptions
   ): WeekTodoDTO {
     const data = snapshot.data({
       ...options,
@@ -164,7 +164,7 @@ export const dinner = {
   },
   fromFirestore(
     snapshot: QueryDocumentSnapshot,
-    options: SnapshotOptions,
+    options: SnapshotOptions
   ): DinnerDTO {
     const data = snapshot.data({
       ...options,
@@ -173,8 +173,8 @@ export const dinner = {
 
     return {
       id: snapshot.id,
-      created: ensureTimestamp(data.created),
-      modified: ensureTimestamp(data.modified),
+      created: ensureDate(data.created),
+      modified: ensureDate(data.modified),
       description: data.description,
       groceries: data.groceries,
       instructions: data.instructions,
@@ -193,7 +193,7 @@ export const family = {
   },
   fromFirestore(
     snapshot: QueryDocumentSnapshot,
-    options: SnapshotOptions,
+    options: SnapshotOptions
   ): FamilyDTO {
     const data = snapshot.data({
       ...options,

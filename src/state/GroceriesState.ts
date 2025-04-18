@@ -39,8 +39,8 @@ export function GroceriesState({ env, familyPersistence }: Params) {
     await groceriesApi.set({
       id: groceriesApi.createId(),
       name,
-      created: peristence.createTimestamp(),
-      modified: peristence.createTimestamp(),
+      created: peristence.createServerTimestamp(),
+      modified: peristence.createServerTimestamp(),
     });
 
     await state.groceries.revalidate();
@@ -76,7 +76,7 @@ export function GroceriesState({ env, familyPersistence }: Params) {
           })
       : groceries.slice().sort((a, b) => {
           if (
-            a.created.toMillis() > now ||
+            a.created.getTime() > now ||
             a.name.toLowerCase() < b.name.toLowerCase()
           ) {
             return 1;

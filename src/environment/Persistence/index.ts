@@ -1,6 +1,5 @@
 import { FirebaseApp } from "@firebase/app";
 import {
-  Timestamp,
   collection,
   deleteDoc,
   doc,
@@ -77,12 +76,9 @@ export function Persistence(app: FirebaseApp) {
   return {
     users: createCollectionApi(usersCollection),
     families: createCollectionApi(familiesCollection),
-    createTimestamp(from?: number) {
-      // We cast it as a Timestamp to avoid complicated typing. This value is only
-      // used when sending data to Firestore and will be a Timestamp coming back from Firestore
-      return from
-        ? Timestamp.fromMillis(from)
-        : (serverTimestamp() as Timestamp);
+    createServerTimestamp(): Date {
+      // We cast it to Date to simplify the typing
+      return serverTimestamp() as unknown as Date;
     },
     upload(imageRef: string, imageSrc: string) {
       const storageRef = ref(storage, imageRef + ".png");

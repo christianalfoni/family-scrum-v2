@@ -11,6 +11,11 @@ export type TodoDTOWithCheckList = Omit<TodoDTO, "checkList"> & {
   checkList: CheckListItemDTO[];
 };
 
+export type NewTodo = Pick<
+  TodoDTO,
+  "description" | "date" | "time" | "checkList"
+>;
+
 type Params = {
   familyPersistence: FamilyPersistence;
   env: Environment;
@@ -28,6 +33,7 @@ export function TodosState({ familyPersistence, env, user }: Params) {
     },
     queryTodo,
     addTodoMutation: reactive.mutation(addTodo),
+    updateTodoMutation: reactive.mutation(updateTodo),
     archiveTodoMutation: reactive.mutation(archiveTodo),
     addCheckListItemMutation: reactive.mutation(addCheckListItem),
     removeCheckListItemMutation: reactive.mutation(removeCheckListItem),
@@ -41,6 +47,16 @@ export function TodosState({ familyPersistence, env, user }: Params) {
     return familyPersistence.todos.subscribeChanges(() => {
       state.todosQuery.revalidate();
     });
+  }
+
+  async function updateTodo(
+    id: string,
+    todo: Pick<TodoDTO, "description" | "checkList" | "date" | "time">
+  ) {
+    await familyPersistence.todos.update(id, todo);
+    await state.todosQuery.revalidate();
+
+    return true;
   }
 
   function queryTodo(todoId: string) {
@@ -58,14 +74,16 @@ export function TodosState({ familyPersistence, env, user }: Params) {
     await state.todosQuery.revalidate();
   }
 
-  async function addTodo(description: string) {
+  async function addTodo(newTodo: NewTodo) {
     await familyPersistence.todos.set({
+      ...newTodo,
       id: familyPersistence.todos.createId(),
-      description,
-      created: env.persistence.createTimestamp(),
-      modified: env.persistence.createTimestamp(),
+      created: env.persistence.createServerTimestamp(),
+      modified: env.persistence.createServerTimestamp(),
     });
     await state.todosQuery.revalidate();
+
+    return true;
   }
 
   async function addCheckListItem(todoId: string, description: string) {

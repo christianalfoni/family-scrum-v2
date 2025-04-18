@@ -9,6 +9,7 @@ import { PlanNextWeekTodos } from "./PlanNextWeek/PlanNextWeekTodos";
 import { Dinners } from "./Dinners";
 import { PlanNextWeekDinners } from "./PlanNextWeek/PlanNextWeekDinners";
 import { EditDinner, NewDinner } from "./EditDinner";
+import { EditTodo, NewTodo } from "./EditTodo";
 
 type Props = {
   familyScrum: FamilyScrumState;
@@ -24,6 +25,8 @@ export function FamilyScrum({ familyScrum }: Props) {
         <Route path="/dinners" element={<Dinners />} />
         <Route path="/dinners/new" element={<NewDinner />} />
         <Route path="/dinners/:id" element={<EditDinner />} />
+        <Route path="/todos/new" element={<NewTodo />} />
+        <Route path="/todos/:id" element={<EditTodo />} />
         <Route path="/plan-next-week" element={<PlanNextWeek />}>
           <Route index element={<Navigate to="todos" replace />} />
           <Route path="todos" element={<PlanNextWeekTodos />} />

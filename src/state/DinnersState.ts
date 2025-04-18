@@ -101,8 +101,8 @@ export function DinnersState({
       groceries: newDinner.groceries,
       preparationCheckList: newDinner.preparationCheckList,
       instructions: newDinner.instructions,
-      created: env.persistence.createTimestamp(),
-      modified: env.persistence.createTimestamp(),
+      created: env.persistence.createServerTimestamp(),
+      modified: env.persistence.createServerTimestamp(),
     });
 
     await state.dinnersQuery.revalidate();

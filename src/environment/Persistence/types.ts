@@ -1,5 +1,3 @@
-import { Timestamp } from "firebase/firestore";
-
 export type UserDTO = {
   id: string;
   familyId: string;
@@ -8,8 +6,8 @@ export type UserDTO = {
 export type GroceryDTO = {
   id: string;
   dinnerId?: string;
-  created: Timestamp;
-  modified: Timestamp;
+  created: Date;
+  modified: Date;
   name: string;
 };
 
@@ -27,16 +25,16 @@ export type CheckListItemDTO = {
 
 export type TodoDTO = {
   id: string;
-  created: Timestamp;
-  modified: Timestamp;
+  created: Date;
+  modified: Date;
   description: string;
-  date?: Timestamp;
+  date?: Date;
   time?: string;
   checkList?: CheckListItemDTO[];
   grocery?: string;
 };
 
-export type TodoDTOWithDate = Omit<TodoDTO, "date"> & { date: Timestamp };
+export type TodoDTOWithDate = Omit<TodoDTO, "date"> & { date: Date };
 
 // Each user has an array representing each day of the week,
 // which holds a boolean if the todo is active or not
@@ -80,8 +78,8 @@ export type DinnerDTO = {
   imageRef?: string;
   groceries: string[];
   instructions: string[];
-  created: Timestamp;
-  modified: Timestamp;
+  created: Date;
+  modified: Date;
 };
 
 export type FamilyUserDTO = {

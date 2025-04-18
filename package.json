@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "functions": "firebase emulators:start --only functions",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -17,7 +18,7 @@
     "date-fns": "^4.1.0",
     "fast-levenshtein": "^3.0.0",
     "firebase": "^11.3.1",
-    "mobx-lite": "^0.1.8",
+    "mobx-lite": "^0.1.10",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router": "^7.3.0",

@@ -145,8 +145,8 @@ function WeekDay({
   ): todo is TodoDTOWithDate {
     return Boolean(
       todo.date &&
-        isWithinWeek(todo.date.toDate(), currentWeekDate) &&
-        getWeekDayIndex(todo.date.toDate()) === weekDayIndex
+        isWithinWeek(todo.date, currentWeekDate) &&
+        getWeekDayIndex(todo.date) === weekDayIndex
     );
   }
 }

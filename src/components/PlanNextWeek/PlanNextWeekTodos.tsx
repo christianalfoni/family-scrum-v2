@@ -69,15 +69,12 @@ export function PlanNextWeekTodos() {
           return aggr;
         }
 
-        if (todo.date && isWithinWeek(todo.date.toMillis(), currentWeekDate)) {
+        if (todo.date && isWithinWeek(todo.date, currentWeekDate)) {
           aggr.eventsThisWeek.push(todo);
           return aggr;
         }
 
-        if (
-          todo.date &&
-          differenceInDays(todo.date.toMillis(), currentWeekDate) > 7
-        ) {
+        if (todo.date && differenceInDays(todo.date, currentWeekDate) > 7) {
           aggr.laterEvents.push(todo);
           return aggr;
         }

@@ -44,8 +44,7 @@ export function Todo({ todo, children }: Props) {
           {todo.date ? (
             <span className="flex items-center text-sm mr-3">
               <CalendarIcon className="w-4 h-4 mr-1" />
-              {getDayName(todo.date.toDate())} -{" "}
-              {todo.date.toDate().toLocaleDateString()}
+              {getDayName(todo.date)} - {todo.date.toLocaleDateString()}
             </span>
           ) : null}
           {todo.time ? (
