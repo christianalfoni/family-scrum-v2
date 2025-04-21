@@ -1,133 +1,135 @@
 import { Text } from "@/components/text";
-import { CalendarIcon, CalendarDaysIcon } from "@heroicons/react/24/solid";
-import { getWeekDayIndex, isWithinWeek } from "../../utils";
-import { DinnerImage } from "../common/DinnerImage";
+import { CalendarDaysIcon } from "@heroicons/react/24/solid";
+import {
+  getFirstDateOfCurrentWeek,
+  getWeekDayIndex,
+  isWithinWeek,
+  weekdays,
+} from "../../utils";
 import { DocumentIcon } from "@heroicons/react/24/solid";
-
 import { useFamilyScrum } from "../FamilyScrumContext";
 import {
-  DinnerDTO,
   TodoDTO,
   TodoDTOWithDate,
   WeekTodoDTO,
 } from "../../environment/Persistence";
-import { family } from "@/environment/Persistence/converters";
 import { Avatar } from "@/components/avatar";
 import { Heading } from "@/components/heading";
 import { Divider } from "@/components/divider";
 
-function WeekdayDinner({ dinner }: { dinner: DinnerDTO }) {
-  return (
-    <li key="DINNER">
-      <div className="flex items-center space-x-3 h-20">
-        <DinnerImage dinner={dinner} />
-        <div className="min-w-0 flex-1">
-          <p className="text-md font-medium text-gray-900">{dinner.name}</p>
-          <p className="text-sm text-gray-500">{dinner.description}</p>
-        </div>
-      </div>
-    </li>
-  );
-}
-
-function WeekDayEvent({ todo }: { todo: TodoDTOWithDate }) {
-  return (
-    <li className="py-2 flex justify-between items-center">
-      <div className="flex items-center space-x-2">
-        <div className="flex flex-shrink-0 -space-x-1">
-          <CalendarIcon className="w-4 h-4 text-red-500" />
-        </div>
-        {todo.time ? (
-          <span className="text-sm text-gray-500">{todo.time}</span>
-        ) : null}
-
-        <p className="ml-4 text-sm font-medium text-gray-900">
-          {todo.description}
-        </p>
-      </div>
-    </li>
-  );
-}
-
-function WeekDayAssignment({
-  weekTodo,
+function WeekDay({
+  todoId,
   weekDayIndex,
 }: {
-  weekTodo: WeekTodoDTO;
+  todoId: string;
   weekDayIndex: number;
 }) {
   const familyScrum = useFamilyScrum();
-  const todo = familyScrum.todos.queryTodo(weekTodo.id);
+  const todo = familyScrum.todos.queryTodo(todoId).value;
+  const weekTodo = familyScrum.weeks.current.queryWeekTodo(todoId).value;
+
+  // TODO: Show like placeholder thingy
+  if (!todo) {
+    return null;
+  }
+
+  const activityByUserId = weekTodo?.activityByUserId || {};
+  const userIds = Object.keys(activityByUserId).filter((userId) =>
+    Boolean(activityByUserId[userId][weekDayIndex])
+  );
 
   return (
-    <li className="py-2 flex justify-between items-center">
-      <div className="flex items-center space-x-2">
-        <div className="flex flex-shrink-0 -space-x-1">
-          {Object.entries(weekTodo.activityByUserId).map(
-            ([userId, assignments]) => {
-              const user = familyScrum.family.users[userId];
-
-              if (!assignments[weekDayIndex]) {
-                return null;
-              }
-
-              return (
-                <img
-                  key={userId}
-                  className="max-w-none h-6 w-6 rounded-full ring-2 ring-white"
-                  src={user.avatar!}
-                  alt={user.name}
-                />
-              );
-            }
-          )}
+    <li>
+      <div className="flex items-center space-x-3 h-10">
+        {todo.date ? (
+          <CalendarDaysIcon className="w-4 h-4 text-red-400" />
+        ) : (
+          <DocumentIcon className="w-4 h-4 text-orange-400" />
+        )}
+        <div className="min-w-0 flex-1">
+          <p className="text-md font-medium text-zinc-200">
+            {todo.description}
+          </p>
         </div>
-        <p className="ml-4 text-sm font-medium text-gray-900">
-          {todo.value?.description}
-        </p>
+        {userIds.map((userId) => (
+          <Avatar
+            className="size-6"
+            src={familyScrum.family.users[userId].avatar}
+          />
+        ))}
       </div>
     </li>
   );
 }
 
-function WeekDay({
-  weekDayIndex,
-  currentWeekDate,
-}: {
-  weekDayIndex: number;
-  currentWeekDate: Date;
-}) {
+export function CurrentWeekCalendar() {
   const familyScrum = useFamilyScrum();
   const todos = familyScrum.todos.todosQuery.value || [];
-  const weekTodosThisWeek = (
-    familyScrum.weeks.current.weekTodosQuery.value || []
-  ).filter(filterWeekTodosThisWeekDay);
-  const events = todos.filter(filterTodosWithDateThisWeekDay);
-  const currentWeek = familyScrum.weeks.current.weekQuery;
-  const dinnerId = currentWeek.value?.dinners[weekDayIndex];
-  const dinner = dinnerId
-    ? familyScrum.dinners.queryDinner(dinnerId).value
-    : null;
+  const currentWeekDate = getFirstDateOfCurrentWeek();
+  const weekTodosThisWeek =
+    familyScrum.weeks.current.weekTodosQuery.value || [];
+  const events = todos.filter(filterTodosWithDateThisWeek);
+  const currentWeekDayIndex = getWeekDayIndex();
+  const weekDaysTodoIds = getWeekTodoIds();
+  const todaysTodos = weekDaysTodoIds[currentWeekDayIndex];
 
   return (
-    <ul className="mt-2 ">
-      {dinner ? <WeekdayDinner dinner={dinner} /> : null}
-      {events.map((todo) => {
-        return <WeekDayEvent key={todo.id} todo={todo} />;
-      })}
-      {weekTodosThisWeek.map((weekTodo) => {
-        return (
-          <WeekDayAssignment
-            key={weekTodo.id}
-            weekTodo={weekTodo}
-            weekDayIndex={weekDayIndex}
-          />
-        );
-      })}
-    </ul>
+    <>
+      <Heading>{new Date().toDateString()}</Heading>
+      {todaysTodos.length ? (
+        <ul>
+          {todaysTodos.map((todoId) => (
+            <WeekDay
+              key={todoId}
+              weekDayIndex={currentWeekDayIndex}
+              todoId={todoId}
+            />
+          ))}
+        </ul>
+      ) : (
+        <Text>Nothing today, relax and breath!</Text>
+      )}
+      <Divider className="my-4" soft />
+      <ul>
+        {weekDaysTodoIds.map((todos, index) => {
+          if (index <= currentWeekDayIndex || !todos.length) {
+            return null;
+          }
+
+          return (
+            <>
+              <li>
+                <Text>{weekdays[index]}</Text>
+              </li>
+              {todos.map((todoId) => (
+                <WeekDay key={todoId} weekDayIndex={index} todoId={todoId} />
+              ))}
+            </>
+          );
+        })}
+      </ul>
+    </>
   );
 
-  function filterWeekTodosThisWeekDay(weekTodo: WeekTodoDTO) {
+  function getWeekTodoIds() {
+    return Array.from({ length: 7 }).map((_, weekDayIndex) =>
+      events
+        .filter((todo) => getWeekDayIndex(todo.date!) === weekDayIndex)
+        .map((todo) => todo.id)
+        .concat(
+          weekTodosThisWeek
+            .filter((weekTodo) =>
+              filterWeekTodosThisWeekDay(weekTodo, weekDayIndex)
+            )
+            .map((todo) => todo.id)
+        )
+    );
+  }
+
+  function filterWeekTodosThisWeekDay(
+    weekTodo: WeekTodoDTO,
+    weekDayIndex: number
+  ) {
     for (const userId in weekTodo.activityByUserId) {
       if (weekTodo.activityByUserId[userId][weekDayIndex]) {
         return true;
@@ -136,69 +138,7 @@ function WeekDay({
     return false;
   }
 
-  function filterTodosWithDateThisWeekDay(
-    todo: TodoDTO
-  ): todo is TodoDTOWithDate {
-    return Boolean(
-      todo.date &&
-        isWithinWeek(todo.date, currentWeekDate) &&
-        getWeekDayIndex(todo.date) === weekDayIndex
-    );
+  function filterTodosWithDateThisWeek(todo: TodoDTO): todo is TodoDTOWithDate {
+    return Boolean(todo.date && isWithinWeek(todo.date, currentWeekDate));
   }
-}
-
-const testData: Array<TodoDTO & { userIds: string[] }> = [
-  {
-    id: "1",
-    created: new Date(),
-    modified: new Date(),
-    description: "Test",
-    date: undefined,
-    userIds: ["JY7gXF2TMlfqsMEs3ws9FCYVVe62"],
-  },
-  {
-    id: "2",
-    created: new Date(),
-    modified: new Date(),
-    description: "Test 2",
-    date: new Date(),
-    userIds: ["JY7gXF2TMlfqsMEs3ws9FCYVVe62"],
-  },
-];
-
-export function CurrentWeekCalendar() {
-  const familyScrum = useFamilyScrum();
-
-  return (
-    <>
-      <Heading>{new Date().toDateString()}</Heading>
-      <Text>Nothing today, relax and breath!</Text>
-      <Divider className="my-4" soft />
-      <ul>
-        <li>
-          <Text>Wednesday</Text>
-        </li>
-        {testData.map((todo) => (
-          <li key={todo.id}>
-            <div className="flex items-center space-x-3 h-10">
-              {todo.date ? (
-                <CalendarDaysIcon className="w-4 h-4 text-red-400" />
-              ) : (
-                <DocumentIcon className="w-4 h-4 text-orange-400" />
-              )}
-              <div className="min-w-0 flex-1">
-                <p className="text-md font-medium text-zinc-200">
-                  {todo.description}
-                </p>
-              </div>
-              <Avatar
-                className="size-6"
-                src={familyScrum.family.users[todo.userIds[0]].avatar}
-              />
-            </div>
-          </li>
-        ))}
-      </ul>
-    </>
-  );
 }

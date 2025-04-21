@@ -9,10 +9,8 @@ import {
 import { useFamilyScrum } from "../FamilyScrumContext";
 
 import { CurrentWeekCalendar } from "../CurrentWeekCalendar";
-import { Divider } from "@/components/divider";
 import { Button } from "@/components/button";
 import { Link } from "react-router";
-import { Heading } from "@/components/heading";
 
 // import { AssistantContext } from "./AssistantContext";
 
@@ -34,14 +32,16 @@ export function Dashboard() {
           </div>
         </Link>
 
-        <div className="flex items-center h-16">
-          <Button color="rose" className="w-full flex">
-            <ShoppingCartIcon className="h-8 w-8 mr-2" />
-            Groceries <span className="font-normal">({groceriesCount})</span>
-            <span className="flex-1" />
-            <ArrowRightIcon className="ml-auto h-6 w-6" />
-          </Button>
-        </div>
+        <Link to="/groceries">
+          <div className="flex items-center h-16">
+            <Button color="rose" className="w-full flex">
+              <ShoppingCartIcon className="h-8 w-8 mr-2" />
+              Groceries <span className="font-normal">({groceriesCount})</span>
+              <span className="flex-1" />
+              <ArrowRightIcon className="ml-auto h-6 w-6" />
+            </Button>
+          </div>
+        </Link>
 
         <div className="flex items-center h-16">
           <Button color="sky" className="w-full flex">

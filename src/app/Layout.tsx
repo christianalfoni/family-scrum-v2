@@ -1,8 +1,8 @@
 import { Avatar } from "@/components/avatar";
+import { Button } from "@/components/button";
 import {
   Dropdown,
   DropdownButton,
-  DropdownDivider,
   DropdownItem,
   DropdownLabel,
   DropdownMenu,
@@ -14,24 +14,26 @@ import {
   NavbarSpacer,
 } from "@/components/navbar";
 import { Strong } from "@/components/text";
-import {
-  ArrowRightStartOnRectangleIcon,
-  ChevronDownIcon,
-  PlusIcon,
-} from "@heroicons/react/16/solid";
-import { InboxIcon, MagnifyingGlassIcon } from "@heroicons/react/20/solid";
 
-export function Layout({
-  children,
-  avatar,
-}: {
-  children: React.ReactNode;
-  avatar: string;
-}) {
+import { ArrowRightStartOnRectangleIcon } from "@heroicons/react/16/solid";
+import { ChevronLeftIcon } from "@heroicons/react/24/solid";
+import { Outlet, useLocation, useNavigate } from "react-router";
+
+export function Layout({ avatar }: { avatar: string }) {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const showBackButton = location.pathname !== "/";
+
   return (
     <div className="relative isolate flex min-h-svh w-full flex-col bg-white lg:bg-zinc-100 dark:bg-zinc-900 dark:lg:bg-zinc-950">
       <header className="flex items-center px-4">
-        <Strong>FamilyScrum</Strong>
+        {showBackButton ? (
+          <Button plain onClick={() => navigate(-1)}>
+            <ChevronLeftIcon /> Back
+          </Button>
+        ) : (
+          <Strong className="text-lg">FamilyScrum</Strong>
+        )}
         <div className="min-w-0 flex-1">
           <Navbar>
             <NavbarSpacer />
@@ -54,7 +56,9 @@ export function Layout({
 
       <main className="flex flex-1 flex-col pb-2 lg:px-2">
         <div className="grow p-6 lg:rounded-lg lg:bg-white lg:p-10 lg:shadow-xs lg:ring-1 lg:ring-zinc-950/5 dark:lg:bg-zinc-900 dark:lg:ring-white/10">
-          <div className="mx-auto max-w-6xl">{children}</div>
+          <div className="mx-auto max-w-6xl">
+            <Outlet />
+          </div>
         </div>
       </main>
     </div>

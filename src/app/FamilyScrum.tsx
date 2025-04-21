@@ -18,9 +18,15 @@ type Props = {
 
 export function FamilyScrum({ familyScrum }: Props) {
   return (
-    <Layout avatar={familyScrum.family.users[familyScrum.user.id].avatar}>
-      <FamilyScrumContext.Provider value={familyScrum}>
-        <Routes>
+    <FamilyScrumContext.Provider value={familyScrum}>
+      <Routes>
+        <Route
+          element={
+            <Layout
+              avatar={familyScrum.family.users[familyScrum.user.id].avatar}
+            />
+          }
+        >
           <Route path="/" element={<Dashboard />} />
           <Route path="/groceries" element={<Groceries />} />
           <Route path="/checklists" element={<CheckLists />} />
@@ -34,8 +40,8 @@ export function FamilyScrum({ familyScrum }: Props) {
             <Route path="todos" element={<PlanNextWeekTodos />} />
             <Route path="dinners" element={<PlanNextWeekDinners />} />
           </Route>
-        </Routes>
-      </FamilyScrumContext.Provider>
-    </Layout>
+        </Route>
+      </Routes>
+    </FamilyScrumContext.Provider>
   );
 }
