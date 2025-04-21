@@ -1,4 +1,7 @@
 @import "tailwindcss";
+@theme {
+  --font-sans: Inter, sans-serif;
+}
 
 .checkmark__circle {
   stroke-dasharray: 166;

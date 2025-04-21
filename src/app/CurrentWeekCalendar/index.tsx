@@ -1,17 +1,9 @@
-import { CalendarIcon } from "@heroicons/react/24/solid";
-import { useState } from "react";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Controller } from "swiper/modules";
-import {
-  getWeekDayIndex,
-  getFirstDateOfCurrentWeek,
-  weekdays,
-  upperCaseFirstLetter,
-  isWithinWeek,
-} from "../../utils";
-import { addDays } from "date-fns";
-import { WeekdaySlideContent } from "./WeekDaySlideContent";
+import { Text } from "@/components/text";
+import { CalendarIcon, CalendarDaysIcon } from "@heroicons/react/24/solid";
+import { getWeekDayIndex, isWithinWeek } from "../../utils";
 import { DinnerImage } from "../common/DinnerImage";
+import { DocumentIcon } from "@heroicons/react/24/solid";
+
 import { useFamilyScrum } from "../FamilyScrumContext";
 import {
   DinnerDTO,
@@ -19,6 +11,10 @@ import {
   TodoDTOWithDate,
   WeekTodoDTO,
 } from "../../environment/Persistence";
+import { family } from "@/environment/Persistence/converters";
+import { Avatar } from "@/components/avatar";
+import { Heading } from "@/components/heading";
+import { Divider } from "@/components/divider";
 
 function WeekdayDinner({ dinner }: { dinner: DinnerDTO }) {
   return (
@@ -151,58 +147,58 @@ function WeekDay({
   }
 }
 
+const testData: Array<TodoDTO & { userIds: string[] }> = [
+  {
+    id: "1",
+    created: new Date(),
+    modified: new Date(),
+    description: "Test",
+    date: undefined,
+    userIds: ["JY7gXF2TMlfqsMEs3ws9FCYVVe62"],
+  },
+  {
+    id: "2",
+    created: new Date(),
+    modified: new Date(),
+    description: "Test 2",
+    date: new Date(),
+    userIds: ["JY7gXF2TMlfqsMEs3ws9FCYVVe62"],
+  },
+];
+
 export function CurrentWeekCalendar() {
-  const currentDayIndex = getWeekDayIndex();
-  const currentWeekDate = getFirstDateOfCurrentWeek();
-  const [slideIndex, setSlideIndex] = useState(currentDayIndex);
-  const [controlledSwiper, setControlledSwiper] = useState<any>(null);
-  const weekDays = Array(7).fill(null);
+  const familyScrum = useFamilyScrum();
 
   return (
     <>
-      <Swiper
-        className="w-full h-full"
-        modules={[Controller]}
-        spaceBetween={50}
-        slidesPerView={1}
-        onSlideChange={(swiper) => setSlideIndex(swiper.activeIndex)}
-        onSwiper={setControlledSwiper}
-        initialSlide={slideIndex}
-      >
-        {weekDays.map((_, index) => (
-          <SwiperSlide key={index}>
-            <WeekdaySlideContent
-              title={upperCaseFirstLetter(weekdays[index])}
-              date={addDays(currentWeekDate, index).toLocaleDateString()}
-            >
-              <WeekDay
-                key={index}
-                weekDayIndex={index}
-                currentWeekDate={currentWeekDate}
+      <Heading>{new Date().toDateString()}</Heading>
+      <Text>Nothing today, relax and breath!</Text>
+      <Divider className="my-4" soft />
+      <ul>
+        <li>
+          <Text>Wednesday</Text>
+        </li>
+        {testData.map((todo) => (
+          <li key={todo.id}>
+            <div className="flex items-center space-x-3 h-10">
+              {todo.date ? (
+                <CalendarDaysIcon className="w-4 h-4 text-red-400" />
+              ) : (
+                <DocumentIcon className="w-4 h-4 text-orange-400" />
+              )}
+              <div className="min-w-0 flex-1">
+                <p className="text-md font-medium text-zinc-200">
+                  {todo.description}
+                </p>
+              </div>
+              <Avatar
+                className="size-6"
+                src={familyScrum.family.users[todo.userIds[0]].avatar}
               />
-            </WeekdaySlideContent>
-          </SwiperSlide>
+            </div>
+          </li>
         ))}
-      </Swiper>
-      <div className="absolute bottom-4 left-0 right-0 flex justify-center">
-        {weekdays.map((weekday, index) => (
-          <div
-            key={weekday}
-            onClick={() => {
-              if (controlledSwiper) {
-                controlledSwiper.slideTo(index);
-              }
-            }}
-            className={`${
-              index === currentDayIndex ? "text-red-500" : "text-gray-500"
-            } ${
-              index === slideIndex ? "font-bold" : ""
-            } flex items-center mx-2 w-6 h-6 text-center text-xs`}
-          >
-            {weekdays[index].substring(0, 2)}
-          </div>
-        ))}
-      </div>
+      </ul>
     </>
   );
 }

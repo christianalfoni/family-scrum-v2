@@ -3,9 +3,9 @@ import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/solid";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { DinnerImage } from "../common/DinnerImage";
 import { Controller } from "swiper/modules";
-import { DinnerState } from "../../state/DinnerState";
+import { DinnerDTO } from "../../environment/Persistence";
 
-function DinnerSlide({ dinner }: { dinner: DinnerState }) {
+function DinnerSlide({ dinner }: { dinner: DinnerDTO }) {
   return (
     <div className="flex items-center py-4 px-8 space-x-3 h-24">
       <DinnerImage dinner={dinner} />
@@ -26,7 +26,7 @@ export function DinnerAssignment({
 }: {
   weekday: string;
   weekdayIndex: number;
-  dinners: DinnerState[];
+  dinners: DinnerDTO[];
   activeDinner: string | null;
   onDinnerChange: (dayIndex: number, dinnerId: string | null) => void;
 }) {

@@ -281,7 +281,9 @@ export function EditTodo() {
                 <ChevronLeftIcon className="h-6 w-6" aria-hidden="true" />
               </button>
             </div>
-            <h1 className="flex-2 text-lg font-medium text-center"></h1>
+            <h1 className="flex-2 text-lg font-medium text-center">
+              Edit Todo
+            </h1>
             <div className="flex-1 flex">
               <button
                 type="submit"

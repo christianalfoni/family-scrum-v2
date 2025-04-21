@@ -4,7 +4,7 @@ import "./index.css";
 // @ts-expect-error
 import "swiper/css";
 
-import Session from "./components/Session";
+import Session from "./app/Session";
 
 import { Environment } from "./environment";
 import { BrowserRouter } from "react-router";

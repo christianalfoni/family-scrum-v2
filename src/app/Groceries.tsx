@@ -1,17 +1,15 @@
 import {
-  ChevronLeftIcon,
   PlusIcon,
   MagnifyingGlassIcon,
   LightBulbIcon as SolidLightBulbIcon,
 } from "@heroicons/react/24/solid";
 import { LightBulbIcon } from "@heroicons/react/24/outline";
-import { useNavigate } from "react-router";
 import { useEffect, useState } from "react";
 import { useFamilyScrum } from "./FamilyScrumContext";
+import { PageLayout } from "./common/PageLayout";
 
 export function Groceries() {
   const familyScrum = useFamilyScrum();
-  const navigate = useNavigate();
   const awake = familyScrum.awake;
   const groceries = familyScrum.groceries;
   const [filter, setFilter] = useState("");
@@ -21,31 +19,21 @@ export function Groceries() {
   useEffect(groceries.subscribe, []);
 
   return (
-    <div className="bg-white flex flex-col h-screen">
-      <div className="pl-4 pr-6 pt-4 pb-4 border-b border-t border-gray-200 sm:pl-6 lg:pl-8 xl:pl-6 xl:pt-6 xl:border-t-0">
-        <div className="flex items-center">
-          <div className="flex-1">
-            <button
-              onClick={() => navigate(-1)}
-              className=" bg-white p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500"
-            >
-              <ChevronLeftIcon className="h-6 w-6" aria-hidden="true" />
-            </button>
-          </div>
-          <h1 className="flex-2 text-lg font-medium">Shopping List</h1>
-          <span className="flex-1" />
-          <div
-            onClick={() => awake.toggle()}
-            className="relative mx-auto inline-flex items-center justify-center border border-transparent text-sm font-medium rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-          >
-            {awake.current === "ON" ? (
-              <SolidLightBulbIcon className="w-6 h-6 text-yellow-500" />
-            ) : (
-              <LightBulbIcon className="w-6 h-6" />
-            )}
-          </div>
+    <PageLayout
+      title="Shopping List"
+      action={
+        <div
+          onClick={() => awake.toggle()}
+          className="relative mx-auto inline-flex items-center justify-center border border-transparent text-sm font-medium rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+        >
+          {awake.current === "ON" ? (
+            <SolidLightBulbIcon className="w-6 h-6 text-yellow-500" />
+          ) : (
+            <LightBulbIcon className="w-6 h-6" />
+          )}
         </div>
-      </div>
+      }
+    >
       <div className="flex items-center px-6 py-4 border-b border-gray-200">
         <div className="w-full">
           <div className="relative">
@@ -102,7 +90,7 @@ export function Groceries() {
             )
           )}
       </ul>
-    </div>
+    </PageLayout>
   );
 }
 

@@ -40,6 +40,7 @@ export function SessionState({ env }: Params) {
       current: "UNAUTHENTICATED" as const,
       reason,
       signIn() {
+        state.state = AUTHENTICATING();
         authentication.signIn();
       },
     };
