@@ -1,6 +1,7 @@
 import { reactive } from "mobx-lite";
+
 import levenshtein from "fast-levenshtein";
-import { FamilyPersistence } from "../environment/Persistence";
+import { FamilyPersistence, GroceryDTO } from "../environment/Persistence";
 import { Environment } from "../environment";
 
 export type GroceriesState = ReturnType<typeof GroceriesState>;
@@ -14,7 +15,8 @@ export function GroceriesState({ env, familyPersistence }: Params) {
   const peristence = env.persistence;
   const groceriesApi = familyPersistence.groceries;
   const state = reactive({
-    groceries: reactive.query(groceriesApi.getAll),
+    groceriesQuery: reactive.query(groceriesApi.getAll),
+    categorizedGroceriesQuery: reactive.query(categorizeGroceries),
     filterGroceries,
     addGrocery: reactive.mutation(addGrocery),
     shopGrocery: reactive.mutation(shopGrocery),
@@ -23,16 +25,27 @@ export function GroceriesState({ env, familyPersistence }: Params) {
 
   return reactive.readonly(state);
 
+  function categorizeGroceries() {
+    const groceries: GroceryDTO[] = state.groceriesQuery.value || [];
+
+    return env.ai.categorizeGroceries(
+      groceries.map((grocery) => ({
+        id: grocery.id,
+        name: grocery.name,
+      }))
+    );
+  }
+
   function subscribe() {
     return groceriesApi.subscribeChanges(() => {
       console.log("Revalidating!");
-      state.groceries.revalidate();
+      state.groceriesQuery.revalidate();
     });
   }
 
   async function shopGrocery(id: string) {
     await familyPersistence.groceries.delete(id);
-    await state.groceries.revalidate();
+    await state.groceriesQuery.revalidate();
   }
 
   async function addGrocery(name: string) {
@@ -43,13 +56,13 @@ export function GroceriesState({ env, familyPersistence }: Params) {
       modified: peristence.createServerTimestamp(),
     });
 
-    await state.groceries.revalidate();
+    await state.groceriesQuery.revalidate();
   }
 
   function filterGroceries(filter: string) {
     const lowerCaseInput = filter.toLowerCase();
     const now = Date.now();
-    const groceries = state.groceries.value || [];
+    const groceries = state.groceriesQuery.value || [];
 
     return filter
       ? groceries
@@ -75,16 +88,11 @@ export function GroceriesState({ env, familyPersistence }: Params) {
             return 0;
           })
       : groceries.slice().sort((a, b) => {
-          if (
-            a.created.getTime() > now ||
-            a.name.toLowerCase() < b.name.toLowerCase()
-          ) {
-            return 1;
-          } else if (a.name.toLowerCase() > b.name.toLowerCase()) {
+          if (a.created.getTime() > b.created.getTime()) {
             return -1;
           }
 
-          return 0;
+          return 1;
         });
   }
 }

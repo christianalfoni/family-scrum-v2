@@ -3,6 +3,8 @@ import { AddCheckListItem } from "./AddCheckListItem";
 import { TrashIcon } from "@heroicons/react/24/solid";
 import { CheckListItemDTO, TodoDTO } from "../../environment/Persistence";
 import { useFamilyScrum } from "../FamilyScrumContext";
+import { Checkbox, CheckboxField } from "@/components/checkbox";
+import { Label } from "@/components/fieldset";
 
 type CheckListItemProps = {
   item: CheckListItemDTO;
@@ -21,19 +23,15 @@ function CheckListItem({
 }: CheckListItemProps) {
   return (
     <li className="flex items-center text-lg py-1 px-1">
-      <input
-        id={"checkListItem-" + index}
-        type="checkbox"
-        disabled={disabled}
-        className={`rounded text-green-500 mr-2${
-          disabled ? " opacity-50" : ""
-        }`}
-        checked={item.completed}
-        onChange={onToggle}
-      />
-      <label htmlFor={"checkListItem-" + index} className="w-full">
-        {item.title}
-      </label>
+      <CheckboxField>
+        <Checkbox
+          disabled={disabled}
+          checked={item.completed}
+          onChange={onToggle}
+        />
+        <Label>{item.title}</Label>
+      </CheckboxField>
+
       <span className="p-2 text-gray-300" onClick={onRemove}>
         <TrashIcon className="w-6 h-6" />
       </span>

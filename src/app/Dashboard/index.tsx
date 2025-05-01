@@ -16,7 +16,8 @@ import { Link } from "react-router";
 
 export function Dashboard() {
   const familyScrum = useFamilyScrum();
-  const groceriesCount = Object.values(familyScrum.groceries.groceries).length;
+  const groceriesCount =
+    familyScrum.groceries.groceriesQuery.value?.length || 0;
 
   return (
     <>
@@ -43,17 +44,19 @@ export function Dashboard() {
           </div>
         </Link>
 
-        <div className="flex items-center h-16">
-          <Button color="sky" className="w-full flex">
-            <ClipboardDocumentCheckIcon className="h-8 w-8 mr-2" />
-            Checklists{" "}
-            <span className="font-normal">
-              ({familyScrum.todos.todosWithCheckList.length})
-            </span>
-            <span className="flex-1" />
-            <ArrowRightIcon className="ml-auto h-6 w-6" />
-          </Button>
-        </div>
+        <Link to="/checklists">
+          <div className="flex items-center h-16">
+            <Button color="sky" className="w-full flex">
+              <ClipboardDocumentCheckIcon className="h-8 w-8 mr-2" />
+              Checklists{" "}
+              <span className="font-normal">
+                ({familyScrum.todos.todosWithCheckList.length})
+              </span>
+              <span className="flex-1" />
+              <ArrowRightIcon className="ml-auto h-6 w-6" />
+            </Button>
+          </div>
+        </Link>
 
         <div className="flex items-center h-16">
           <Button color="teal" className="w-full flex">

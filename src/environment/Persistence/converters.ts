@@ -62,6 +62,7 @@ export const grocery = {
       dinnerId: data.dinnerId,
       created: ensureDate(data.created),
       modified: ensureDate(data.modified),
+      category: data.category,
     };
   },
 };

@@ -4,6 +4,8 @@ import { Authentication } from "./Authentication";
 import { Persistence } from "./Persistence";
 import { Awake } from "./Awake";
 import { Storage } from "./Storage";
+import { AI } from "./AI";
+import { connectFunctionsEmulator, getFunctions } from "firebase/functions";
 
 export type Environment = ReturnType<typeof Environment>;
 
@@ -17,6 +19,11 @@ export function Environment() {
     appId: "1:913074889172:web:a4b2ec5787fe31fe033641",
     measurementId: "G-HHYZ9C0PEY",
   });
+  const functions = getFunctions(app);
+
+  if (import.meta.env.DEV) {
+    connectFunctionsEmulator(functions, "localhost", 5001);
+  }
 
   return {
     camera: Camera(),
@@ -24,5 +31,6 @@ export function Environment() {
     storage: Storage(app),
     persistence: Persistence(app),
     awake: Awake(),
+    ai: AI(functions),
   };
 }

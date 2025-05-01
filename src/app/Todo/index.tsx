@@ -13,6 +13,7 @@ import { CheckList } from "./CheckList";
 import { Link } from "react-router";
 import { useFamilyScrum } from "../FamilyScrumContext";
 import { TodoDTO } from "../../environment/Persistence";
+import { Text } from "@/components/text";
 
 type Props = {
   todo: TodoDTO;
@@ -42,34 +43,32 @@ export function Todo({ todo, children }: Props) {
       {todo.date || todo.time ? (
         <div className="flex items-center text-gray-500">
           {todo.date ? (
-            <span className="flex items-center text-sm mr-3">
+            <Text className="flex items-center text-sm mr-3">
               <CalendarIcon className="w-4 h-4 mr-1" />
               {getDayName(todo.date)} - {todo.date.toLocaleDateString()}
-            </span>
+            </Text>
           ) : null}
           {todo.time ? (
-            <span className="flex items-center text-sm mr-3">
+            <Text className="flex items-center text-sm mr-3">
               <ClockIcon className="w-4 h-4 mr-1 " />
               {todo.time}
-            </span>
+            </Text>
           ) : null}
         </div>
       ) : null}
       <div className="flex items-center">
         <Link to={`/todos/${todo.id}`}>
-          <span className="block">
-            <h2 className="font-medium">{todo.description}</h2>
-          </span>
+          <Text>{todo.description}</Text>
         </Link>
         <ArchiveBoxIcon
-          className="absolute top-2 right-2 text-gray-500 w-5 h-5"
+          className="absolute top-2 right-2 text-zinc-300 w-5 h-5"
           onClick={() => {
             setArchiving(true);
           }}
         />
       </div>
 
-      <div className=" my-2 text-sm text-gray-500 border border-gray-200 p-2 rounded-md bg-gray-50">
+      <div className=" my-2 text-sm text-zinc-500 border border-zinc-700 p-2 rounded-md bg-zinc-800">
         <div
           className="flex items-center"
           onClick={() => setCollapsed((current) => !current)}

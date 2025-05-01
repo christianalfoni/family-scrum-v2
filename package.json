@@ -20,7 +20,7 @@
     "fast-levenshtein": "^3.0.0",
     "firebase": "^11.3.1",
     "framer-motion": "^12.7.4",
-    "mobx-lite": "^0.1.12",
+    "mobx-lite": "^0.1.14",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router": "^7.3.0",

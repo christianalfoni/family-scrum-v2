@@ -1,113 +1,195 @@
 import {
-  PlusIcon,
   MagnifyingGlassIcon,
-  LightBulbIcon as SolidLightBulbIcon,
+  ShoppingCartIcon,
 } from "@heroicons/react/24/solid";
-import { LightBulbIcon } from "@heroicons/react/24/outline";
-import { useEffect, useState } from "react";
+import { Suspense, use, useEffect, useState } from "react";
 import { useFamilyScrum } from "./FamilyScrumContext";
-import { PageLayout } from "./common/PageLayout";
+import { Input, InputGroup } from "@/components/input";
+import { Button } from "@/components/button";
+import { Text } from "@/components/text";
+import { GroceryDTO } from "@/environment/Persistence";
+import { Divider } from "@/components/divider";
+
+/*
+      | "red"
+      | "orange"
+      | "amber"
+      | "yellow"
+      | "lime"
+      | "green"
+      | "emerald"
+      | "teal"
+      | "cyan"
+      | "sky"
+      | "blue"
+      | "indigo"
+      | "violet"
+      | "purple"
+      | "fuchsia"
+      | "pink"
+      | "rose"
+      | "zinc";
+  
+*/
+
+const categories = [
+  "produce",
+  "dairy",
+  "meat and fish",
+  "bakery",
+  "frozen",
+  "packaged and processed",
+  "beverages",
+  "household and non food items",
+  "candy",
+];
+
+function GroceriesShopping() {
+  const familyScrum = useFamilyScrum();
+  const groceries = familyScrum.groceries;
+  const categorizedGroceries = use(groceries.categorizedGroceriesQuery.promise);
+
+  useEffect(groceries.categorizedGroceriesQuery.subscribe, []);
+
+  // Sort groceries by category order
+  const sortedGroceries = [...categorizedGroceries].sort((a, b) => {
+    const aIndex = categories.indexOf(a.category);
+    const bIndex = categories.indexOf(b.category);
+    if (aIndex === -1 && bIndex === -1) return 0;
+    if (aIndex === -1) return 1;
+    if (bIndex === -1) return -1;
+    return aIndex - bIndex;
+  });
+
+  return sortedGroceries.reduce<React.ReactNode[]>(
+    (acc, grocery, index, array) => {
+      const prevGrocery = array[index - 1];
+
+      let heading: React.ReactNode = null;
+
+      if (prevGrocery && prevGrocery.category !== grocery.category) {
+        heading = <Divider key={index} />;
+      }
+
+      return [
+        ...acc,
+        heading,
+        <ShopGrocery
+          key={grocery.id}
+          name={grocery.name}
+          onClick={() => groceries.shopGrocery.mutate(grocery.id)}
+        />,
+      ];
+    },
+    []
+  );
+}
+
+function GroceriesList({ groceries }: { groceries: GroceryDTO[] }) {
+  return groceries.map((grocery) => (
+    <div key={grocery.id} className="flex items-center gap-2 py-2">
+      <Text className="flex-auto">{grocery.name}</Text>
+    </div>
+  ));
+}
 
 export function Groceries() {
   const familyScrum = useFamilyScrum();
   const awake = familyScrum.awake;
   const groceries = familyScrum.groceries;
   const [filter, setFilter] = useState("");
+  const [isShopping, setIsShopping] = useState(false);
   const pendingGroceryName = groceries.addGrocery.pendingParams?.[0];
-  const shoppingGroceryId = groceries.shopGrocery.pendingParams?.[0];
 
   useEffect(groceries.subscribe, []);
 
+  useEffect(() => {
+    if (isShopping) {
+      awake.on();
+    } else {
+      awake.off();
+    }
+  }, [isShopping]);
+
   return (
-    <PageLayout
-      title="Shopping List"
-      action={
-        <div
-          onClick={() => awake.toggle()}
-          className="relative mx-auto inline-flex items-center justify-center border border-transparent text-sm font-medium rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+    <>
+      <div className="flex items-center gap-2">
+        <InputGroup>
+          <MagnifyingGlassIcon />
+          <Input
+            name="search"
+            placeholder="Add/Filter&hellip;"
+            aria-label="Search"
+            value={filter}
+            disabled={isShopping}
+            onChange={(e) => setFilter(e.target.value)}
+          />
+        </InputGroup>
+        <Button
+          onClick={() => {
+            groceries.addGrocery.mutate(filter);
+            setFilter("");
+          }}
+          disabled={!!pendingGroceryName || !filter}
         >
-          {awake.current === "ON" ? (
-            <SolidLightBulbIcon className="w-6 h-6 text-yellow-500" />
+          Add
+        </Button>
+        <Button
+          color={isShopping ? "yellow" : "dark"}
+          onClick={() => setIsShopping(!isShopping)}
+        >
+          {isShopping ? (
+            <ShoppingCartIcon className="w-6 h-6" />
           ) : (
-            <LightBulbIcon className="w-6 h-6" />
+            <ShoppingCartIcon className="w-6 h-6" />
           )}
-        </div>
-      }
-    >
-      <div className="flex items-center px-6 py-4 border-b border-gray-200">
-        <div className="w-full">
-          <div className="relative">
-            <div className="pointer-events-none absolute inset-y-0 left-0 pl-3 flex items-center">
-              <MagnifyingGlassIcon
-                className="h-5 w-5 text-gray-400"
-                aria-hidden="true"
-              />
-            </div>
-            <input
-              id="search"
-              name="search"
-              value={filter}
-              onChange={(event) => setFilter(event.target.value)}
-              className="block w-full bg-white border border-gray-300 rounded-md py-2 pl-10 pr-3 text-sm placeholder-gray-500 focus:outline-none focus:text-gray-900 focus:placeholder-gray-400 focus:ring-1 focus:ring-rose-500 focus:border-rose-500 sm:text-sm"
-              placeholder="Add/Filter grocery..."
-              type="search"
-            />
-          </div>
-        </div>
-        <span className="ml-3">
-          <button
-            type="button"
-            className="disabled:opacity-50 bg-white whitespace-nowrap inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-light-blue-500"
-            {...(filter.length && !pendingGroceryName
-              ? {
-                  disabled: false,
-                  onClick: () => {
-                    groceries.addGrocery.mutate(filter);
-                    setFilter("");
-                  },
-                }
-              : { disabled: true, onClick: undefined })}
-          >
-            <PlusIcon
-              className="-ml-2 mr-1 h-5 text-gray-400"
-              aria-hidden="true"
-            />
-            <span>Add</span>
-          </button>
-        </span>
+        </Button>
       </div>
-      <ul className="relative z-0 divide-y divide-gray-200 border-b border-gray-200 overflow-y-scroll">
-        {pendingGroceryName ? <Grocery name={pendingGroceryName} /> : null}
-        {groceries
-          .filterGroceries(filter)
-          .map((grocery) =>
-            shoppingGroceryId === grocery.id ? null : (
-              <Grocery
-                key={grocery.id}
-                name={grocery.name}
-                onClick={() => groceries.shopGrocery.mutate(grocery.id)}
-              />
-            )
-          )}
-      </ul>
-    </PageLayout>
+      <div className="mt-4">
+        {pendingGroceryName ? (
+          <div className="flex items-center gap-2 py-2 opacity-50">
+            <Text className="flex-auto">{pendingGroceryName}</Text>
+          </div>
+        ) : null}
+        {isShopping ? (
+          <Suspense
+            fallback={
+              <div className="flex items-center justify-center h-36">
+                <Text
+                  className="text-center text-lg opacity-25 animate-pulse animate-fade-in"
+                  style={{
+                    animationDelay: "0.5s",
+                  }}
+                >
+                  Mapping groceries to store layout...
+                </Text>
+              </div>
+            }
+          >
+            <GroceriesShopping />
+          </Suspense>
+        ) : (
+          <GroceriesList groceries={groceries.filterGroceries(filter)} />
+        )}
+      </div>
+    </>
   );
 }
 
-function Grocery({ name, onClick }: { name: string; onClick?: () => void }) {
+function ShopGrocery({
+  name,
+  onClick,
+}: {
+  name: string;
+
+  onClick?: () => void;
+}) {
   return (
-    <li
-      onClick={onClick}
-      className="relative pl-4 pr-6 py-5 hover:bg-gray-50 sm:py-6 sm:pl-6 lg:pl-8 xl:pl-6"
-    >
-      <div className="flex items-center">
-        <span className="block">
-          <h2 className="font-medium">
-            <span className="absolute inset-0" aria-hidden="true" />
-            {name}
-          </h2>
-        </span>
-      </div>
-    </li>
+    <div onClick={onClick} className="flex items-center gap-2 py-2 px-1.5">
+      <Text className="flex-auto">{name}</Text>
+      <Button plain onClick={onClick}>
+        <ShoppingCartIcon className="w-6 h-6" />
+      </Button>
+    </div>
   );
 }
