@@ -1,4 +1,4 @@
-import { reactive } from "mobx-lite";
+import { mutation, Query, query } from "mobx-lite";
 import { Environment } from "../environment";
 import { DinnerDTO, FamilyPersistence } from "../environment/Persistence";
 import { FamilyStorage } from "../environment/Storage";
@@ -12,88 +12,65 @@ export type NewDinner = {
   imageSrc?: string;
 };
 
-type Params = {
-  env: Environment;
-  familyPersistence: FamilyPersistence;
-  familyStorage: FamilyStorage;
-};
-
-export function DinnersState({
-  env,
-  familyPersistence,
-  familyStorage,
-}: Params) {
-  const dinnerImageQueries: Record<string, reactive.Query<string>> = {};
-  const dinnerQueries: Record<string, reactive.Query<DinnerDTO>> = {};
-
-  const state = reactive({
-    dinnersQuery: reactive.query(familyPersistence.dinners.getAll),
-    queryDinnerImage,
-    queryDinner,
-    addDinnerMutation: reactive.mutation(addDinner),
-    updateDinnerMutation: reactive.mutation(updateDinner),
-    setDinnerImageMutation: reactive.mutation(setDinnerImage),
-    subscribe,
+export class DinnersState {
+  constructor(
+    private env: Environment,
+    private familyPersistence: FamilyPersistence,
+    private familyStorage: FamilyStorage
+  ) {}
+  private dinnerImageQueries: Record<string, Query<string>> = {};
+  private dinnerQueries: Record<string, Query<DinnerDTO>> = {};
+  dinnersQuery = query(() => this.familyPersistence.dinners.getAll());
+  addDinnerMutation = mutation((newDinner: NewDinner) =>
+    this.addDinner(newDinner)
+  );
+  updateDinnerMutation = mutation(async (id: string, update: NewDinner) => {
+    await this.familyPersistence.dinners.update(id, update);
+    await this.dinnersQuery.revalidate();
   });
-
-  return reactive.readonly(state);
-
-  function subscribe() {
-    // TODO: Pass ids to the callback so we can invalidate individual queries
-    return familyPersistence.dinners.subscribeChanges(() => {
-      state.dinnersQuery.revalidate();
-    });
-  }
-
-  function queryDinner(id: string) {
-    if (!dinnerQueries[id]) {
-      dinnerQueries[id] = reactive.query(() =>
-        familyPersistence.dinners.get(id)
+  setDinnerImageMutation = mutation(
+    async ({
+      id,
+      imageSrc,
+    }: {
+      id: string;
+      imageSrc: string;
+    }): Promise<void> => {
+      await this.familyStorage.uploadImage("dinners", id, imageSrc);
+    }
+  );
+  queryDinner(id: string) {
+    if (!this.dinnerQueries[id]) {
+      this.dinnerQueries[id] = query(() =>
+        this.familyPersistence.dinners.get(id)
       );
     }
 
-    return dinnerQueries[id];
+    return this.dinnerQueries[id];
   }
-
-  function queryDinnerImage(imageRef: string) {
-    if (!dinnerImageQueries[imageRef]) {
-      dinnerImageQueries[imageRef] = reactive.query(() =>
-        familyStorage.getImageUrl(imageRef)
+  queryDinnerImage(imageRef: string) {
+    if (!this.dinnerImageQueries[imageRef]) {
+      this.dinnerImageQueries[imageRef] = query(() =>
+        this.familyStorage.getImageUrl(imageRef)
       );
     }
 
-    return dinnerImageQueries[imageRef];
+    return this.dinnerImageQueries[imageRef];
   }
-
-  async function updateDinner(id: string, update: NewDinner) {
-    await familyPersistence.dinners.update(id, update);
-    await state.dinnersQuery.revalidate();
-  }
-
-  async function setDinnerImage({
-    id,
-    imageSrc,
-  }: {
-    id: string;
-    imageSrc: string;
-  }): Promise<void> {
-    await familyStorage.uploadImage("dinners", id, imageSrc);
-  }
-
-  async function addDinner(newDinner: NewDinner) {
-    const id = familyPersistence.dinners.createId();
+  private async addDinner(newDinner: NewDinner) {
+    const id = this.familyPersistence.dinners.createId();
 
     let imageRef: string | undefined;
 
     if (newDinner.imageSrc) {
-      imageRef = await familyStorage.uploadImage(
+      imageRef = await this.familyStorage.uploadImage(
         "dinners",
         id,
         newDinner.imageSrc
       );
     }
 
-    await familyPersistence.dinners.set({
+    await this.familyPersistence.dinners.set({
       id,
       name: newDinner.name,
       description: newDinner.description,
@@ -101,10 +78,10 @@ export function DinnersState({
       groceries: newDinner.groceries,
       preparationCheckList: newDinner.preparationCheckList,
       instructions: newDinner.instructions,
-      created: env.persistence.createServerTimestamp(),
-      modified: env.persistence.createServerTimestamp(),
+      created: this.env.persistence.createServerTimestamp(),
+      modified: this.env.persistence.createServerTimestamp(),
     });
 
-    await state.dinnersQuery.revalidate();
+    await this.dinnersQuery.revalidate();
   }
 }

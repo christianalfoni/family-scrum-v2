@@ -1,68 +1,50 @@
-import { reactive } from "mobx-lite";
+import { mutation, query } from "mobx-lite";
 
 import levenshtein from "fast-levenshtein";
-import { FamilyPersistence, GroceryDTO } from "../environment/Persistence";
+import { FamilyPersistence } from "../environment/Persistence";
 import { Environment } from "../environment";
 
-export type GroceriesState = ReturnType<typeof GroceriesState>;
+export class GroceriesState {
+  constructor(
+    private env: Environment,
+    private familyPersistence: FamilyPersistence
+  ) {}
+  groceriesQuery = query(() => this.familyPersistence.groceries.getAll());
+  categorizedGroceriesQuery = query(() => {
+    const groceries = this.groceriesQuery.value || [];
 
-type Params = {
-  familyPersistence: FamilyPersistence;
-  env: Environment;
-};
-
-export function GroceriesState({ env, familyPersistence }: Params) {
-  const peristence = env.persistence;
-  const groceriesApi = familyPersistence.groceries;
-  const state = reactive({
-    groceriesQuery: reactive.query(groceriesApi.getAll),
-    categorizedGroceriesQuery: reactive.query(categorizeGroceries),
-    filterGroceries,
-    addGrocery: reactive.mutation(addGrocery),
-    shopGrocery: reactive.mutation(shopGrocery),
-    subscribe,
-  });
-
-  return reactive.readonly(state);
-
-  function categorizeGroceries() {
-    const groceries: GroceryDTO[] = state.groceriesQuery.value || [];
-
-    return env.ai.categorizeGroceries(
+    return this.env.ai.categorizeGroceries(
       groceries.map((grocery) => ({
         id: grocery.id,
         name: grocery.name,
       }))
     );
-  }
+  });
+  addGroceryMutation = mutation(async (name: string) => {
+    const persistence = this.env.persistence;
+    const groceriesApi = this.familyPersistence.groceries;
 
-  function subscribe() {
-    return groceriesApi.subscribeChanges(() => {
-      console.log("Revalidating!");
-      state.groceriesQuery.revalidate();
-    });
-  }
-
-  async function shopGrocery(id: string) {
-    await familyPersistence.groceries.delete(id);
-    await state.groceriesQuery.revalidate();
-  }
-
-  async function addGrocery(name: string) {
     await groceriesApi.set({
       id: groceriesApi.createId(),
       name,
-      created: peristence.createServerTimestamp(),
-      modified: peristence.createServerTimestamp(),
+      created: persistence.createServerTimestamp(),
+      modified: persistence.createServerTimestamp(),
     });
 
-    await state.groceriesQuery.revalidate();
+    await this.groceriesQuery.revalidate();
+  });
+  shopGroceryMutation = mutation(async (id: string) => {
+    await this.familyPersistence.groceries.delete(id);
+    await this.groceriesQuery.revalidate();
+  });
+  subscribe() {
+    return this.familyPersistence.groceries.subscribeChanges(() => {
+      this.groceriesQuery.revalidate();
+    });
   }
-
-  function filterGroceries(filter: string) {
+  filterGroceries(filter: string) {
     const lowerCaseInput = filter.toLowerCase();
-    const now = Date.now();
-    const groceries = state.groceriesQuery.value || [];
+    const groceries = this.groceriesQuery.value || [];
 
     return filter
       ? groceries

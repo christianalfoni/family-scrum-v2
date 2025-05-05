@@ -1,4 +1,4 @@
-import { reactive } from "mobx-lite";
+import { query, mutation, Query } from "mobx-lite";
 import { Environment } from "../environment";
 import {
   CheckListItemDTO,
@@ -16,6 +16,27 @@ export type NewTodo = Pick<
   "description" | "date" | "time" | "checkList"
 >;
 
+export class TodosState {
+  constructor(
+    private env: Environment,
+    private familyPersistence: FamilyPersistence,
+    private user: UserDTO
+  ) {}
+  private todoQueries: Record<string, Query<TodoDTO>> = {};
+  todosQuery = query(() => this.familyPersistence.todos.getAll());
+  get todosWithCheckListQuery() {
+    const todos = this.todosQuery.value || [];
+
+    return todos.filter((todo): todo is TodoDTOWithCheckList =>
+      Boolean(todo.checkList)
+    );
+  }
+  queryTodo = query((todoId: string) =>
+    this.familyPersistence.todos.get(todoId)
+  );
+}
+
+/*
 type Params = {
   familyPersistence: FamilyPersistence;
   env: Environment;
@@ -131,3 +152,4 @@ export function TodosState({ familyPersistence, env, user }: Params) {
     await state.todosQuery.revalidate();
   }
 }
+*/
