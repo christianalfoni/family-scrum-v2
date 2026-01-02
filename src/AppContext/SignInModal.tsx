@@ -1,16 +1,22 @@
 import { useTranslations } from "next-intl";
 
 import { Fragment } from "react";
-import { Dialog, Transition } from "@headlessui/react";
+import {
+  Dialog,
+  DialogTitle,
+  Transition,
+  TransitionChild,
+} from "@headlessui/react";
 import { LockClosedIcon } from "@heroicons/react/outline";
 import { useGlobalContext } from "../useGlobalContext";
+import { DialogOverlay } from "@radix-ui/react-dialog";
 
 export function SignInModal() {
   const { firebase } = useGlobalContext();
   const t = useTranslations("SignInModal");
 
   return (
-    <Transition.Root show as={Fragment}>
+    <Transition show as={Fragment}>
       <Dialog
         as="div"
         static
@@ -19,7 +25,7 @@ export function SignInModal() {
         onClose={() => {}}
       >
         <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-          <Transition.Child
+          <TransitionChild
             as={Fragment}
             enter="ease-out duration-300"
             enterFrom="opacity-0"
@@ -28,10 +34,10 @@ export function SignInModal() {
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
           >
-            <Dialog.Overlay className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
-          </Transition.Child>
+            <DialogOverlay className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+          </TransitionChild>
 
-          <Transition.Child
+          <TransitionChild
             as={Fragment}
             enter="ease-out duration-300"
             enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
@@ -49,12 +55,12 @@ export function SignInModal() {
                   />
                 </div>
                 <div className="mt-3 text-center sm:mt-5">
-                  <Dialog.Title
+                  <DialogTitle
                     as="h3"
                     className="text-lg leading-6 font-medium text-gray-900"
                   >
                     {t("signInRequired")}
-                  </Dialog.Title>
+                  </DialogTitle>
                   <div className="mt-2">
                     <p className="text-sm text-gray-500">
                       {t("accessExplanation")}
@@ -72,9 +78,9 @@ export function SignInModal() {
                 </button>
               </div>
             </div>
-          </Transition.Child>
+          </TransitionChild>
         </div>
       </Dialog>
-    </Transition.Root>
+    </Transition>
   );
 }
