@@ -25,7 +25,9 @@
     "todos": "Todos",
     "planNextWeek": "Plan next week",
     "events": "Events",
-    "dinners": "Dinners"
+    "dinners": "Dinners",
+    "newGrocery": "New Grocery",
+    "add": "Add"
   },
   "DinnersView": {
     "dinners": "Dinners"

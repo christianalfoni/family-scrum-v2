@@ -11,7 +11,7 @@ export function App() {
   const { views } = useGlobalContext();
 
   const view = views.current;
-  let content: JSX.Element;
+  let content: React.ReactNode;
 
   switch (view.name) {
     case "DASHBOARD": {

@@ -1,5 +1,5 @@
 import { CalendarIcon } from "@heroicons/react/outline";
-import { useTranslations, useIntl } from "next-intl";
+import { useTranslations, useFormatter } from "next-intl";
 import React, { memo, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import SwiperCore, { Controller } from "swiper";
@@ -53,7 +53,7 @@ export function CurrentWeekTodos() {
   const { todosByWeekday, eventsByWeekday } = useCurrentWeekTodosContext();
 
   const tCommon = useTranslations("common");
-  const intl = useIntl();
+  const format = useFormatter();
 
   const currentDayIndex = getDayIndex();
   const currentWeekDate = getFirstDateOfCurrentWeek();
@@ -84,7 +84,7 @@ export function CurrentWeekTodos() {
             <SwiperSlide key={index}>
               <WeekdaySlideContent
                 title={`${tCommon(weekdays[index])}`}
-                date={intl.formatDateTime(addDays(currentWeekDate, index), {
+                date={format.dateTime(addDays(currentWeekDate, index), {
                   day: "numeric",
                   month: "long",
                 })}

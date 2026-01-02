@@ -1,0 +1,13 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": null,
+  "rewrites": [
+    {
+      "source": "/__/auth/:path*",
+      "destination": "https://family-scrum-v2.firebaseapp.com/__/auth/:path*"
+    }
+  ]
+}
