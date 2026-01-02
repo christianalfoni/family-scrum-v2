@@ -1,5 +1,5 @@
 import React from "react";
-import { CheckListItem } from "../../../useGlobalContext/firebase";
+import type { CheckListItem } from "../../../useGlobalContext/firebase";
 import { useTodoItemContext } from "./useTodoItemContext";
 import { AddCheckListItem } from "./AddCheckListItem";
 import { TrashIcon } from "@heroicons/react/outline";

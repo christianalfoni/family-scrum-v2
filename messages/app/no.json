@@ -25,7 +25,9 @@
     "todos": "Gjøremål",
     "events": "Hendelser",
     "planNextWeek": "Planlegg neste uke",
-    "dinners": "Middager"
+    "dinners": "Middager",
+    "newGrocery": "Ny Matvare",
+    "add": "Legg til"
   },
   "DinnersView": {
     "dinners": "Middager"

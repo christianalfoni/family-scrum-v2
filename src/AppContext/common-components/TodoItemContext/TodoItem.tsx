@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useTranslations, useIntl } from "next-intl";
+import { useTranslations, useFormatter } from "next-intl";
 import {
   CalendarIcon,
   ChevronDownIcon,
@@ -20,7 +20,7 @@ export function TodoItem({ children }: { children?: React.ReactNode }) {
   const { todo, archiveTodo } = useTodoItemContext();
 
   const tCommon = useTranslations("common");
-  const intl = useIntl();
+  const format = useFormatter();
 
   const [isCollapsed, setCollapsed] = React.useState(true);
   const [archiving, setArchiving] = React.useState(false);
@@ -42,7 +42,7 @@ export function TodoItem({ children }: { children?: React.ReactNode }) {
             <span className="flex items-center text-sm mr-3">
               <CalendarIcon className="w-4 h-4 mr-1" />
               {tCommon(getDayName(todo.date.toDate()))} -{" "}
-              {intl.formatDateTime(todo.date.toDate(), {
+              {format.dateTime(todo.date.toDate(), {
                 day: "numeric",
                 month: "long",
               })}

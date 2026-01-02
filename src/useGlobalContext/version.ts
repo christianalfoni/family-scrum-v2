@@ -1,11 +1,8 @@
 import { signal } from "impact-app";
 import { gt } from "semver";
 
-const fetchVersion = async () => {
-  const response = await fetch("/api/version");
-  const { version } = await response.json();
-
-  return version as string;
+const getCurrentVersion = () => {
+  return __APP_VERSION__;
 };
 
 const STORAGE_KEY = "family-scrum.version";
@@ -18,14 +15,13 @@ const STORAGE_KEY = "family-scrum.version";
 export function useVersion() {
   const hasNew = signal(false);
   const currentVersion = localStorage.getItem(STORAGE_KEY);
+  const version = getCurrentVersion();
 
-  fetchVersion().then((version) => {
-    if (!currentVersion || gt(version, currentVersion)) {
-      hasNew.value = true;
-    }
+  if (!currentVersion || gt(version, currentVersion)) {
+    hasNew.value = true;
+  }
 
-    localStorage.setItem(STORAGE_KEY, version);
-  });
+  localStorage.setItem(STORAGE_KEY, version);
 
   return {
     get hasNew() {
