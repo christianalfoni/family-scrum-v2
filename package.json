@@ -1,5 +1,5 @@
 {
-  "version": "0.0.42",
+  "version": "0.0.43",
   "scripts": {
     "dev": "vite",
     "deploy:functions": "firebase deploy --only functions",

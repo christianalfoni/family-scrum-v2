@@ -38,29 +38,46 @@ function CheckListItem({
 }
 
 export function CheckList({ checkList }: { checkList: CheckListItem[] }) {
-  const { addCheckListItem } = useTodoItemContext();
+  const { addCheckListItem, resetCheckList } = useTodoItemContext();
 
   const t = useTranslations("CheckListsView");
 
   const [addingCheckListItem, setAddingCheckListItem] = React.useState(false);
 
   return (
-    <ul className="mt-2">
-      {checkList.map((item, index) => (
-        <CheckListItem key={item.title} item={item} index={index} />
-      ))}
-      <li>
+    <div>
+      <ul className="mt-2">
+        {checkList.map((item, index) => (
+          <CheckListItem key={item.title} item={item} index={index} />
+        ))}
+      </ul>
+      <div className="mt-4 flex gap-2">
         {addingCheckListItem ? (
-          <AddCheckListItem onAdd={(title) => addCheckListItem(title)} />
+          <div className="flex-grow">
+            <AddCheckListItem
+              onAdd={(title) => {
+                addCheckListItem(title);
+                setAddingCheckListItem(false);
+              }}
+            />
+          </div>
         ) : (
-          <div
-            className="p-2 text-gray-400 text-center text-lg"
+          <button
+            className="flex-grow p-2 text-gray-400 text-center text-lg border border-gray-300 rounded-md hover:bg-gray-50"
             onClick={() => setAddingCheckListItem(true)}
           >
             {t("addNewItem")}
-          </div>
+          </button>
         )}
-      </li>
-    </ul>
+        {!addingCheckListItem && (
+          <button
+            className="px-4 py-2 text-gray-400 text-lg border border-gray-300 rounded-md hover:bg-gray-50"
+            onClick={() => resetCheckList()}
+          >
+            {t("reset")}
+          </button>
+        )}
+      </div>
+    </div>
   );
 }

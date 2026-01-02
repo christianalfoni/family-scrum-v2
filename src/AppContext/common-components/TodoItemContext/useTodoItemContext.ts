@@ -100,5 +100,24 @@ function TodoItemContext(props: Props) {
         }
       });
     },
+    resetCheckList() {
+      const updateTodo = (current: TodoDTO) =>
+        produce(current, (draft) => {
+          if (draft.checkList) {
+            draft.checkList = draft.checkList.map((item) => ({
+              title: item.title,
+              completed: false,
+            }));
+          }
+        });
+
+      todo.value = updateTodo(todo.value);
+
+      firebase.transactDoc(todosCollection, id, (doc) => {
+        if (doc) {
+          return updateTodo(doc);
+        }
+      });
+    },
   };
 }
