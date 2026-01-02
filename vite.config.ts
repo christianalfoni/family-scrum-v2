@@ -21,6 +21,19 @@ export default defineConfig({
 
   server: {
     port: 3000,
+    proxy: {
+      "/api/version": {
+        target: "http://localhost:3000",
+        changeOrigin: true,
+        configure: (proxy, _options) => {
+          proxy.on("proxyReq", (proxyReq, req, res) => {
+            // Intercept and respond directly with version
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ version: packageJson.version }));
+          });
+        },
+      },
+    },
   },
 
   build: {

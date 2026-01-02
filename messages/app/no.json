@@ -71,7 +71,8 @@
     "checkLists": "Sjekklister",
     "title": "Tittel",
     "add": "Legg til",
-    "addNewItem": "Add new item"
+    "addNewItem": "Legg til nytt element",
+    "reset": "Tilbakestill"
   },
   "Assistant": {
     "send": "Send",

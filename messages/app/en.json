@@ -71,7 +71,8 @@
     "checkLists": "Checklists",
     "title": "Title",
     "add": "Add",
-    "addNewItem": "Add new item"
+    "addNewItem": "Add new item",
+    "reset": "Reset"
   },
   "Assistant": {
     "send": "Send",
